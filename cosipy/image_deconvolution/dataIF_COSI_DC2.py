@@ -165,11 +165,11 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                              self._image_response.axes["Phi"], \
                              self._image_response.axes["PsiChi"]])
         
-        self._event = Histogram(axes_cds, unit = self._event.unit, contents = self._event.contents)
+        self._event = Histogram(axes_cds, unit = self._event.unit, contents = self._event.contents, track_overflow = False)
 
         for key in self._bkg_models:
             bkg_model = self._bkg_models[key]
-            self._bkg_models[key] = Histogram(axes_cds, unit = bkg_model.unit, contents = bkg_model.contents)
+            self._bkg_models[key] = Histogram(axes_cds, unit = bkg_model.unit, contents = bkg_model.contents, track_overflow = False)
             del bkg_model
 
         logger.info(f"The axes in the event and background files are redefined. Now they are consistent with those of the response file.")
@@ -184,7 +184,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         axes_image_response = [full_detector_response.axes["NuLambda"], full_detector_response.axes["Ei"],
                                full_detector_response.axes["Em"], full_detector_response.axes["Phi"], full_detector_response.axes["PsiChi"]]
 
-        self._image_response = Histogram(axes_image_response, unit = full_detector_response.unit)
+        self._image_response = Histogram(axes_image_response, unit = full_detector_response.unit, track_overflow = False)
 
         nside = full_detector_response.axes["NuLambda"].nside
         npix = full_detector_response.axes["NuLambda"].npix 
@@ -204,10 +204,10 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         logger.info("Calculating an exposure map...")
         
         if self._coordsys_conv_matrix is None:
-            self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * u.sr)
+            self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * u.sr, track_overflow = False)
             self._exposure_map[:] = np.sum(self._image_response.contents, axis = (2,3,4)) * self.model_axes['lb'].pixarea()
         else:
-            self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * self._coordsys_conv_matrix.unit * u.sr)
+            self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * self._coordsys_conv_matrix.unit * u.sr, track_overflow = False)
             self._exposure_map[:] = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)), 
                                                  np.sum(self._image_response, axis = (2,3,4)),
                                                  axes = ([1], [0]) ) * self._image_response.unit * self._coordsys_conv_matrix.unit * self.model_axes['lb'].pixarea()
@@ -245,7 +245,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # However it is likely that it will have such an axis in the future in order to consider background variability depending on time and pointign direction etc.
         # Then, the implementation here will not work. Thus, keep in mind that we need to modify it once the response format is fixed.
 
-        expectation = Histogram(self.data_axes)
+        expectation = Histogram(self.data_axes, track_overflow = False)
         
         if self._coordsys_conv_matrix is None:
             expectation[:] = np.tensordot( model.contents, self._image_response.contents, axes = ([0,1],[0,1])) * model.axes['lb'].pixarea()
@@ -290,7 +290,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         if dataspace_histogram.unit is not None:
             hist_unit *= dataspace_histogram.unit
 
-        hist = Histogram(self.model_axes, unit = hist_unit)
+        hist = Histogram(self.model_axes, unit = hist_unit, track_overflow = False)
 
         if self._coordsys_conv_matrix is None:
             hist[:] = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([0,1,2], [2,3,4])) * self.model_axes['lb'].pixarea()

@@ -19,7 +19,7 @@ class ModelBase(Histogram, ABC):
                  labels=None, axis_scale = None, sparse = None, unit = None):
 
         super().__init__(edges, contents = contents, sumw2 = sumw2, 
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit)
+                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit, track_overflow = False)
 
     @classmethod
     @abstractmethod

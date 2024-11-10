@@ -40,6 +40,7 @@ class SpacecraftAttitudeMap(Histogram):
                                       coordsys = coordsys,
                                       label = labels[1])],
                          sparse = True,
-                         unit = u.s)    
+                         unit = u.s,
+                         track_overflow = False)    
 
         

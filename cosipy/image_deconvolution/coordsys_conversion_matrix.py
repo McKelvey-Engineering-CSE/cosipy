@@ -19,7 +19,7 @@ class CoordsysConversionMatrix(Histogram):
                  binning_method = None):
         
         super().__init__(edges, contents = contents, sumw2 = sumw2,
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit)
+                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit, track_overflow = False)
 
         self.binning_method = binning_method #'Time' or 'ScAtt'
 
@@ -212,8 +212,13 @@ class CoordsysConversionMatrix(Histogram):
         """
 
         new = super().open(filename, name)
+        
+        contents = new.contents
+        if isinstance(contents, sparse.COO):
+            # accelerate sparse transpose and reshape operations 
+            contents.enable_caching()
 
-        new = cls(new.axes, contents = new.contents, sumw2 = new.contents, unit = new.unit) 
+        new = cls(new.axes, contents = contents, sumw2 = contents, unit = new.unit) 
 
         new.binning_method = new.axes.labels[0] # 'Time' or 'ScAtt'
 
