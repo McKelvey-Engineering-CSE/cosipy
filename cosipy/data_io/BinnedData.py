@@ -123,6 +123,9 @@ class BinnedData(UnBinnedData):
                     np.rad2deg(self.cosi_dataset['Phi'][low:high])*u.deg, 
                     coords[low:high])
 
+        # don't save overflow and underflow bins
+        self.binned_data.track_overflow(track_overflow=False)
+        
         # Save binned data to hdf5 file:
         if output_name != None:
             self.binned_data.write('%s.hdf5' %output_name, overwrite=True)
