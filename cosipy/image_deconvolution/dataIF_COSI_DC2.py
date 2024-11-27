@@ -77,6 +77,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             new._load_full_detector_response_on_memory(rsp, is_miniDC2_format)
             logger.info('Finished')
         elif isinstance(rsp, Histogram):
+            rsp.track_overflow(False)
             new._image_response = rsp
         
         # We modify the axes in event, bkg_models, response. This is only for DC2.
