@@ -1,7 +1,8 @@
 import numpy as np
 from tqdm.autonotebook import tqdm
 import astropy.units as u
-
+from numba import njit, prange
+import cmath
 import logging
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,8 @@ from histpy import Histogram, Axes
 from cosipy.response import FullDetectorResponse
 
 from .image_deconvolution_data_interface_base import ImageDeconvolutionDataInterfaceBase
+
+import sparse as s
 
 class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
     """
@@ -79,6 +82,8 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         elif isinstance(rsp, Histogram):
             new._image_response = rsp
         
+        new.image_response_contents = new._image_response.contents
+
         # We modify the axes in event, bkg_models, response. This is only for DC2.
         new._modify_axes()
         
@@ -92,6 +97,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             new._model_axes = Axes(axes)
         else:
             new._model_axes = Axes([new._coordsys_conv_matrix.axes['lb'], new._image_response.axes['Ei']])
+            # new._coordsys_conv_matrix.tocsr() ??
 
         new._calc_exposure_map()
 
@@ -205,7 +211,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         
         if self._coordsys_conv_matrix is None:
             self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * u.sr)
-            self._exposure_map[:] = np.sum(self._image_response.contents, axis = (2,3,4)) * self.model_axes['lb'].pixarea()
+            self._exposure_map[:] = np.sum(self.image_response_contents, axis = (2,3,4)) * self.model_axes['lb'].pixarea()
         else:
             self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * self._coordsys_conv_matrix.unit * u.sr)
             self._exposure_map[:] = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)), 
@@ -247,8 +253,12 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         expectation = Histogram(self.data_axes)
         
+        # these tensordots will need to be on the GPU (architecture; very difficult!)
+
+        # overwriting the Histogram contents with expectation[:] might be costly
+        # refactor: calculation the expectation and then write it to the Histogram
         if self._coordsys_conv_matrix is None:
-            expectation[:] = np.tensordot( model.contents, self._image_response.contents, axes = ([0,1],[0,1])) * model.axes['lb'].pixarea()
+            expectation[:] = np.tensordot( model.contents, self.image_response_contents, axes = ([0,1],[0,1])) * model.axes['lb'].pixarea()
             # ['lb', 'Ei'] x [NuLambda(lb), Ei, Em, Phi, PsiChi] -> [Em, Phi, PsiChi]
         else:
             map_rotated = np.tensordot(self._coordsys_conv_matrix.contents, model.contents, axes = ([1], [0])) 
@@ -257,9 +267,17 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             map_rotated *= model.axes['lb'].pixarea()
             # data.coordsys_conv_matrix.contents is sparse, so the unit should be restored.
             # the unit of map_rotated is 1/cm2 ( = s * 1/cm2/s/sr * sr)
-            expectation[:] = np.tensordot( map_rotated, self._image_response.contents, axes = ([1,2], [0,1]))
+            expectation[:] = np.tensordot( map_rotated, self.image_response_contents, axes = ([1,2], [0,1]))
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
+        # need to accelerate this
+        # is bkg_model dense
+        # Get this into Numba and use prange()
+        # Histograms of Quantities 
+        # take Units out, do math with Numba, but Units back in
+        # Quantity array as array
+        # Unit multiply is costly
+        # Need to make sure units are right
         if dict_bkg_norm is not None: 
             for key in self.keys_bkg_models():
                 expectation += self.bkg_model(key) * dict_bkg_norm[key]
@@ -293,10 +311,10 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         hist = Histogram(self.model_axes, unit = hist_unit)
 
         if self._coordsys_conv_matrix is None:
-            hist[:] = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([0,1,2], [2,3,4])) * self.model_axes['lb'].pixarea()
+            hist[:] = np.tensordot(dataspace_histogram.contents, self.image_response_contents, axes = ([0,1,2], [2,3,4])) * self.model_axes['lb'].pixarea()
             # [Em, Phi, PsiChi] x [NuLambda (lb), Ei, Em, Phi, PsiChi] -> [NuLambda (lb), Ei]
         else:
-            _ = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([1,2,3], [2,3,4])) 
+            _ = np.tensordot(dataspace_histogram.contents, self.image_response_contents, axes = ([1,2,3], [2,3,4])) 
             # [Time/ScAtt, Em, Phi, PsiChi] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, NuLambda, Ei]
 
             hist[:] = np.tensordot(self._coordsys_conv_matrix.contents, _, axes = ([0,2], [0,1])) \
@@ -345,6 +363,30 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         float
             Log-likelood
         """
-        loglikelood = np.sum( self.event * np.log(expectation) ) - np.sum(expectation)
+        # NUMBA
+        # event is dense hist
+        # expectation is dense hist
+        # wrap this in Numba
+        # np.ravel() (no copy)
+        # passed to JIT compiled function in Numba
+        # range to prange()
+        # fast math mode turned on
 
-        return loglikelood
+        # loglikelood = np.sum( self.event * np.log(expectation) ) - np.sum(expectation)
+
+        return jit_calc_loglikelihood(self.event.contents.ravel(), expectation.contents.ravel())
+
+@njit(parallel=True, nogil=True, fastmath=True)
+def jit_calc_loglikelihood(event, expectation):
+    loglikelihood = 0
+    for i in prange(event.shape[0]):
+        loglikelihood += np.log(expectation[i], dtype=np.float32)*event[i] - expectation[i] # np does checks, float64
+        # math? not cmath
+        # profile dtype=float64 vs. dtype=np.float32 vs. cmath vs. math
+        # different cores
+        # SVML installed for Numba's compiler
+    return loglikelihood
+
+    # from numba import set_num_threads
+    # set_num_threads(8)
+    
