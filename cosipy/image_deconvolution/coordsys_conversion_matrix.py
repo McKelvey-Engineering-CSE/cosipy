@@ -28,6 +28,11 @@ class CoordsysConversionMatrix(Histogram):
 
         self.binning_method = binning_method #'Time' or 'ScAtt'
 
+    def copy(self):
+        new = super().copy()
+        new.binning_method = self.binning_method
+        return new
+
     @classmethod
     def time_binning_ccm(cls, full_detector_response, orientation, time_intervals, nside_model = None, is_nest_model = False):
         """

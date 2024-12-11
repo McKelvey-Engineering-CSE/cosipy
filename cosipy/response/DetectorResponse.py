@@ -38,6 +38,39 @@ class DetectorResponse(Histogram):
         self._spec = None
         self._aeff = None
 
+    def copy(self):
+        new = super().copy()
+        new._spec = None if self._spec is None else self._spec.copy()
+        new._aeff = None if self._aeff is None else self._aeff.copy()
+        return new
+
+    def _write(self, file, group_name):
+
+        group = super()._write(file, group_name)
+
+        if self._spec is not None:
+            group.create_dataset('_spec', data = self._spec)
+
+        if self._spec is not None:
+            group.create_dataset('_aeff', data = self._aeff)
+
+    @classmethod
+    def _open(cls, hist_group):
+
+        new = super()._open(hist_group)
+
+        if '_spec' in hist_group:
+            new._spec = hist_group['_spec']
+        else:
+            new._spec = None
+
+        if '_aeff' in hist_group:
+            new._aeff = hist_group['_aeff']
+        else:
+            new._aeff = None
+
+        return new
+
     def get_spectral_response(self, copy = True):
         """
         Reduced detector response, projected along the real and measured energy axes only.

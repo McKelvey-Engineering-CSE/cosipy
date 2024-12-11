@@ -31,13 +31,12 @@ setup(name='cosipy',
                           'numba',
                           'yayc',
                           'awscli',
-                          'scipy<=1.13.0'],
+                          'scipy'],
       description = "High-level analysis for the COSI telescope data",
       entry_points={"console_scripts":[
           "cosi-response = cosipy.response.FullDetectorResponse:cosi_response",
                               ]},
-      
+
       long_description = long_description,
       long_description_content_type="text/markdown",
       )
-
