@@ -25,7 +25,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         self._image_response = None # histpy.Histogram (dense)
 
         # None if using Galactic CDS, mandotary if using local CDS
-        self._coordsys_conv_matrix = None 
+        self._coordsys_conv_matrix = None
 
         # optional
         self.is_miniDC2_format = False #should be removed in the future
@@ -46,7 +46,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         rsp : :py:class:`histpy.Histogram` or :py:class:`cosipy.response.FullDetectorResponse`
             Response
         coordsys_conv_matrix : :py:class:`cosipy.image_deconvolution.CoordsysConversionMatrix`, default False
-            Coordsys conversion matrix 
+            Coordsys conversion matrix
         is_miniDC2_format : bool, default False
             Whether the file format is for mini-DC2. It will be removed in the future.
 
@@ -79,15 +79,15 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         elif isinstance(rsp, Histogram):
             rsp.track_overflow(False)
             new._image_response = rsp
-        
+
         # We modify the axes in event, bkg_models, response. This is only for DC2.
         new._modify_axes()
-        
+
         new._data_axes = new._event.axes
-        
+
         if new._coordsys_conv_matrix is None:
             axes = [new._image_response.axes['NuLambda'], new._image_response.axes['Ei']]
-            axes[0].label = 'lb' 
+            axes[0].label = 'lb'
             # The gamma-ray direction of pre-computed response in DC2 is in the galactic coordinate, not in the local coordinate.
             # Actually, it is labeled as 'NuLambda'. So I replace it with 'lb'.
             new._model_axes = Axes(axes)
@@ -117,7 +117,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         for name in axis_name:
 
             logger.info(f"... checking the axis {name} of the event and background files...")
-            
+
             event_edges, event_unit = self._event.axes[name].edges, self._event.axes[name].unit
 
             for key in self._bkg_models:
@@ -125,31 +125,31 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                 bkg_edges, bkg_unit = self._bkg_models[key].axes[name].edges, self._bkg_models[key].axes[name].unit
 
                 if np.all(event_edges == bkg_edges):
-                    logger.info(f"    --> pass (edges)") 
+                    logger.info(f"    --> pass (edges)")
                 else:
                     logger.error(f"Warning: the edges of the axis {name} are not consistent between the event and the background model {key}!")
                     logger.error(f"         event      : {event_edges}")
                     logger.error(f"         background : {bkg_edges}")
                     raise ValueError
 
-        # check the axes of the event/response files. 
+        # check the axes of the event/response files.
         # Note that currently (2023-08-29) no unit is stored in the binned data. So only the edges are compared. This should be modified in the future.
 
         axis_name = ['Em', 'Phi', 'PsiChi']
-        
+
         for name in axis_name:
 
             logger.info(f"...checking the axis {name} of the event and response files...")
 
             event_edges, event_unit = self._event.axes[name].edges, self._event.axes[name].unit
             response_edges, response_unit = self._image_response.axes[name].edges, self._image_response.axes[name].unit
-            
+
 #            if type(response_edges) == u.quantity.Quantity and self.is_miniDC2_format == True:
             if event_unit is None and response_unit is not None and self.is_miniDC2_format == True: # this is only for the old data in the miniDC2 challenge. I will remove them in the near future (or in the final dataIF).
                 response_edges = response_edges.value
 
             if np.all(event_edges == response_edges):
-                logger.info(f"    --> pass (edges)") 
+                logger.info(f"    --> pass (edges)")
             else:
                 logger.error(f"Warning: the edges of the axis {name} are not consistent between the event and background!")
                 logger.error(f"        event      : {event_edges}")
@@ -165,7 +165,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                              self._image_response.axes["Em"], \
                              self._image_response.axes["Phi"], \
                              self._image_response.axes["PsiChi"]])
-        
+
         self._event = Histogram(axes_cds, unit = self._event.unit, contents = self._event.contents, track_overflow = False)
 
         for key in self._bkg_models:
@@ -188,8 +188,8 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         self._image_response = Histogram(axes_image_response, unit = full_detector_response.unit, track_overflow = False)
 
         nside = full_detector_response.axes["NuLambda"].nside
-        npix = full_detector_response.axes["NuLambda"].npix 
-    
+        npix = full_detector_response.axes["NuLambda"].npix
+
         if is_miniDC2_format:
             for ipix in tqdm(range(npix)):
                 self._image_response[ipix] = np.sum(full_detector_response[ipix].to_dense(), axis = (4,5)) #Ei, Em, Phi, ChiPsi
@@ -203,13 +203,13 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         """
 
         logger.info("Calculating an exposure map...")
-        
+
         if self._coordsys_conv_matrix is None:
             self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * u.sr, track_overflow = False)
             self._exposure_map[:] = np.sum(self._image_response.contents, axis = (2,3,4)) * self.model_axes['lb'].pixarea()
         else:
             self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * self._coordsys_conv_matrix.unit * u.sr, track_overflow = False)
-            self._exposure_map[:] = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)), 
+            self._exposure_map[:] = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)),
                                                  np.sum(self._image_response, axis = (2,3,4)),
                                                  axes = ([1], [0]) ) * self._image_response.unit * self._coordsys_conv_matrix.unit * self.model_axes['lb'].pixarea()
             # [Time/ScAtt, lb, NuLambda] -> [lb, NuLambda]
@@ -247,12 +247,12 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # Then, the implementation here will not work. Thus, keep in mind that we need to modify it once the response format is fixed.
 
         expectation = Histogram(self.data_axes, track_overflow = False)
-        
+
         if self._coordsys_conv_matrix is None:
             expectation[:] = np.tensordot( model.contents, self._image_response.contents, axes = ([0,1],[0,1])) * model.axes['lb'].pixarea()
             # ['lb', 'Ei'] x [NuLambda(lb), Ei, Em, Phi, PsiChi] -> [Em, Phi, PsiChi]
         else:
-            map_rotated = np.tensordot(self._coordsys_conv_matrix.contents, model.contents, axes = ([1], [0])) 
+            map_rotated = np.tensordot(self._coordsys_conv_matrix.contents, model.contents, axes = ([1], [0]))
             # ['Time/ScAtt', 'lb', 'NuLambda'] x ['lb', 'Ei'] -> [Time/ScAtt, NuLambda, Ei]
             map_rotated *= self._coordsys_conv_matrix.unit * model.unit
             map_rotated *= model.axes['lb'].pixarea()
@@ -261,11 +261,11 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             expectation[:] = np.tensordot( map_rotated, self._image_response.contents, axes = ([1,2], [0,1]))
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
-        if dict_bkg_norm is not None: 
+        if dict_bkg_norm is not None:
             for key in self.keys_bkg_models():
                 expectation += self.bkg_model(key) * dict_bkg_norm[key]
         expectation += almost_zero
-        
+
         return expectation
 
     def calc_T_product(self, dataspace_histogram):
@@ -297,7 +297,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             hist[:] = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([0,1,2], [2,3,4])) * self.model_axes['lb'].pixarea()
             # [Em, Phi, PsiChi] x [NuLambda (lb), Ei, Em, Phi, PsiChi] -> [NuLambda (lb), Ei]
         else:
-            _ = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([1,2,3], [2,3,4])) 
+            _ = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([1,2,3], [2,3,4]))
             # [Time/ScAtt, Em, Phi, PsiChi] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, NuLambda, Ei]
 
             hist[:] = np.tensordot(self._coordsys_conv_matrix.contents, _, axes = ([0,2], [0,1])) \

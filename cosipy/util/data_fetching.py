@@ -17,7 +17,7 @@ def fetch_wasabi_file(file,
     file : str
         Full path to file in Wasabi
     output : str,  optional
-        Full path to the downloaded file in the local system. By default it will use 
+        Full path to the downloaded file in the local system. By default it will use
         the current durectory and the same file name as the input file.
     bucket : str, optional
         Passed to aws --bucket option
@@ -28,12 +28,12 @@ def fetch_wasabi_file(file,
     secret_key : str, optional
         AWS_SECRET_ACCESS_KEY
     """
-    
+
     if output is None:
         output = file.split('/')[-1]
 
-    output = Path(output)    
-        
+    output = Path(output)
+
     if output.exists() and not override:
         raise RuntimeError(f"File {output} already exists.")
 
@@ -47,4 +47,3 @@ def fetch_wasabi_file(file,
                str(output)]
 
     cli.main(command)
-

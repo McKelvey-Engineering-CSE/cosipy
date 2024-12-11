@@ -2,12 +2,12 @@ from abc import ABC, abstractmethod
 
 class ImageDeconvolutionDataInterfaceBase(ABC):
     """
-    A base class for managing data for image analysis, i.e., 
+    A base class for managing data for image analysis, i.e.,
     event data, background models, response, coordsys conversion matrix etc.
     Subclasses must override these attributes and methods.
 
     Attributes:
-    - self._event 
+    - self._event
         A binned histogram of events. It is an instance of histpy.Histogram.
         Its axes must be the same of self._data_axes.
     - self._bkg_models
@@ -16,15 +16,15 @@ class ImageDeconvolutionDataInterfaceBase(ABC):
         Their axes must be the same of self._model_axes.
     - self._summed_bkg_models
         A dictionary of summed values of the background model histograms.
-    - self._exposure_map 
+    - self._exposure_map
         A binned histogram of the exposures at each pixel in the model space.
         It is an instance of histpy.Histogram.
         Its axes must be the same of self._model_axes.
-    - self._model_axes 
+    - self._model_axes
         Axes for the data space. It is an instance of histpy.Axes.
-    - self._data_axes 
+    - self._data_axes
         Axes for the model space. It is an instance of histpy.Axes.
-    
+
     Methods:
     - keys_bkg_models()
         It returns a list of names of background models.
@@ -43,8 +43,8 @@ class ImageDeconvolutionDataInterfaceBase(ABC):
 
     The basic idea of this class is to separate the data structure
     from the development of the image deconvolution algorithm.
-    
-    When the image deconvolution is performed, the deconvolution algorithm will look at only the above 
+
+    When the image deconvolution is performed, the deconvolution algorithm will look at only the above
     attributes and methods, and will not care about the actual response matrix and how it actually calculates
     expected counts or the product using the transpose matrix of the response function.
     """
@@ -130,7 +130,7 @@ class ImageDeconvolutionDataInterfaceBase(ABC):
             The product with self.model_axes
         """
         raise NotImplementedError
-    
+
     @abstractmethod
     def calc_bkg_model_product(self, key, dataspace_histogram):
         """
@@ -150,7 +150,7 @@ class ImageDeconvolutionDataInterfaceBase(ABC):
         float
         """
         raise NotImplementedError
-    
+
     @abstractmethod
     def calc_loglikelihood(self, expectation):
         """

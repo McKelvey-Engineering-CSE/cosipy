@@ -10,16 +10,16 @@ from .deconvolution_algorithm_base import DeconvolutionAlgorithmBase
 
 class RichardsonLucySimple(DeconvolutionAlgorithmBase):
     """
-    A class for the original RichardsonLucy algorithm. 
+    A class for the original RichardsonLucy algorithm.
     Basically, this class can be used for testing codes.
-    
+
     An example of parameter is as follows.
 
     iteration_max: 100
     minimum_flux:
         value: 0.0
         unit: "cm-2 s-1 sr-1"
-    background_normalization_optimization: True 
+    background_normalization_optimization: True
     """
 
     def __init__(self, initial_model, dataset, mask, parameter):
@@ -32,7 +32,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
         """
         initialization before running the image deconvolution
         """
-        # clear counter 
+        # clear counter
         self.iteration_count = 0
 
         # clear results
@@ -76,11 +76,11 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
         """
 
         ratio_list = [ data.event / expectation for data, expectation in zip(self.dataset, self.expectation_list) ]
-        
+
         # delta model
         sum_T_product = self.calc_summed_T_product(ratio_list)
         self.delta_model = self.model * (sum_T_product/self.summed_exposure_map - 1)
-        
+
         # background normalization optimization
         if self.do_bkg_norm_optimization:
             for key in self.dict_bkg_norm.keys():
@@ -92,7 +92,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
 
     def post_processing(self):
         """
-        Post-processing. 
+        Post-processing.
         """
         self.model += self.delta_model
         self.model[:] = np.where(self.model.contents < self.minimum_flux, self.minimum_flux, self.model.contents)
@@ -102,17 +102,17 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
 
     def register_result(self):
         """
-        Register results at the end of each iteration. 
+        Register results at the end of each iteration.
         """
-        
-        this_result = {"iteration": self.iteration_count, 
-                       "model": copy.deepcopy(self.model), 
+
+        this_result = {"iteration": self.iteration_count,
+                       "model": copy.deepcopy(self.model),
                        "delta_model": copy.deepcopy(self.delta_model),
                        "background_normalization": copy.deepcopy(self.dict_bkg_norm)}
 
         # show intermediate results
         logger.info(f'  background_normalization: {this_result["background_normalization"]}')
-        
+
         # register this_result in self.results
         self.results.append(this_result)
 

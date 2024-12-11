@@ -49,7 +49,7 @@ class LineBackgroundEstimation:
         self.energy_spectrum = self.event_histogram.project('Em')
         if self.energy_spectrum.is_sparse:
             self.energy_spectrum = self.energy_spectrum.to_dense()
-        
+
         self.energy_spectrum.clear_underflow_and_overflow()
 
         # background fitting model
@@ -58,7 +58,7 @@ class LineBackgroundEstimation:
 
         # bins to be masked
         self.mask = np.zeros(self.energy_axis.nbins, dtype=bool)
-        
+
     def set_bkg_energy_spectrum_model(self, bkg_spectrum_model, bkg_spectrum_model_parameter):
         """
         Set the background energy spectrum model and its initial parameters.
@@ -86,7 +86,7 @@ class LineBackgroundEstimation:
         for mask_energy_range in mask_energy_ranges:
             this_mask = (mask_energy_range[0] <= self.energy_axis.bounds[:, 1]) & (self.energy_axis.bounds[:, 0] <= mask_energy_range[1])
             self.mask = self.mask | this_mask
-    
+
     def _calc_expected_spectrum(self, *args):
         """
         Calculate the expected spectrum based on the current model and parameters.
@@ -119,7 +119,7 @@ class LineBackgroundEstimation:
         """
         expected_spectrum = self._calc_expected_spectrum(*args)
         return -np.sum(self.energy_spectrum.contents[~self.mask] * np.log(expected_spectrum)[~self.mask]) + np.sum(expected_spectrum[~self.mask])
-    
+
     def plot_energy_spectrum(self):
         """
         Plot the energy spectrum and the fitted model if available.
@@ -148,16 +148,16 @@ class LineBackgroundEstimation:
                 if start is not None:
                     ax.axvspan(start.value, end.value, color='lightgrey', alpha=0.5)
                     start, end = None, None
-        
+
         if start is not None:
             ax.axvspan(start.value, end.value, color='lightgrey', alpha=0.5)
 
         # legend and grid
         ax.legend()
         ax.grid()
-        
+
         return ax, _
-        
+
     def fit_energy_spectrum(self):
         """
         Fit the background energy spectrum model to the data.
@@ -169,14 +169,14 @@ class LineBackgroundEstimation:
         """
         m = Minuit(self._negative_log_likelihood, *self.bkg_spectrum_model_parameter)
         m.errordef = Minuit.LIKELIHOOD
-        
+
         m.migrad()
         m.hesse()
 
         # update the background model parameters
         self.bkg_spectrum_model_parameter = list(m.values)
         self.bkg_spectrum_model_parameter_errors = list(m.errors)
-        
+
         return m
 
     def _get_weight_indices(self, energy_range):
@@ -228,7 +228,7 @@ class LineBackgroundEstimation:
             weight, energy_indices = self._get_weight_indices(bkg_estimation_energy_range)
             weights.append(weight)
             energy_indices_list.append(energy_indices)
-            
+
         # intergrated spectrum in the source region
         source_weight = integrate.quad(lambda x: self.bkg_spectrum_model(x, *self.bkg_spectrum_model_parameter), *source_energy_range.value)[0]
 
@@ -239,7 +239,7 @@ class LineBackgroundEstimation:
                 new_axes.append(axis)
             else:
                 new_axes.append(Axis(source_energy_range, label = "Em"))
-        
+
         bkg_model_histogram = Histogram(new_axes)
 
         # fill contents
