@@ -54,7 +54,7 @@ class AllSkyImageModel(ModelBase):
 
         energy_axis = Axis(edges = energy_edges, label = label_energy, scale = "log")
 
-        axes = Axes([image_axis, energy_axis])
+        axes = Axes([image_axis, energy_axis], copy_axes=False)
 
         super().__init__(axes, sparse = False, unit = unit)
 
@@ -72,19 +72,8 @@ class AllSkyImageModel(ModelBase):
         py:class:`AllSkyImageModel`
         """
 
-        hist = Histogram.open(filename, name)
+        allskyimage = super().open(filename, name)
 
-        allskyimage = AllSkyImageModel(nside = hist.axes[0].nside,
-                                    energy_edges = hist.axes[1].edges,
-                                    scheme = hist.axes[0].scheme,
-                                    coordsys = hist.axes[0].coordsys.name,
-                                    label_image = hist.axes[0].label,
-                                    label_energy = hist.axes[1].label,
-                                    unit = hist.unit)
-
-        allskyimage[:] = hist.contents
-
-        del hist
         return allskyimage
 
     @classmethod

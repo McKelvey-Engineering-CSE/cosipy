@@ -61,7 +61,7 @@ class DetectorResponse(Histogram):
                                           unit = spec.unit)
 
         if copy:
-            return deepcopy(self._spec)
+            return self._spec.copy()
         else:
             return self._spec
 
@@ -87,7 +87,7 @@ class DetectorResponse(Histogram):
 
         if energy is None:
             if copy:
-                return deepcopy(self._aeff)
+                return self._aeff.copy()
             else:
                 return self._aeff
         else:

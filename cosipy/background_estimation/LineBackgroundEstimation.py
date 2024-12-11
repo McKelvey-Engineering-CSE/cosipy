@@ -240,7 +240,8 @@ class LineBackgroundEstimation:
             else:
                 new_axes.append(Axis(source_energy_range, label = "Em"))
 
-        bkg_model_histogram = Histogram(new_axes)
+        new_axes = Axes(new_axes, copy_axes=False)
+        bkg_model_histogram = Histogram(new_axes, track_overflow = False)
 
         # fill contents
         for energy_indices in energy_indices_list:
@@ -252,6 +253,6 @@ class LineBackgroundEstimation:
 
         # normalization
         corr_factor = source_weight / np.sum(weights)
-        bkg_model_histogram[:] *= corr_factor
+        bkg_model_histogram *= corr_factor
 
         return bkg_model_histogram

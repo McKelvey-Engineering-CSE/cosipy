@@ -1,7 +1,7 @@
 import numpy as np
 import healpy as hp
 from tqdm.autonotebook import tqdm
-import sparse
+import sparse as sp
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, cartesian_to_spherical, Galactic
@@ -16,10 +16,15 @@ class CoordsysConversionMatrix(Histogram):
 
     def __init__(self, edges, contents = None, sumw2 = None,
                  labels=None, axis_scale = None, sparse = None, unit = None,
-                 binning_method = None):
+                 binning_method = None, copy_contents = True):
 
         super().__init__(edges, contents = contents, sumw2 = sumw2,
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit, track_overflow = False)
+                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit,
+                         track_overflow = False, copy_contents = copy_contents)
+
+        if isinstance(self.contents, sp.COO):
+            # accelerate sparse transpose and reshape operations
+            self.contents.enable_caching()
 
         self.binning_method = binning_method #'Time' or 'ScAtt'
 
@@ -54,7 +59,7 @@ class CoordsysConversionMatrix(Histogram):
         axis_model_map = HealpixAxis(nside = nside_model, coordsys = "galactic", label = "lb")
         axis_local_map = full_detector_response.axes["NuLambda"]
 
-        axis_coordsys_conv_matrix = [ axis_time, axis_model_map, axis_local_map ] #Time, lb, NuLambda
+        axis_coordsys_conv_matrix = Axes([ axis_time, axis_model_map, axis_local_map ], copy_axes=False) #Time, lb, NuLambda
 
         contents = []
 
@@ -82,11 +87,12 @@ class CoordsysConversionMatrix(Histogram):
                 ccm_thispix[ipix] = dwell_time_map.data
                 # (HealpixMap).data returns the numpy array without its unit. dwell_time_map.unit is u.s.
 
-            ccm_thispix_sparse = sparse.COO.from_numpy( ccm_thispix.reshape((1, axis_model_map.nbins, axis_local_map.nbins)) )
+            ccm_thispix_sparse = sp.COO.from_numpy( ccm_thispix.reshape((1, axis_model_map.nbins, axis_local_map.nbins)) )
 
             contents.append(ccm_thispix_sparse)
 
-        coordsys_conv_matrix = cls(axis_coordsys_conv_matrix, contents = sparse.concatenate(contents), unit = u.s, sparse = True)
+        coordsys_conv_matrix = cls(axis_coordsys_conv_matrix, contents = sp.concatenate(contents), unit = u.s,
+                                   copy_contents = False)
 
         coordsys_conv_matrix.binning_method = "Time"
 
@@ -130,7 +136,7 @@ class CoordsysConversionMatrix(Histogram):
         axis_model_map = HealpixAxis(nside = nside_model, coordsys = "galactic", scheme = exposure_table.scheme, label = "lb")
         axis_local_map = full_detector_response.axes["NuLambda"]
 
-        axis_coordsys_conv_matrix = [ axis_scatt, axis_model_map, axis_local_map ] #lb, ScAtt, NuLambda
+        axis_coordsys_conv_matrix = Axes([ axis_scatt, axis_model_map, axis_local_map ], copy_axes=False) #lb, ScAtt, NuLambda
 
         contents = []
 
@@ -183,11 +189,12 @@ class CoordsysConversionMatrix(Histogram):
 
                 ccm_thispix[ipix] = hist
 
-            ccm_thispix_sparse = sparse.COO.from_numpy( ccm_thispix.reshape((1, axis_model_map.nbins, axis_local_map.nbins)) )
+            ccm_thispix_sparse = sp.COO.from_numpy( ccm_thispix.reshape((1, axis_model_map.nbins, axis_local_map.nbins)) )
 
             contents.append(ccm_thispix_sparse)
 
-        coordsys_conv_matrix = cls(axis_coordsys_conv_matrix, contents = sparse.concatenate(contents), unit = u.s, sparse = True)
+            coordsys_conv_matrix = cls(axis_coordsys_conv_matrix, contents = sp.concatenate(contents), unit = u.s,
+                                       copy_contents = False)
 
         coordsys_conv_matrix.binning_method = 'ScAtt'
 
@@ -214,11 +221,11 @@ class CoordsysConversionMatrix(Histogram):
         new = super().open(filename, name)
 
         contents = new.contents
-        if isinstance(contents, sparse.COO):
+        if isinstance(contents, sp.COO):
             # accelerate sparse transpose and reshape operations
             contents.enable_caching()
 
-        new = cls(new.axes, contents = contents, sumw2 = contents, unit = new.unit)
+        new.set_sumw2(contents) # copy so as not to alias contents
 
         new.binning_method = new.axes.labels[0] # 'Time' or 'ScAtt'
 

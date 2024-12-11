@@ -399,11 +399,12 @@ class FullDetectorResponse(HealpixBase):
 
 
         if sparse :
-            dr = Histogram(axes, contents=COO(coords=coords[:, :nbins_sparse], data= data[:nbins_sparse], shape = tuple(axes.nbins)))
+            dr = Histogram(axes, contents=COO(coords=coords[:, :nbins_sparse], data= data[:nbins_sparse], shape = tuple(axes.nbins)),
+                           track_overflow=False, copy_contents=False)
 
         else :
-
-            dr = Histogram(axes, contents=data)
+            dr = Histogram(axes, contents=data,
+                           track_overflow=False, copy_contents=False)
 
 
 

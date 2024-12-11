@@ -69,7 +69,7 @@ class SourceInjector():
                     class_module, class_name = axis.attrs['__class__']
                     axis_cls = getattr(sys.modules[class_module], class_name)
                 axes += [axis_cls._open(axis)]
-        axes = Axes(axes)
+        axes = Axes(axes, copy_axes=False)
 
         # get the pixel number of the hypothesis coordinate
         map_temp = HealpixMap(base = axes[0])

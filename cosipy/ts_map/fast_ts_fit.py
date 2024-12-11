@@ -137,7 +137,7 @@ class FastTSMap():
         hist = hist.project(["Em", "PsiChi", "Phi"]) # make sure the first axis is the measured energy
         hist_cds_sliced = FastTSMap.slice_energy_channel(hist, energy_channel[0], energy_channel[1])
         hist_cds = hist_cds_sliced.project(["PsiChi", "Phi"])
-        cds_array = np.array(hist_cds.to_dense()[:]).flatten()  # here [:] is equivalent to [:, :]
+        cds_array = np.array(hist_cds.to_dense()).ravel()
         del hist
         del hist_cds_sliced
         del hist_cds
@@ -182,7 +182,7 @@ class FastTSMap():
                     class_module, class_name = axis.attrs['__class__']
                     axis_cls = getattr(sys.modules[class_module], class_name)
                 axes += [axis_cls._open(axis)]
-        axes = Axes(axes)
+        axes = Axes(axes, copy_axes=False)
 
         # get the pixel number of the hypothesis coordinate
         map_temp = HealpixMap(base = axes[0])

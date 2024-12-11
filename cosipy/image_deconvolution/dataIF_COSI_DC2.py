@@ -90,9 +90,9 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             axes[0].label = 'lb'
             # The gamma-ray direction of pre-computed response in DC2 is in the galactic coordinate, not in the local coordinate.
             # Actually, it is labeled as 'NuLambda'. So I replace it with 'lb'.
-            new._model_axes = Axes(axes)
+            new._model_axes = Axes(axes, copy_axes=False)
         else:
-            new._model_axes = Axes([new._coordsys_conv_matrix.axes['lb'], new._image_response.axes['Ei']])
+            new._model_axes = Axes([new._coordsys_conv_matrix.axes['lb'], new._image_response.axes['Ei']], copy_axes=False)
 
         new._calc_exposure_map()
 
@@ -159,19 +159,25 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         if self._coordsys_conv_matrix is None:
             axes_cds = Axes([self._image_response.axes["Em"], \
                              self._image_response.axes["Phi"], \
-                             self._image_response.axes["PsiChi"]])
+                             self._image_response.axes["PsiChi"]], \
+                            copy_axes = False)
         else:
             axes_cds = Axes([self._event.axes[0], \
                              self._image_response.axes["Em"], \
                              self._image_response.axes["Phi"], \
-                             self._image_response.axes["PsiChi"]])
+                             self._image_response.axes["PsiChi"]], \
+                            copy_axes = False)
 
-        self._event = Histogram(axes_cds, unit = self._event.unit, contents = self._event.contents, track_overflow = False)
+        # FIXME: same Histogram, but we replace Axes
+        self._event = Histogram(axes_cds, unit = self._event.unit, contents = self._event.contents,
+                                track_overflow = False, copy_contents = False)
 
         for key in self._bkg_models:
+            # FIXME: same Histogram, but we replace Axes
             bkg_model = self._bkg_models[key]
-            self._bkg_models[key] = Histogram(axes_cds, unit = bkg_model.unit, contents = bkg_model.contents, track_overflow = False)
-            del bkg_model
+            self._bkg_models[key] = Histogram(axes_cds, unit = bkg_model.unit, contents = bkg_model.contents,
+                                              track_overflow = False, copy_contents = False)
+
 
         logger.info(f"The axes in the event and background files are redefined. Now they are consistent with those of the response file.")
 
@@ -182,9 +188,15 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         Load a response file on the computer memory.
         """
 
-        axes_image_response = [full_detector_response.axes["NuLambda"], full_detector_response.axes["Ei"],
-                               full_detector_response.axes["Em"], full_detector_response.axes["Phi"], full_detector_response.axes["PsiChi"]]
+        axes_image_response = Axes([full_detector_response.axes["NuLambda"],
+                                    full_detector_response.axes["Ei"],
+                                    full_detector_response.axes["Em"],
+                                    full_detector_response.axes["Phi"],
+                                    full_detector_response.axes["PsiChi"]],
+                                   copy_axes = False)
 
+        # FIXME: create the contents in its own matrix, then create Histogram, rather than creating with zeros and
+        # then overrwiting
         self._image_response = Histogram(axes_image_response, unit = full_detector_response.unit, track_overflow = False)
 
         nside = full_detector_response.axes["NuLambda"].nside
@@ -204,6 +216,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         logger.info("Calculating an exposure map...")
 
+        # FIXME: create contents, then pass to Histogram
         if self._coordsys_conv_matrix is None:
             self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * u.sr, track_overflow = False)
             self._exposure_map[:] = np.sum(self._image_response.contents, axis = (2,3,4)) * self.model_axes['lb'].pixarea()
@@ -246,27 +259,27 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # However it is likely that it will have such an axis in the future in order to consider background variability depending on time and pointign direction etc.
         # Then, the implementation here will not work. Thus, keep in mind that we need to modify it once the response format is fixed.
 
-        expectation = Histogram(self.data_axes, track_overflow = False)
-
         if self._coordsys_conv_matrix is None:
-            expectation[:] = np.tensordot( model.contents, self._image_response.contents, axes = ([0,1],[0,1])) * model.axes['lb'].pixarea()
+            expectation = np.tensordot( model.contents, self._image_response.contents, axes = ([0,1],[0,1]))
+            expectation *= model.axes['lb'].pixarea()
             # ['lb', 'Ei'] x [NuLambda(lb), Ei, Em, Phi, PsiChi] -> [Em, Phi, PsiChi]
         else:
             map_rotated = np.tensordot(self._coordsys_conv_matrix.contents, model.contents, axes = ([1], [0]))
             # ['Time/ScAtt', 'lb', 'NuLambda'] x ['lb', 'Ei'] -> [Time/ScAtt, NuLambda, Ei]
             map_rotated *= self._coordsys_conv_matrix.unit * model.unit
-            map_rotated *= model.axes['lb'].pixarea()
             # data.coordsys_conv_matrix.contents is sparse, so the unit should be restored.
             # the unit of map_rotated is 1/cm2 ( = s * 1/cm2/s/sr * sr)
-            expectation[:] = np.tensordot( map_rotated, self._image_response.contents, axes = ([1,2], [0,1]))
+            expectation = np.tensordot( map_rotated, self._image_response.contents, axes = ([1,2], [0,1]))
+            expectation *= model.axes['lb'].pixarea()
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
         if dict_bkg_norm is not None:
             for key in self.keys_bkg_models():
-                expectation += self.bkg_model(key) * dict_bkg_norm[key]
+                expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
         expectation += almost_zero
 
-        return expectation
+        return Histogram(self.data_axes, contents = expectation,
+                         track_overflow = False, copy_contents = False)
 
     def calc_T_product(self, dataspace_histogram):
         """
@@ -287,25 +300,23 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         """
         # TODO: currently, dataspace_histogram is assumed to be a dense.
 
-        hist_unit = self.exposure_map.unit
-        if dataspace_histogram.unit is not None:
-            hist_unit *= dataspace_histogram.unit
-
-        hist = Histogram(self.model_axes, unit = hist_unit, track_overflow = False)
-
         if self._coordsys_conv_matrix is None:
-            hist[:] = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([0,1,2], [2,3,4])) * self.model_axes['lb'].pixarea()
+            tprod = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([0,1,2], [2,3,4]))
+            tprod *= self.model_axes['lb'].pixarea()
             # [Em, Phi, PsiChi] x [NuLambda (lb), Ei, Em, Phi, PsiChi] -> [NuLambda (lb), Ei]
         else:
             _ = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([1,2,3], [2,3,4]))
             # [Time/ScAtt, Em, Phi, PsiChi] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, NuLambda, Ei]
 
-            hist[:] = np.tensordot(self._coordsys_conv_matrix.contents, _, axes = ([0,2], [0,1])) \
-                        * _.unit * self._coordsys_conv_matrix.unit * self.model_axes['lb'].pixarea()
+            tprod = np.tensordot(self._coordsys_conv_matrix.contents, _, axes = ([0,2], [0,1]))
+            tprod *= _.unit * self._coordsys_conv_matrix.unit
+            tprod *= self.model_axes['lb'].pixarea()
             # [Time/ScAtt, lb, NuLambda] x [Time/ScAtt, NuLambda, Ei] -> [lb, Ei]
             # note that coordsys_conv_matrix is the sparse, so the unit should be recovered.
 
-        return hist
+        return Histogram(self.model_axes, contents = tprod,
+                         track_overflow = False, copy_contents = False)
+
 
     def calc_bkg_model_product(self, key, dataspace_histogram):
         """
@@ -327,10 +338,9 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # TODO: currently, dataspace_histogram is assumed to be a dense.
 
         if self._coordsys_conv_matrix is None:
-
             return np.tensordot(dataspace_histogram.contents, self.bkg_model(key).contents, axes = ([0,1,2], [0,1,2]))
-
-        return np.tensordot(dataspace_histogram.contents, self.bkg_model(key).contents, axes = ([0,1,2,3], [0,1,2,3]))
+        else:
+            return np.tensordot(dataspace_histogram.contents, self.bkg_model(key).contents, axes = ([0,1,2,3], [0,1,2,3]))
 
     def calc_loglikelihood(self, expectation):
         """
@@ -344,8 +354,12 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         Returns
         -------
         float
-            Log-likelood
+            Log-likelihood
         """
-        loglikelood = np.sum( self.event * np.log(expectation) ) - np.sum(expectation)
 
-        return loglikelood
+        ev = self.event.contents
+        ex = expectation.contents
+
+        loglikelihood = np.sum( ev * np.log(ex) ) - np.sum(ex)
+
+        return loglikelihood

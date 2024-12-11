@@ -19,7 +19,8 @@ class ModelBase(Histogram, ABC):
                  labels=None, axis_scale = None, sparse = None, unit = None):
 
         super().__init__(edges, contents = contents, sumw2 = sumw2,
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit, track_overflow = False)
+                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit,
+                         track_overflow = False)
 
     @classmethod
     @abstractmethod
@@ -65,7 +66,8 @@ class ModelBase(Histogram, ABC):
         if not isinstance(fill_value, u.quantity.Quantity) and self.unit is not None:
             fill_value *= self.contents.unit
 
-        model_new = copy.deepcopy(self)
+        # FIXME: we would like to replace contents without a full copy
+        model_new = self.copy()
         model_new[:] = np.where(mask.contents, model_new.contents, fill_value)
 
         return model_new
