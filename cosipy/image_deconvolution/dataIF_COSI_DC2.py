@@ -213,16 +213,18 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         logger.info("Calculating an exposure map...")
 
         if self._coordsys_conv_matrix is None:
-            unit = self._image_response.unit
-            exposure_map = np.sum(self._image_response.contents, axis = (2,3,4)) * self.model_axes['lb'].pixarea()
-
+            exposure_map  = np.sum(self._image_response.contents, axis = (2,3,4))
+            exposure_map *= self.model_axes['lb'].pixarea()
         else:
-            unit = self._image_response.unit * self._coordsys_conv_matrix.unit
+
             exposure_map = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)),
                                         np.sum(self._image_response, axis = (2,3,4)),
-                                        axes = ([1], [0]) ) * unit * self.model_axes['lb'].pixarea()
+                                        axes = ([1], [0]) )
+            exposure_map = u.Quantity(exposure_map, unit = self._image_response.unit * self._coordsys_conv_matrix.unit, copy=False)
 
-        self._exposure_map = Histogram(self._model_axes, contents = exposure_map, unit = unit * u.sr,
+            exposure_map *= self.model_axes['lb'].pixarea()
+
+        self._exposure_map = Histogram(self._model_axes, contents = exposure_map,
                                        track_overflow = False, copy_contents = False)
 
             # [Time/ScAtt, lb, NuLambda] -> [lb, NuLambda]
@@ -254,10 +256,12 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         -----
         This method should be implemented in a more general class, for example, extended source response class in the future.
         """
+
         # Currenly (2024-01-12) this method can work for both local coordinate CDS and in galactic coordinate CDS.
         # This is just because in DC2 the rotate response for galactic coordinate CDS does not have an axis for time/scatt binning.
-        # However it is likely that it will have such an axis in the future in order to consider background variability depending on time and pointign direction etc.
-        # Then, the implementation here will not work. Thus, keep in mind that we need to modify it once the response format is fixed.
+        # However it is likely that it will have such an axis in the future in order to consider background variability depending on time
+        # and pointing direction etc. Then, the implementation here will not work. Thus, keep in mind that we need to modify it once the
+        # response format is fixed.
 
         if self._coordsys_conv_matrix is None:
             expectation = np.tensordot( model.contents, self._image_response.contents, axes = ([0,1],[0,1]))
@@ -266,9 +270,10 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         else:
             map_rotated = np.tensordot(self._coordsys_conv_matrix.contents, model.contents, axes = ([1], [0]))
             # ['Time/ScAtt', 'lb', 'NuLambda'] x ['lb', 'Ei'] -> [Time/ScAtt, NuLambda, Ei]
-            map_rotated *= self._coordsys_conv_matrix.unit * model.unit
-            # data.coordsys_conv_matrix.contents is sparse, so the unit should be restored.
+            map_rotated = u.Quantity(map_rotated, unit = self._coordsys_conv_matrix.unit * model.unit, copy=False)
+            # data.coordsys_conv_matrix.contents is sparse, so recover the unit
             # the unit of map_rotated is 1/cm2 ( = s * 1/cm2/s/sr * sr)
+
             expectation = np.tensordot( map_rotated, self._image_response.contents, axes = ([1,2], [0,1]))
             expectation *= model.axes['lb'].pixarea()
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
@@ -309,10 +314,10 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             # [Time/ScAtt, Em, Phi, PsiChi] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, NuLambda, Ei]
 
             tprod = np.tensordot(self._coordsys_conv_matrix.contents, _, axes = ([0,2], [0,1]))
-            tprod *= _.unit * self._coordsys_conv_matrix.unit
-            tprod *= self.model_axes['lb'].pixarea()
             # [Time/ScAtt, lb, NuLambda] x [Time/ScAtt, NuLambda, Ei] -> [lb, Ei]
-            # note that coordsys_conv_matrix is the sparse, so the unit should be recovered.
+            tprod = u.Quantity(tprod, unit= _.unit * self._coordsys_conv_matrix.unit, copy=False)
+            # coordsys_conv_matrix is sparse, so recover result unit
+            tprod *= self.model_axes['lb'].pixarea()
 
         return Histogram(self.model_axes, contents = tprod,
                          track_overflow = False, copy_contents = False)
@@ -333,14 +338,16 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         Returns
         -------
-        flaot
+        float
         """
         # TODO: currently, dataspace_histogram is assumed to be a dense.
 
         if self._coordsys_conv_matrix is None:
-            return np.tensordot(dataspace_histogram.contents, self.bkg_model(key).contents, axes = ([0,1,2], [0,1,2]))
+            axes = ((0,1,2), (0,1,2))
         else:
-            return np.tensordot(dataspace_histogram.contents, self.bkg_model(key).contents, axes = ([0,1,2,3], [0,1,2,3]))
+            axes = ((0,1,2,3), (0,1,2,3))
+
+        return np.tensordot(dataspace_histogram.contents, self.bkg_model(key).contents, axes = axes)
 
     def calc_loglikelihood(self, expectation):
         """

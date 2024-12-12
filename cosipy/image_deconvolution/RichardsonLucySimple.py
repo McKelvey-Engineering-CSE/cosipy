@@ -47,7 +47,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
         if self.mask is None and np.any(self.summed_exposure_map.contents == 0):
             self.mask = Histogram(self.model.axes, contents = self.summed_exposure_map.contents > 0,
                                   track_overflow = False, copy_contents = False)
-            self.model = self.model.mask_pixels(self.mask)
+            self.model.mask_pixels(self.mask)
             logger.info("There are zero-exposure pixels. A mask to ignore them was set.")
 
         # calculate summed background models for M-step
@@ -98,7 +98,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
         self.model[:] = np.where(self.model.contents < self.minimum_flux, self.minimum_flux, self.model.contents)
 
         if self.mask is not None:
-            self.model = self.model.mask_pixels(self.mask)
+            self.model.mask_pixels(self.mask)
 
     def register_result(self):
         """
@@ -107,7 +107,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
 
         this_result = {"iteration": self.iteration_count,
                        "model": self.model.copy(),
-                       "delta_model": self.delta_model.copy(),
+                       "delta_model": self.delta_model,
                        "background_normalization": self.dict_bkg_norm.copy()}
 
         # show intermediate results

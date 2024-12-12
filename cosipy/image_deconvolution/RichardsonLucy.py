@@ -85,7 +85,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
         if self.mask is None and np.any(self.summed_exposure_map.contents == 0):
             self.mask = Histogram(self.model.axes, contents = self.summed_exposure_map.contents > 0,
                                   track_overflow = False, copy_contents = False)
-            self.model = self.model.mask_pixels(self.mask)
+            self.model.mask_pixels(self.mask)
             logger.info("There are zero-exposure pixels. A mask to ignore them was set.")
 
         # response-weighting filter
@@ -129,7 +129,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
         self.delta_model = self.model * (sum_T_product/self.summed_exposure_map - 1)
 
         if self.mask is not None:
-            self.delta_model = self.delta_model.mask_pixels(self.mask)
+            self.delta_model.mask_pixels(self.mask)
 
         # background normalization optimization
         if self.do_bkg_norm_optimization:
@@ -152,7 +152,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
         Here three processes will be performed.
         - response weighting filter: the delta map is renormalized as pixels with large exposure times will have more feedback.
         - gaussian smoothing filter: the delta map is blurred with a Gaussian function.
-        - acceleration of RL algirithm: the normalization of delta map is increased as long as the updated image has no non-negative components.
+        - acceleration of RL algorithm: the normalization of delta map is increased as long as the updated image has no non-negative components.
         """
 
         self.processed_delta_model = self.delta_model.copy()
@@ -161,18 +161,18 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
             self.processed_delta_model *= self.response_weighting_filter
 
         if self.do_smoothing:
-            self.processed_delta_model = self.processed_delta_model.smoothing(fwhm = self.smoothing_fwhm)
+            self.processed_delta_model.smoothing(fwhm = self.smoothing_fwhm)
 
         if self.do_acceleration:
             self.alpha = self.calc_alpha(self.processed_delta_model, self.model)
         else:
             self.alpha = 1.0
 
-        self.model = self.model + self.processed_delta_model * self.alpha
+        self.model += self.processed_delta_model * self.alpha
         self.model[:] = np.where(self.model.contents < self.minimum_flux, self.minimum_flux, self.model.contents)
 
         if self.mask is not None:
-            self.model = self.model.mask_pixels(self.mask)
+            self.model.mask_pixels(self.mask)
 
         # update expectation_list
         self.expectation_list = self.calc_expectation_list(self.model, dict_bkg_norm = self.dict_bkg_norm)
@@ -196,11 +196,11 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
 
         this_result = {"iteration": self.iteration_count,
                        "model": self.model.copy(),
-                       "delta_model": self.delta_model.copy(),
-                       "processed_delta_model": self.processed_delta_model.copy(),
+                       "delta_model": self.delta_model,
+                       "processed_delta_model": self.processed_delta_model,
                        "background_normalization": self.dict_bkg_norm.copy(),
                        "alpha": self.alpha,
-                       "loglikelihood": self.loglikelihood_list.copy()}
+                       "loglikelihood": self.loglikelihood_list}
 
         # show intermediate results
         logger.info(f'  alpha: {this_result["alpha"]}')

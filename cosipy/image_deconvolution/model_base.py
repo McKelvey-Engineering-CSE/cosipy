@@ -65,8 +65,4 @@ class ModelBase(Histogram, ABC):
         if not isinstance(fill_value, u.quantity.Quantity) and self.unit is not None:
             fill_value *= self.contents.unit
 
-        # FIXME: we would like to replace contents without a full copy
-        model_new = self.copy()
-        model_new[:] = np.where(mask.contents, model_new.contents, fill_value)
-
-        return model_new
+        self[:] = np.where(mask.contents, self.contents, fill_value)
