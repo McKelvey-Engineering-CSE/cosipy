@@ -160,7 +160,7 @@ class COSILike(PluginPrototype):
             total_expectation = self.image_response.get_expectation_from_astromodel(source)
 
             # Save expected counts for source:
-            self._expected_counts[name] = copy.deepcopy(total_expectation)
+            self._expected_counts[name] = total_expectation.copy()
 
             # Need to check if self._signal type is dense (i.e. 'Quantity') or sparse (i.e. 'COO').
             if type(total_expectation.contents) == u.quantity.Quantity:
@@ -236,7 +236,7 @@ class COSILike(PluginPrototype):
             total_expectation = self._psr[name].get_expectation(spectrum)
 
             # Save expected counts for source:
-            self._expected_counts[name] = copy.deepcopy(total_expectation)
+            self._expected_counts[name] = total_expectation.copy()
 
             # Need to check if self._signal type is dense (i.e. 'Quantity') or sparse (i.e. 'COO').
             if type(total_expectation.contents) == u.quantity.Quantity:

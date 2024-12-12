@@ -26,7 +26,6 @@ import argparse
 import logging
 logger = logging.getLogger(__name__)
 
-from copy import copy, deepcopy
 import gzip
 from tqdm import tqdm
 import subprocess
@@ -907,7 +906,8 @@ class FullDetectorResponse(HealpixBase):
 
             coords_axis = Axis(np.arange(coord.size+1), label = 'coords')
 
-            psr = Histogram([coords_axis] + list(deepcopy(self.axes[1:])),
+            axes = Axes([coords_axis] + list(self.axes[1:]), copy_axes = False)
+            psr = Histogram(axes,
                             unit = self.unit * scatt_map.unit)
 
             psr.axes[axis].coordsys = coord.frame

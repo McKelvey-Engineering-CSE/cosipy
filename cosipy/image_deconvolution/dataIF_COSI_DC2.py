@@ -168,15 +168,13 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                              self._image_response.axes["PsiChi"]], \
                             copy_axes = False)
 
-        # FIXME: same Histogram, but we replace Axes
         self._event = Histogram(axes_cds, unit = self._event.unit, contents = self._event.contents,
-                                track_overflow = False, copy_contents = False)
+                                track_overflow = self._event.track_overflow(), copy_contents = False)
 
         for key in self._bkg_models:
-            # FIXME: same Histogram, but we replace Axes
             bkg_model = self._bkg_models[key]
             self._bkg_models[key] = Histogram(axes_cds, unit = bkg_model.unit, contents = bkg_model.contents,
-                                              track_overflow = False, copy_contents = False)
+                                              track_overflow = self._event.track_overflow(), copy_contents = False)
 
 
         logger.info(f"The axes in the event and background files are redefined. Now they are consistent with those of the response file.")

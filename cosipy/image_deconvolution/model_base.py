@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import astropy.units as u
 import numpy as np
-import copy
 from histpy import Histogram
 
 class ModelBase(Histogram, ABC):

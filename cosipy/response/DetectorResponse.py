@@ -48,26 +48,16 @@ class DetectorResponse(Histogram):
 
         group = super()._write(file, group_name)
 
-        if self._spec is not None:
-            group.create_dataset('_spec', data = self._spec)
-
-        if self._spec is not None:
-            group.create_dataset('_aeff', data = self._aeff)
+        # do not write _spec and _aeff, as they
+        # can be recomputed after load later on
 
     @classmethod
     def _open(cls, hist_group):
 
         new = super()._open(hist_group)
 
-        if '_spec' in hist_group:
-            new._spec = hist_group['_spec']
-        else:
-            new._spec = None
-
-        if '_aeff' in hist_group:
-            new._aeff = hist_group['_aeff']
-        else:
-            new._aeff = None
+        new._spec = None
+        new._aeff = None
 
         return new
 

@@ -144,7 +144,7 @@ class ImageDeconvolution:
         # set self._model_class
         model_name = self.parameter['model_definition']['class']
 
-        if not model_name in self.model_classes.keys():
+        if not model_name in self.model_classes:
             logger.error(f'The model class "{model_name}" does not exist!')
             raise ValueError
 
