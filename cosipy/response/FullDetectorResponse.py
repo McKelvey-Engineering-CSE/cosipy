@@ -132,7 +132,7 @@ class FullDetectorResponse(HealpixBase):
                                   scale=axis_type,
                                   label=axis_label)]
 
-        new._axes = Axes(axes)
+        new._axes = Axes(axes, copy_axes=False)
 
         # Init HealpixMap (local coordinates, main axis)
         HealpixBase.__init__(new,
@@ -432,7 +432,8 @@ class FullDetectorResponse(HealpixBase):
             # From spectrum file
             spec = pd.read_csv(Spectrumfile, sep=" ")
             spec = spec.iloc[:-1]
-            hspec = Histogram([h_spec.axes[1]])
+            hspec = Histogram(Axes(h_spec.axes[1], copy_axes = False),
+                              track_overflow=False)
             hspec[:] = np.interp(hspec.axis.centers,
                              spec.iloc[:, 0].to_numpy(),
                              spec.iloc[:, 1].to_numpy(),
@@ -702,12 +703,12 @@ class FullDetectorResponse(HealpixBase):
 
 
 
-        new._axes = Axes(axes)
+        new._axes = Axes(axes, copy_axes = False)
 
         # Init HealpixMap (local coordinates, main axis)
         HealpixBase.__init__(new,
-                                 base=new.axes['NuLambda'],
-                                 coordsys=SpacecraftFrame())
+                             base=new.axes['NuLambda'],
+                             coordsys=SpacecraftFrame())
 
         return new
 
@@ -878,7 +879,7 @@ class FullDetectorResponse(HealpixBase):
                 raise ValueError(
                     "Exposure map has a different grid than the detector response")
 
-            psr = PointSourceResponse(self.axes[1:],
+            psr = PointSourceResponse(Axes(self.axes[1:], copy_axes = False),
                                       sparse=self._sparse,
                                       unit=u.cm*u.cm*u.s)
 
@@ -908,7 +909,8 @@ class FullDetectorResponse(HealpixBase):
 
             axes = Axes([coords_axis] + list(self.axes[1:]), copy_axes = False)
             psr = Histogram(axes,
-                            unit = self.unit * scatt_map.unit)
+                            unit = self.unit * scatt_map.unit,
+                            track_overflow=False)
 
             psr.axes[axis].coordsys = coord.frame
 

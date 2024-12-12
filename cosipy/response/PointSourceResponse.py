@@ -69,7 +69,8 @@ class PointSourceResponse(Histogram):
         if self.is_sparse:
             expectation *= self.unit * flux.unit
 
-        hist = Histogram(self.axes[1:], contents = expectation,
+        hist = Histogram(Axes(self.axes[1:], copy_axes=False),
+                         contents = expectation,
                          track_overflow = False, copy_contents = False)
 
         return hist
