@@ -195,19 +195,17 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                                     full_detector_response.axes["PsiChi"]],
                                    copy_axes = False)
 
-        # FIXME: create the contents in its own matrix, then create Histogram, rather than creating with zeros and
-        # then overrwiting
-        self._image_response = Histogram(axes_image_response, unit = full_detector_response.unit, track_overflow = False)
-
         nside = full_detector_response.axes["NuLambda"].nside
         npix = full_detector_response.axes["NuLambda"].npix
 
         if is_miniDC2_format:
-            for ipix in tqdm(range(npix)):
-                self._image_response[ipix] = np.sum(full_detector_response[ipix].to_dense(), axis = (4,5)) #Ei, Em, Phi, ChiPsi
+            slices = [ np.sum(full_detector_response[ipix].to_dense(), axis = (4,5)) for ipix in tqdm(range(npix)) ] #Ei, Em, Phi, ChiPsi
+            contents = np.stack(slices)
         else:
-            contents = full_detector_response._file['DRM']['CONTENTS'][:]
-            self._image_response[:] = contents * full_detector_response.unit
+            contents = full_detector_response._file['DRM']['CONTENTS'][:] * full_detector_response.unit
+
+        self._image_response = Histogram(axes_image_response, contents=contents, unit = full_detector_response.unit,
+                                         track_overflow = False, copy_contents = False)
 
     def _calc_exposure_map(self):
         """
@@ -216,15 +214,19 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         logger.info("Calculating an exposure map...")
 
-        # FIXME: create contents, then pass to Histogram
         if self._coordsys_conv_matrix is None:
-            self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * u.sr, track_overflow = False)
-            self._exposure_map[:] = np.sum(self._image_response.contents, axis = (2,3,4)) * self.model_axes['lb'].pixarea()
+            unit = self._image_response.unit
+            exposure_map = np.sum(self._image_response.contents, axis = (2,3,4)) * self.model_axes['lb'].pixarea()
+
         else:
-            self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * self._coordsys_conv_matrix.unit * u.sr, track_overflow = False)
-            self._exposure_map[:] = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)),
-                                                 np.sum(self._image_response, axis = (2,3,4)),
-                                                 axes = ([1], [0]) ) * self._image_response.unit * self._coordsys_conv_matrix.unit * self.model_axes['lb'].pixarea()
+            unit = self._image_response.unit * self._coordsys_conv_matrix.unit
+            exposure_map = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)),
+                                        np.sum(self._image_response, axis = (2,3,4)),
+                                        axes = ([1], [0]) ) * unit * self.model_axes['lb'].pixarea()
+
+        self._exposure_map = Histogram(self._model_axes, contents = exposure_map, unit = unit * u.sr,
+                                       track_overflow = False, copy_contents = False)
+
             # [Time/ScAtt, lb, NuLambda] -> [lb, NuLambda]
             # [NuLambda, Ei, Em, Phi, PsiChi] -> [NuLambda, Ei]
             # [lb, NuLambda] x [NuLambda, Ei] -> [lb, Ei]
