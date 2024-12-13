@@ -63,11 +63,11 @@ class PointSourceResponse(Histogram):
 
         flux = get_integrated_spectral_model(spectrum, energy_axis)
 
-        expectation = np.tensordot(self.contents, flux.contents, axes = ([0], [0]))
+        expectation = np.tensordot(self.contents, flux.contents, axes = (0, 0))
 
         # Note: np.tensordot loses unit if we use a sparse matrix as it input.
         if self.is_sparse:
-            expectation *= self.unit * flux.unit
+            expectation = u.Quantity(expectation, unit = self.unit * flux.unit, copy = False)
 
         hist = Histogram(Axes(self.axes[1:], copy_axes=False),
                          contents = expectation,

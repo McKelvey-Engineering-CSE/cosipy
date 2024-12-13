@@ -13,6 +13,12 @@ from cosipy.response import FullDetectorResponse
 
 from .image_deconvolution_data_interface_base import ImageDeconvolutionDataInterfaceBase
 
+# perform a tensordot operation where A and B have been stripped of
+# their units, and apply the specified unit to the product
+def tensordot_sparse(A, B, axes, unit):
+    dotprod = np.tensordot(A, B, axes=axes)
+    return u.Quantity(dotprod, unit=unit, copy=False)
+
 class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
     """
     A subclass of ImageDeconvolutionDataInterfaceBase for the COSI data challenge 2.
@@ -86,13 +92,13 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         new._data_axes = new._event.axes
 
         if new._coordsys_conv_matrix is None:
-            axes = [new._image_response.axes['NuLambda'].copy(), new._image_response.axes['Ei']] # will mutate axis 0
+            axes = (new._image_response.axes['NuLambda'].copy(), new._image_response.axes['Ei']) # will mutate axis 0
             axes[0].label = 'lb'
             # The gamma-ray direction of pre-computed response in DC2 is in the galactic coordinate, not in the local coordinate.
             # Actually, it is labeled as 'NuLambda'. So I replace it with 'lb'.
             new._model_axes = Axes(axes, copy_axes=False)
         else:
-            new._model_axes = Axes([new._coordsys_conv_matrix.axes['lb'], new._image_response.axes['Ei']], copy_axes=False)
+            new._model_axes = Axes((new._coordsys_conv_matrix.axes['lb'], new._image_response.axes['Ei']), copy_axes=False)
 
         new._calc_exposure_map()
 
@@ -157,15 +163,15 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                 raise ValueError
 
         if self._coordsys_conv_matrix is None:
-            axes_cds = Axes([self._image_response.axes["Em"], \
+            axes_cds = Axes((self._image_response.axes["Em"], \
                              self._image_response.axes["Phi"], \
-                             self._image_response.axes["PsiChi"]], \
+                             self._image_response.axes["PsiChi"]), \
                             copy_axes = False)
         else:
-            axes_cds = Axes([self._event.axes[0], \
+            axes_cds = Axes((self._event.axes[0], \
                              self._image_response.axes["Em"], \
                              self._image_response.axes["Phi"], \
-                             self._image_response.axes["PsiChi"]], \
+                             self._image_response.axes["PsiChi"]), \
                             copy_axes = False)
 
         self._event = Histogram(axes_cds, unit = self._event.unit, contents = self._event.contents,
@@ -186,11 +192,11 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         Load a response file on the computer memory.
         """
 
-        axes_image_response = Axes([full_detector_response.axes["NuLambda"],
+        axes_image_response = Axes((full_detector_response.axes["NuLambda"],
                                     full_detector_response.axes["Ei"],
                                     full_detector_response.axes["Em"],
                                     full_detector_response.axes["Phi"],
-                                    full_detector_response.axes["PsiChi"]],
+                                    full_detector_response.axes["PsiChi"]),
                                    copy_axes = False)
 
         nside = full_detector_response.axes["NuLambda"].nside
@@ -217,11 +223,10 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             exposure_map *= self.model_axes['lb'].pixarea()
         else:
 
-            exposure_map = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)),
-                                        np.sum(self._image_response, axis = (2,3,4)),
-                                        axes = ([1], [0]) )
-            exposure_map = u.Quantity(exposure_map, unit = self._image_response.unit * self._coordsys_conv_matrix.unit, copy=False)
-
+            exposure_map = tensordot_sparse(np.sum(self._coordsys_conv_matrix, axis = (0)),
+                                            np.sum(self._image_response, axis = (2,3,4)),
+                                            axes = (1, 0),
+                                            unit = self._image_response.unit * self._coordsys_conv_matrix.unit)
             exposure_map *= self.model_axes['lb'].pixarea()
 
         self._exposure_map = Histogram(self._model_axes, contents = exposure_map,
@@ -264,17 +269,18 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # response format is fixed.
 
         if self._coordsys_conv_matrix is None:
-            expectation = np.tensordot( model.contents, self._image_response.contents, axes = ([0,1],[0,1]))
+            expectation = np.tensordot( model.contents, self._image_response.contents, axes = ((0,1),(0,1)))
             expectation *= model.axes['lb'].pixarea()
             # ['lb', 'Ei'] x [NuLambda(lb), Ei, Em, Phi, PsiChi] -> [Em, Phi, PsiChi]
         else:
-            map_rotated = np.tensordot(self._coordsys_conv_matrix.contents, model.contents, axes = ([1], [0]))
+            map_rotated = tensordot_sparse(self._coordsys_conv_matrix.contents,
+                                           model.contents,
+                                           axes = (1, 0),
+                                           unit = self._coordsys_conv_matrix.unit * model.unit)
             # ['Time/ScAtt', 'lb', 'NuLambda'] x ['lb', 'Ei'] -> [Time/ScAtt, NuLambda, Ei]
-            map_rotated = u.Quantity(map_rotated, unit = self._coordsys_conv_matrix.unit * model.unit, copy=False)
-            # data.coordsys_conv_matrix.contents is sparse, so recover the unit
             # the unit of map_rotated is 1/cm2 ( = s * 1/cm2/s/sr * sr)
 
-            expectation = np.tensordot( map_rotated, self._image_response.contents, axes = ([1,2], [0,1]))
+            expectation = np.tensordot( map_rotated, self._image_response.contents, axes = ((1,2), (0,1)))
             expectation *= model.axes['lb'].pixarea()
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
@@ -306,17 +312,19 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # TODO: currently, dataspace_histogram is assumed to be a dense.
 
         if self._coordsys_conv_matrix is None:
-            tprod = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([0,1,2], [2,3,4]))
+            tprod = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ((0,1,2), (2,3,4)))
             tprod *= self.model_axes['lb'].pixarea()
             # [Em, Phi, PsiChi] x [NuLambda (lb), Ei, Em, Phi, PsiChi] -> [NuLambda (lb), Ei]
         else:
-            _ = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ([1,2,3], [2,3,4]))
+            _ = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ((1,2,3), (2,3,4)))
             # [Time/ScAtt, Em, Phi, PsiChi] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, NuLambda, Ei]
 
-            tprod = np.tensordot(self._coordsys_conv_matrix.contents, _, axes = ([0,2], [0,1]))
+            tprod = tensordot_sparse(self._coordsys_conv_matrix.contents,
+                                     _,
+                                     axes = ((0,2), (0,1)),
+                                     unit = _.unit * self._coordsys_conv_matrix.unit)
             # [Time/ScAtt, lb, NuLambda] x [Time/ScAtt, NuLambda, Ei] -> [lb, Ei]
-            tprod = u.Quantity(tprod, unit= _.unit * self._coordsys_conv_matrix.unit, copy=False)
-            # coordsys_conv_matrix is sparse, so recover result unit
+
             tprod *= self.model_axes['lb'].pixarea()
 
         return Histogram(self.model_axes, contents = tprod,
