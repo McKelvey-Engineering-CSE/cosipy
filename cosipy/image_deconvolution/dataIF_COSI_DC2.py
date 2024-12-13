@@ -86,7 +86,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         new._data_axes = new._event.axes
 
         if new._coordsys_conv_matrix is None:
-            axes = [new._image_response.axes['NuLambda'], new._image_response.axes['Ei']]
+            axes = [new._image_response.axes['NuLambda'].copy(), new._image_response.axes['Ei']] # will mutate axis 0
             axes[0].label = 'lb'
             # The gamma-ray direction of pre-computed response in DC2 is in the galactic coordinate, not in the local coordinate.
             # Actually, it is labeled as 'NuLambda'. So I replace it with 'lb'.
