@@ -1,6 +1,7 @@
 import numpy as np
 from tqdm.autonotebook import tqdm
 import astropy.units as u
+from numba import jit, prange
 
 import logging
 logger = logging.getLogger(__name__)
@@ -284,13 +285,32 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             expectation *= model.axes['lb'].pixarea()
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
+        ex = expectation.ravel()
+
         if dict_bkg_norm is not None:
             for key in self.keys_bkg_models():
-                expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
-        expectation += almost_zero
+                self.exmath(ex, self.bkg_model(key).contents.ravel(), dict_bkg_norm[key])
+        #        expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
+
+
+        self.acc_add(ex, almost_zero)
+        #expectation += almost_zero
 
         return Histogram(self.data_axes, contents = expectation,
                          track_overflow = False, copy_contents = False)
+
+    @staticmethod
+    @jit(nopython=True, nogil=True, parallel=True)
+    def exmath(ex, bg, bgnorm):
+        for i in prange(len(ex)):
+            ex[i] += bg[i] * bgnorm
+
+    @staticmethod
+    @jit(nopython=True, nogil=True, parallel=True)
+    def acc_add(ex, v):
+        for i in prange(len(ex)):
+            ex[i] += v
+
 
     def calc_T_product(self, dataspace_histogram):
         """
@@ -372,9 +392,28 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             Log-likelihood
         """
 
-        ev = self.event.contents
-        ex = expectation.contents
+        ev = self.event.contents.ravel()
+        ex = expectation.contents.ravel()
 
-        loglikelihood = np.sum( ev * np.log(ex) ) - np.sum(ex)
+        return self.ll(ev, ex)
 
-        return loglikelihood
+        #ev = self.event.contents
+        #ex = expectation.contents
+
+        #loglikelihood = np.sum( ev * np.log(ex) ) - np.sum(ex)
+
+        #return loglikelihood
+
+    @staticmethod
+    @jit(nopython=True, nogil=True, parallel=True)
+    def ll(ev, ex):
+
+        llhood = 0.
+
+        for i in prange(len(ev)):
+            llhood += ev[i] * np.log(ex[i])
+
+        for i in prange(len(ev)):
+            llhood -= ex[i]
+
+        return llhood
