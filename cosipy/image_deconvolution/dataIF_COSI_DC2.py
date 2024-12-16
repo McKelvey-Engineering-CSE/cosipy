@@ -1,7 +1,6 @@
 import numpy as np
 from tqdm.autonotebook import tqdm
 import astropy.units as u
-from numba import jit, prange
 
 import logging
 logger = logging.getLogger(__name__)
@@ -38,7 +37,8 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         self.is_miniDC2_format = False #should be removed in the future
 
     @classmethod
-    def load(cls, name, event_binned_data, dict_bkg_binned_data, rsp, coordsys_conv_matrix = None, is_miniDC2_format = False):
+    def load(cls, name, event_binned_data, dict_bkg_binned_data, rsp,
+             coordsys_conv_matrix = None, is_miniDC2_format = False, dtype = None):
         """
         Load data
 
@@ -56,7 +56,8 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             Coordsys conversion matrix
         is_miniDC2_format : bool, default False
             Whether the file format is for mini-DC2. It will be removed in the future.
-
+        dtype : datatype or None
+            Data type to convert all loaded data to (default: leave it alone)
         Returns
         -------
         :py:class:`cosipy.image_deconvolution.DataIF_COSI_DC2`
@@ -65,15 +66,21 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         new = cls(name)
 
-        new._event = event_binned_data.to_dense()
+        new._event = event_binned_data.to_dense().astype(dtype, copy=False)
 
         new._bkg_models = dict_bkg_binned_data
 
         for key in new._bkg_models:
             if new._bkg_models[key].is_sparse:
-                new._bkg_models[key] = new._bkg_models[key].to_dense()
+                new._bkg_models[key] = new._bkg_models[key].to_dense().astype(dtype, copy=False)
 
             new._summed_bkg_models[key] = np.sum(new._bkg_models[key])
+
+        if coordsys_conv_matrix is not None:
+            coordsys_conv_matrix = coordsys_conv_matrix.astype(dtype, copy=False)
+            if coordsys_conv_matrix.is_sparse:
+                # accelerate sparse transpose and reshape operations
+                coordsys_conv_matrix.contents.enable_caching()
 
         new._coordsys_conv_matrix = coordsys_conv_matrix
 
@@ -85,7 +92,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             logger.info('Finished')
         elif isinstance(rsp, Histogram):
             rsp.track_overflow(False)
-            new._image_response = rsp
+            new._image_response = rsp.astype(dtype, copy=False)
 
         # We modify the axes in event, bkg_models, response. This is only for DC2.
         new._modify_axes()
@@ -188,7 +195,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         return True
 
-    def _load_full_detector_response_on_memory(self, full_detector_response, is_miniDC2_format):
+    def _load_full_detector_response_on_memory(self, full_detector_response, is_miniDC2_format, dtype=None):
         """
         Load a response file on the computer memory.
         """
@@ -209,7 +216,8 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         else:
             contents = full_detector_response._file['DRM']['CONTENTS'][:] * full_detector_response.unit
 
-        self._image_response = Histogram(axes_image_response, contents=contents, unit = full_detector_response.unit,
+        self._image_response = Histogram(axes_image_response, contents=contents, dtype=dtype,
+                                         unit = full_detector_response.unit,
                                          track_overflow = False, copy_contents = False)
 
     def _calc_exposure_map(self):
@@ -289,27 +297,13 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         if dict_bkg_norm is not None:
             for key in self.keys_bkg_models():
-                self.exmath(ex, self.bkg_model(key).contents.ravel(), dict_bkg_norm[key])
-        #        expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
+                expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
 
 
-        self.acc_add(ex, almost_zero)
-        #expectation += almost_zero
+        expectation += almost_zero
 
         return Histogram(self.data_axes, contents = expectation,
                          track_overflow = False, copy_contents = False)
-
-    @staticmethod
-    @jit(nopython=True, nogil=True, parallel=True)
-    def exmath(ex, bg, bgnorm):
-        for i in prange(len(ex)):
-            ex[i] += bg[i] * bgnorm
-
-    @staticmethod
-    @jit(nopython=True, nogil=True, parallel=True)
-    def acc_add(ex, v):
-        for i in prange(len(ex)):
-            ex[i] += v
 
 
     def calc_T_product(self, dataspace_histogram):
@@ -392,28 +386,9 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             Log-likelihood
         """
 
-        ev = self.event.contents.ravel()
-        ex = expectation.contents.ravel()
+        ev = self.event.contents
+        ex = expectation.contents
 
-        return self.ll(ev, ex)
+        loglikelihood = np.sum( ev * np.log(ex) ) - np.sum(ex)
 
-        #ev = self.event.contents
-        #ex = expectation.contents
-
-        #loglikelihood = np.sum( ev * np.log(ex) ) - np.sum(ex)
-
-        #return loglikelihood
-
-    @staticmethod
-    @jit(nopython=True, nogil=True, parallel=True)
-    def ll(ev, ex):
-
-        llhood = 0.
-
-        for i in prange(len(ev)):
-            llhood += ev[i] * np.log(ex[i])
-
-        for i in prange(len(ev)):
-            llhood -= ex[i]
-
-        return llhood
+        return loglikelihood

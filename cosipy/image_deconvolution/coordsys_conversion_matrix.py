@@ -22,10 +22,6 @@ class CoordsysConversionMatrix(Histogram):
                          labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit,
                          track_overflow = False, copy_contents = copy_contents)
 
-        if isinstance(self.contents, sp.COO):
-            # accelerate sparse transpose and reshape operations
-            self.contents.enable_caching()
-
         self.binning_method = binning_method #'Time' or 'ScAtt'
 
     def copy(self):
