@@ -15,10 +15,10 @@ class ModelBase(Histogram, ABC):
     """
 
     def __init__(self, edges, contents = None, sumw2 = None,
-                 labels=None, axis_scale = None, sparse = None, unit = None):
+                 labels=None, axis_scale = None, sparse = None, unit = None, dtype = None):
 
         super().__init__(edges, contents = contents, sumw2 = sumw2,
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit,
+                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit, dtype = dtype,
                          track_overflow = False)
 
     @classmethod

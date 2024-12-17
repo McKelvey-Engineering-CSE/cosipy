@@ -88,7 +88,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         if isinstance(rsp, FullDetectorResponse):
             logger.info('Loading the response matrix onto your computer memory...')
-            new._load_full_detector_response_on_memory(rsp, is_miniDC2_format)
+            new._load_full_detector_response_on_memory(rsp, is_miniDC2_format, dtype=dtype)
             logger.info('Finished')
         elif isinstance(rsp, Histogram):
             rsp.track_overflow(False)
