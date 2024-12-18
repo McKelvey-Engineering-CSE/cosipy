@@ -88,7 +88,8 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
                 sum_bkg_T_product = self.calc_summed_bkg_model_product(key, ratio_list)
                 sum_bkg_model = self.dict_summed_bkg_model[key]
 
-                self.dict_bkg_norm[key] = self.dict_bkg_norm[key] * (sum_bkg_T_product / sum_bkg_model)
+                bkg_norm = self.dict_bkg_norm[key] * (sum_bkg_T_product / sum_bkg_model)
+                self.dict_bkg_norm[key] = bkg_norm.value
 
     def post_processing(self):
         """
