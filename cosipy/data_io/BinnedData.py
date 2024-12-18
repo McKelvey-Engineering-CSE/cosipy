@@ -107,7 +107,7 @@ class BinnedData(UnBinnedData):
                     Axis(energy_bin_edges*u.keV, label='Em'),
                     Axis(phi_bin_edges*u.deg, label='Phi'),
                     psichi_axis], copy_axes=False)
-        self.binned_data = Histogram(axes, sparse=True)
+        self.binned_data = Histogram(axes, sparse=True, unit=u.dimensionless_unscaled)
 
         # Fill histogram:
         if event_range == None:
@@ -164,7 +164,9 @@ class BinnedData(UnBinnedData):
 
         self.binned_data = Histogram.open(binned_data)
 
-        return
+        # add non-null unit
+        self.binned_data.to(u.dimensionless_unscaled, update=False, copy=False)
+
 
     def get_binning_info(self, binned_data=None):
 

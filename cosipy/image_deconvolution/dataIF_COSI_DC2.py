@@ -13,11 +13,15 @@ from cosipy.response import FullDetectorResponse
 
 from .image_deconvolution_data_interface_base import ImageDeconvolutionDataInterfaceBase
 
-# perform a tensordot operation where A and B have been stripped of
-# their units, and apply the specified unit to the product
-def tensordot_sparse(A, B, axes, unit):
-    dotprod = np.tensordot(A, B, axes=axes)
-    return u.Quantity(dotprod, unit=unit, copy=False)
+def tensordot_sparse(A, A_unit, B, axes):
+    """
+    perform a tensordot operation on A and B.  A is sparse
+    and so does not carry a unit; rather it must be passed
+    as a separate argument.  B is a normaly Quantity. Return
+    a proper Quantity as the result.
+    """
+    dotprod = np.tensordot(A, B.value, axes=axes)
+    return u.Quantity(dotprod, unit= A_unit * B.unit, copy=False)
 
 class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
     """
@@ -229,14 +233,13 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         if self._coordsys_conv_matrix is None:
             exposure_map  = np.sum(self._image_response.contents, axis = (2,3,4))
-            exposure_map *= self.model_axes['lb'].pixarea()
         else:
-
             exposure_map = tensordot_sparse(np.sum(self._coordsys_conv_matrix, axis = (0)),
+                                            self._coordsys_conv_matrix.unit,
                                             np.sum(self._image_response, axis = (2,3,4)),
-                                            axes = (1, 0),
-                                            unit = self._image_response.unit * self._coordsys_conv_matrix.unit)
-            exposure_map *= self.model_axes['lb'].pixarea()
+                                            axes = (1, 0))
+
+        exposure_map *= self.model_axes['lb'].pixarea()
 
         self._exposure_map = Histogram(self._model_axes, contents = exposure_map,
                                        track_overflow = False, copy_contents = False)
@@ -279,28 +282,24 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         if self._coordsys_conv_matrix is None:
             expectation = np.tensordot( model.contents, self._image_response.contents, axes = ((0,1),(0,1)))
-            expectation *= model.axes['lb'].pixarea()
             # ['lb', 'Ei'] x [NuLambda(lb), Ei, Em, Phi, PsiChi] -> [Em, Phi, PsiChi]
         else:
             map_rotated = tensordot_sparse(self._coordsys_conv_matrix.contents,
+                                           self._coordsys_conv_matrix.unit,
                                            model.contents,
-                                           axes = (1, 0),
-                                           unit = self._coordsys_conv_matrix.unit * model.unit)
+                                           axes = (1, 0))
             # ['Time/ScAtt', 'lb', 'NuLambda'] x ['lb', 'Ei'] -> [Time/ScAtt, NuLambda, Ei]
             # the unit of map_rotated is 1/cm2 ( = s * 1/cm2/s/sr * sr)
 
-            expectation = np.tensordot( map_rotated, self._image_response.contents, axes = ((1,2), (0,1)))
-            expectation *= model.axes['lb'].pixarea()
+            expectation = np.tensordot(map_rotated, self._image_response.contents, axes = ((1,2), (0,1)))
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
-        ex = expectation.ravel()
+        expectation *= model.axes['lb'].pixarea()
+        expectation += almost_zero
 
         if dict_bkg_norm is not None:
             for key in self.keys_bkg_models():
                 expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
-
-
-        expectation += almost_zero
 
         return Histogram(self.data_axes, contents = expectation,
                          track_overflow = False, copy_contents = False)
@@ -327,19 +326,19 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         if self._coordsys_conv_matrix is None:
             tprod = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ((0,1,2), (2,3,4)))
-            tprod *= self.model_axes['lb'].pixarea()
             # [Em, Phi, PsiChi] x [NuLambda (lb), Ei, Em, Phi, PsiChi] -> [NuLambda (lb), Ei]
+
         else:
             _ = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ((1,2,3), (2,3,4)))
             # [Time/ScAtt, Em, Phi, PsiChi] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, NuLambda, Ei]
 
             tprod = tensordot_sparse(self._coordsys_conv_matrix.contents,
+                                     self._coordsys_conv_matrix.unit,
                                      _,
-                                     axes = ((0,2), (0,1)),
-                                     unit = _.unit * self._coordsys_conv_matrix.unit)
+                                     axes = ((0,2), (0,1)))
             # [Time/ScAtt, lb, NuLambda] x [Time/ScAtt, NuLambda, Ei] -> [lb, Ei]
 
-            tprod *= self.model_axes['lb'].pixarea()
+        tprod *= self.model_axes['lb'].pixarea()
 
         return Histogram(self.model_axes, contents = tprod,
                          track_overflow = False, copy_contents = False)
@@ -362,14 +361,10 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         -------
         float
         """
-        # TODO: currently, dataspace_histogram is assumed to be a dense.
+        # TODO: currently, dataspace_histogram is assumed to be dense.
 
-        if self._coordsys_conv_matrix is None:
-            axes = ((0,1,2), (0,1,2))
-        else:
-            axes = ((0,1,2,3), (0,1,2,3))
-
-        return np.tensordot(dataspace_histogram.contents, self.bkg_model(key).contents, axes = axes)
+        return np.dot(dataspace_histogram.contents.ravel(),
+                      self.bkg_model(key).contents.ravel())
 
     def calc_loglikelihood(self, expectation):
         """
