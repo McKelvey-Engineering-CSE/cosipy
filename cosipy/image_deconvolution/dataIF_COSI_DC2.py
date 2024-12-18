@@ -70,25 +70,14 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         new = cls(name)
 
-        # binned data *should* always have a dimensionless unit if loaded via BinnedData class,
-        # but check to make sure in case it was manufactured elsewhere
-
         new._event = event_binned_data.to_dense().astype(dtype, copy=False)
-        if new._event.unit is None:
-            new._event = new._event.to(unit=u.dimensionless_unscaled, update=False, copy=False)
-
-        new._bkg_models = dict_bkg_binned_data
-        for key, model in new._bkg_models.items():
-            if model.unit is None:
-                new._bkg_models[key] = model.to(unit=u.dimensionless_unscaled, update=False, copy=False)
-
-        new._event = event_binned_data.to_dense().astype(dtype, copy=False)
-
+        print("UNIT", new._event.unit)
         new._bkg_models = dict_bkg_binned_data
 
         for key in new._bkg_models:
             if new._bkg_models[key].is_sparse:
                 new._bkg_models[key] = new._bkg_models[key].to_dense().astype(dtype, copy=False)
+            print("BUNIT", new._bkg_models[key].unit)
 
             new._summed_bkg_models[key] = np.sum(new._bkg_models[key])
 
