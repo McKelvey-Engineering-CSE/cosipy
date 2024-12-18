@@ -138,6 +138,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
                 sum_bkg_T_product = self.calc_summed_bkg_model_product(key, ratio_list)
                 sum_bkg_model = self.dict_summed_bkg_model[key]
                 bkg_norm = self.dict_bkg_norm[key] * (sum_bkg_T_product / sum_bkg_model)
+                bkg_norm = bkg_norm.value # strip unit
 
                 bkg_range = self.dict_bkg_norm_range[key]
                 if bkg_norm < bkg_range[0]:

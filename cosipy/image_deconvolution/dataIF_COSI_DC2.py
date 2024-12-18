@@ -386,4 +386,4 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         loglikelihood = np.sum( ev * np.log(ex) ) - np.sum(ex)
 
-        return loglikelihood
+        return loglikelihood.value # strip empty unit
