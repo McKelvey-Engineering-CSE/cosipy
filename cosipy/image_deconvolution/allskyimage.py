@@ -1,7 +1,6 @@
 import astropy.units as u
 import numpy as np
 import healpy as hp
-import copy
 
 import logging
 logger = logging.getLogger(__name__)
@@ -39,7 +38,8 @@ class AllSkyImageModel(ModelBase):
                  coordsys = 'galactic',
                  label_image = 'lb',
                  label_energy = 'Ei',
-                 unit = '1/(s*cm*cm*sr)'
+                 unit = '1/(s*cm*cm*sr)',
+                 dtype = None,
                  ):
 
         if energy_edges.unit != u.keV:
@@ -54,38 +54,9 @@ class AllSkyImageModel(ModelBase):
 
         energy_axis = Axis(edges = energy_edges, label = label_energy, scale = "log")
 
-        axes = Axes([image_axis, energy_axis])
+        axes = Axes([image_axis, energy_axis], copy_axes=False)
 
-        super().__init__(axes, sparse = False, unit = unit)
-
-    @classmethod
-    def open(cls, filename, name = 'hist'):
-        """
-        Open a file
-
-        Parameters
-        ----------
-        filename: str
-        
-        Returns
-        -------
-        py:class:`AllSkyImageModel`
-        """
-
-        hist = Histogram.open(filename, name)
-
-        allskyimage = AllSkyImageModel(nside = hist.axes[0].nside, 
-                                    energy_edges = hist.axes[1].edges,
-                                    scheme = hist.axes[0].scheme, 
-                                    coordsys = hist.axes[0].coordsys.name, 
-                                    label_image = hist.axes[0].label, 
-                                    label_energy = hist.axes[1].label,
-                                    unit = hist.unit)
-
-        allskyimage[:] = hist.contents
-
-        del hist
-        return allskyimage
+        super().__init__(axes, sparse = False, unit = unit, dtype = dtype)
 
     @classmethod
     def instantiate_from_parameters(cls, parameter):
@@ -95,7 +66,7 @@ class AllSkyImageModel(ModelBase):
         Parameters
         ----------
         parameter : py:class:`yayc.Configurator`
-        
+
         Returns
         -------
         py:class:`AllSkyImageModel`
@@ -115,16 +86,17 @@ class AllSkyImageModel(ModelBase):
         """
 
         new = cls(nside = parameter['nside'],
-                  energy_edges = parameter['energy_edges']['value'] * u.Unit(parameter['energy_edges']['unit']), 
-                  scheme = parameter['scheme'], 
+                  energy_edges = parameter['energy_edges']['value'] * u.Unit(parameter['energy_edges']['unit']),
+                  scheme = parameter['scheme'],
                   coordsys = parameter['coordinate'],
-                  unit = u.Unit(parameter['unit']))
+                  unit = u.Unit(parameter['unit']),
+                  dtype = np.dtype(parameter['dtype']))
 
         return new
 
     def set_values_from_parameters(self, parameter):
         """
-        Set the values accordinng to the specified algorithm. 
+        Set the values accordinng to the specified algorithm.
 
         Parameters
         ----------
@@ -152,7 +124,7 @@ class AllSkyImageModel(ModelBase):
             unit = u.Unit(algorithm_parameter['unit'])
             for idx, value in enumerate(algorithm_parameter['value']):
                 self[:,idx] = value * unit
-    #    elif algorithm_name == ... 
+    #    elif algorithm_name == ...
     #       ...
 
     def set_values_from_extendedmodel(self, extendedmodel):
@@ -167,13 +139,13 @@ class AllSkyImageModel(ModelBase):
 
         integrated_flux = get_integrated_spectral_model(spectrum = extendedmodel.spectrum.main.shape,
                                                         energy_axis = self.axes[1])
-        
+
         npix = self.axes[0].npix
         coords = self.axes[0].pix2skycoord(np.arange(npix))
 
         normalized_map = extendedmodel.spatial_shape(coords.l.deg, coords.b.deg) / u.sr
 
-        self[:] = np.tensordot(normalized_map, integrated_flux.contents, axes = 0) 
+        self[:] = np.tensordot(normalized_map, integrated_flux.contents, axes = 0)
 
     def smoothing(self, fwhm = None, sigma = None):
         """
@@ -189,13 +161,9 @@ class AllSkyImageModel(ModelBase):
 
         if fwhm is None:
             fwhm = 0.0 * u.deg
-        
+
         if sigma is not None:
             fwhm = 2.354820 * sigma
 
-        allskyimage_new = copy.deepcopy(self)
-        
         for i in range(self.axes['Ei'].nbins):
-            allskyimage_new[:,i] = hp.smoothing(self[:,i].value, fwhm = fwhm.to('rad').value) * self.unit
-
-        return allskyimage_new
+            self[:,i] = hp.smoothing(self[:,i].value, fwhm = fwhm.to('rad').value) * self.unit

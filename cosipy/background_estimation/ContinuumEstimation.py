@@ -14,27 +14,27 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ContinuumEstimation:
-    
+
     def calc_psr(self, sc_orientation, detector_response, coord, nside=16):
 
         """Calculates point source response (PSR) in Galactic coordinates.
-        
+
         Parameters
         ----------
         ori_file : str
             Full path to orienation file.
         sc_orientation : cosipy.spacecraftfile.SpacecraftFile
-            Spacecraft orientation object.  
+            Spacecraft orientation object.
         detector_response : str
             Full path to detector response file.
         coord : astropy.coordinates.SkyCoord
-            The coordinates of the target object. 
+            The coordinates of the target object.
         nside : int, optional
-            nside of scatt map (default is 16). 
-        
+            nside of scatt map (default is 16).
+
         Returns
         -------
-        :py:class:`PointSourceResponse` 
+        :py:class:`PointSourceResponse`
         """
 
         # Detector response:
@@ -52,7 +52,7 @@ class ContinuumEstimation:
     def load_psr_from_file(self, psr_file):
 
         """Loads point source response from h5 file.
-            
+
         Parameters
         ----------
         psr_file : str
@@ -68,22 +68,22 @@ class ContinuumEstimation:
     def load_full_data(self, data_file, data_yaml):
 
         """Loads binned data to be used as a template for the background estimate.
-        
+
         Parameters
         ----------
         data_file : str
-            Full path to binned data (must be .h5 file). 
+            Full path to binned data (must be .h5 file).
         data_yaml : str
-            Full path to the dataIO yaml file used for binning the data. 
+            Full path to the dataIO yaml file used for binning the data.
 
         Notes
         -----
-        In practice, the data file used for estimating the background 
-        should be the full dataset.  
-        
-        The full data binning needs to match the PSR. 
+        In practice, the data file used for estimating the background
+        should be the full dataset.
+
+        The full data binning needs to match the PSR.
         """
-        
+
         self.full_data = BinnedData(data_yaml)
         self.full_data.load_binned_data_from_hdf5(data_file)
 
@@ -94,32 +94,32 @@ class ContinuumEstimation:
         """
         Determines masked pixels from cumulative distribution of
         the point source response.
-        
+
         Parameters
         ----------
         psichi_map : histpy:Histogram
-            Point source response projected onto psichi. This can be 
+            Point source response projected onto psichi. This can be
             either a slice of Em and Phi, or the full projection. Note
-            that psichi is a HealpixMap axis in histpy. 
+            that psichi is a HealpixMap axis in histpy.
         containment : float
-            The percentage (non-inclusive) of the cumulative distribution 
-            to use for the mask, i.e. all pixels that fall below this value 
-            in the cumulative distribution will be masked. 
+            The percentage (non-inclusive) of the cumulative distribution
+            to use for the mask, i.e. all pixels that fall below this value
+            in the cumulative distribution will be masked.
         make_plots : bool
-            Option to plot cumulative distribution. 
+            Option to plot cumulative distribution.
 
         Returns
         -------
         sorted_indices : array
             Indices of sorted psichi array.
         arm_mask : array
-            Boolean array specifying pixels in the psichi map that will be masked. 
+            Boolean array specifying pixels in the psichi map that will be masked.
 
         Note
         ----
         The cumulative distribution is an estimate of the angular
         resolution measure (ARM), which is a measure of the PSF
-        for Compton imaging. 
+        for Compton imaging.
         """
 
         # Get healpix map:
@@ -148,20 +148,20 @@ class ContinuumEstimation:
             plt.savefig("cumdist.png")
             plt.show()
             plt.close()
-        
+
         return sorted_indices, arm_mask
 
     def simple_inpainting(self, m_data, sorted_indices, arm_mask):
 
         """Highly simplistic method for inpainting masked region in CDS.
 
-        This method relies on the input healpix map having a ring 
+        This method relies on the input healpix map having a ring
         ordering. For each masked pixel, it searches to the left (i.e.
-        lower pixel numbers) until reaching the first non-zero pixel. 
+        lower pixel numbers) until reaching the first non-zero pixel.
         It then search to the right (i.e. higher pixel numbers) until
-        again finding the first non-zero pixel. The mean of the two 
-        values is used for filling in the masked pixel. 
-        
+        again finding the first non-zero pixel. The mean of the two
+        values is used for filling in the masked pixel.
+
         Parameters
         ----------
         m_data : array-like
@@ -169,16 +169,16 @@ class ContinuumEstimation:
         sorted_indices : array
             Indices of sorted psichi array.
         arm_mask : array
-            Boolean array specifying pixels in the psichi map that will be masked. 
+            Boolean array specifying pixels in the psichi map that will be masked.
 
         Returns
         -------
         interp_list : array
-            Values for the inpainting, corresponding to the masked pixels. 
+            Values for the inpainting, corresponding to the masked pixels.
         """
 
         # Get mean of masked data for edge cases (simple solution for now):
-        # CK: It would be better if this were at least the mean of an 
+        # CK: It would be better if this were at least the mean of an
         # np masked array object, but a better method is anyways needed.
         masked_mean = np.mean(m_data)
 
@@ -186,49 +186,49 @@ class ContinuumEstimation:
         interp_list_low = []
         interp_list_high = []
         for i in range(0,len(sorted_indices[arm_mask])):
-            
+
             this_index = sorted_indices[arm_mask][i]
-            
+
             # Search left:
             k = 1
             search_left = True
             while search_left == True:
-                
+
                 if this_index-k < 0:
                     logger.info("Edge case!")
                     interp_list_low.append(masked_mean)
                     search_left = False
                     break
-                    
+
                 next_value = m_data[this_index-k]
                 if next_value == 0:
                     k += 1
                 if next_value != 0:
                     interp_list_low.append(next_value)
                     search_left = False
-           
+
             # Search right:
             j = 1
             search_right = True
             while search_right == True:
-               
+
                 if this_index+j >= self.psr.axes['PsiChi'].nbins-1:
                     logger.info("Edge case!")
                     interp_list_high.append(masked_mean)
                     search_right = False
                     break
-                
+
                 next_value = m_data[this_index+j]
                 if next_value == 0:
                     j += 1
                 if next_value != 0:
                     interp_list_high.append(next_value)
                     search_right = False
-            
+
         interp_list_low = np.array(interp_list_low)
         interp_list_high = np.array(interp_list_high)
-        interp_list = (interp_list_low + interp_list_high) / 2.0 
-    
+        interp_list = (interp_list_low + interp_list_high) / 2.0
+
         return interp_list
 
     def continuum_bg_estimation(self, data_file, data_yaml, psr, \
@@ -236,35 +236,35 @@ class ContinuumEstimation:
             e_loop="default", s_loop="default"):
 
         """Estimates continuum background.
-        
+
         Parameters
         ----------
         data_file : str
-            Full path to binned data (must be .h5 file). 
+            Full path to binned data (must be .h5 file).
         data_yaml : str
-            Full path to the dataIO yaml file used for binning the data.  
+            Full path to the dataIO yaml file used for binning the data.
         psr : py:class:`PointSourceResponse`
-            Point source response object. 
+            Point source response object.
         containment : float, optional
-            The percentage (non-inclusive) of the cumulative distribution 
-            to use for the mask, i.e. all pixels that fall below this value 
-            in the cumulative distribution will be masked. Default is 0.4. 
+            The percentage (non-inclusive) of the cumulative distribution
+            to use for the mask, i.e. all pixels that fall below this value
+            in the cumulative distribution will be masked. Default is 0.4.
         make_plots : bool, optional
-            Option to make some plots of the data, response, and masks. 
+            Option to make some plots of the data, response, and masks.
             Default is False.
         e_loop : tuple, optional
-            Option to pass tuple specifying which energy range to 
+            Option to pass tuple specifying which energy range to
             loop over. This must coincide with the energy bins. The default
             is all bins.
         s_loop : tuple, optional
             Option to pass tuple specifying which Phi anlge range to
             loop over. This must coincide with the Phi  bins. The default
             is all bins.
-        
+
         Returns
         -------
         estimated_bg : histpy:Histogram
-            Estimated background as histpy object. 
+            Estimated background as histpy object.
         """
 
         # Define psr attribute:
@@ -289,7 +289,7 @@ class ContinuumEstimation:
         # Loop through all bins of energy and phi:
         for E in range(e_loop[0],e_loop[1]):
             for s in range(s_loop[0],s_loop[1]):
-                
+
                 pbar.update(1) # update progress bar
                 logger.info("Bin %s %s" %(str(E),str(s)))
 
@@ -297,7 +297,7 @@ class ContinuumEstimation:
                 h = self.psr.slice[{'Em':E, 'Phi':s}].project('PsiChi')
 
                 # Get mask:
-                sorted_indices, arm_mask = self.mask_from_cumdist(h, containment, make_plots=make_plots)       
+                sorted_indices, arm_mask = self.mask_from_cumdist(h, containment, make_plots=make_plots)
 
                 # Mask data:
                 h_data = self.full_data.binned_data.project('Em', 'Phi', 'PsiChi').slice[{'Em':E, 'Phi':s}].project('PsiChi')
@@ -318,7 +318,7 @@ class ContinuumEstimation:
 
                 # Option to make some plots:
                 if make_plots == True:
-                    
+
                     # Plot true response:
                     m_dummy = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.contents)
                     plot,ax = m_dummy.plot('mollview')
@@ -352,7 +352,7 @@ class ContinuumEstimation:
                     plt.title("Interpolated Data (Estimated BG)")
                     plt.show()
                     plt.close()
-      
+
         # Close progress bar:
         pbar.close()
 

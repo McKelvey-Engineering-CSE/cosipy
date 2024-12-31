@@ -19,7 +19,7 @@ class PolarizationAngle:
         skycoord : :py:class:`astropy.coordinates.SkyCoord`
             Source direction
         convention : PolarizationConvention
-            Convention the defined the polarization basis and direction in 
+            Convention the defined the polarization basis and direction in
             the polarization plane (for which the source direction is normal)
         *args, **kwargs
             Passed to convention class.
@@ -35,7 +35,7 @@ class PolarizationAngle:
 
     def __repr__(self):
         return f"<PolarizationAngle({self._angle.degree} deg at {self._skycoord} using convention {self._convention})>"
-        
+
     @property
     def angle(self):
         return self._angle
@@ -66,16 +66,16 @@ class PolarizationAngle:
 
         # Calculate the polarization vector
         pol_vec = px * cos_pa + py * sin_pa
-                
+
         return SkyCoord(*pol_vec,
                         representation_type = 'cartesian',
                         frame = self.convention.frame)
-    
+
     def transform_to(self, convention, *args, **kwargs):
 
         # Standarize convention 2
         convention2 = PolarizationConvention.get_convention(convention, *args, **kwargs)
-        
+
         # Calculate the polarization vector in the current convention
         pol_vec = self.vector.transform_to(convention2.frame).cartesian.xyz
 
@@ -84,7 +84,7 @@ class PolarizationAngle:
 
         px2 = px2.cartesian.xyz
         py2 = py2.cartesian.xyz
-        
+
         # Compute the dot products for the transformation
         a = np.sum(pol_vec * px2, axis=0)
         b = np.sum(pol_vec * py2, axis=0)
@@ -99,5 +99,3 @@ class PolarizationAngle:
         return PolarizationAngle(pa_2,
                                  self.skycoord,
                                  convention = convention2)
-
-        

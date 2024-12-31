@@ -1,6 +1,5 @@
 import numpy as np
 import astropy.units as u
-import functools
 from abc import ABC, abstractmethod
 import logging
 logger = logging.getLogger(__name__)
@@ -10,7 +9,7 @@ class DeconvolutionAlgorithmBase(ABC):
     A base class for image deconvolution algorithms.
     Subclasses should override these methods:
 
-    - initialization 
+    - initialization
     - pre_processing
     - Estep
     - Mstep
@@ -18,8 +17,8 @@ class DeconvolutionAlgorithmBase(ABC):
     - register_result
     - check_stopping_criteria
     - finalization
-    
-    When the method run_deconvolution is called in ImageDeconvolution class, 
+
+    When the method run_deconvolution is called in ImageDeconvolution class,
     the iteration method in this class is called for each iteration.
 
     Attributes
@@ -36,8 +35,8 @@ class DeconvolutionAlgorithmBase(ABC):
 
         self.initial_model = initial_model
         self.dataset = dataset
-        self.mask = mask 
-        self.parameter = parameter 
+        self.mask = mask
+        self.parameter = parameter
         self.results = []
 
         self.dict_bkg_norm = {}
@@ -47,7 +46,7 @@ class DeconvolutionAlgorithmBase(ABC):
                 if not key in self.dict_bkg_norm.keys():
                     self.dict_bkg_norm[key] = 1.0
                     self.dict_dataset_indexlist_for_bkg_models[key] = []
-        
+
         for key in self.dict_dataset_indexlist_for_bkg_models.keys():
             for index, data in enumerate(self.dataset):
                 if key in data.keys_bkg_models():
@@ -83,7 +82,7 @@ class DeconvolutionAlgorithmBase(ABC):
     @abstractmethod
     def Estep(self):
         """
-        E-step. 
+        E-step.
         In this step, only self.expectation_list should be updated.
         If it will be performed in other step, typically post_processing() or check_stopping_criteria(),
         this step can be skipped.
@@ -93,7 +92,7 @@ class DeconvolutionAlgorithmBase(ABC):
     @abstractmethod
     def Mstep(self):
         """
-        M-step. 
+        M-step.
         In this step, only self.delta_model should be updated.
         If you want to apply some operations to self.delta_model,
         these should be performed in post_processing().
@@ -103,7 +102,7 @@ class DeconvolutionAlgorithmBase(ABC):
     @abstractmethod
     def post_processing(self):
         """
-        Post-processing for each iteration. 
+        Post-processing for each iteration.
         In this step, if needed, you can apply some filters to self.delta_model and set it as self.processed_delta_model.
         Then, the updated model should be calculated as self.model.
         For example, Gaussian smoothing can be applied to self.delta_model in this step.
@@ -113,7 +112,7 @@ class DeconvolutionAlgorithmBase(ABC):
     @abstractmethod
     def register_result(self):
         """
-        Register results at the end of each iteration. 
+        Register results at the end of each iteration.
         Users can define what kinds of values are stored in this method.
         """
         raise NotImplementedError
@@ -152,7 +151,7 @@ class DeconvolutionAlgorithmBase(ABC):
 
         logger.info("<< M-step >>")
         self.Mstep()
-            
+
         logger.info("<< Post-processing >>")
         self.post_processing()
 
@@ -184,7 +183,7 @@ class DeconvolutionAlgorithmBase(ABC):
         list of :py:class:`histpy.Histogram`
             List of expected count histograms
         """
-        
+
         return [data.calc_expectation(model, dict_bkg_norm = dict_bkg_norm, almost_zero = almost_zero) for data in self.dataset]
 
     def calc_loglikelihood_list(self, expectation_list):
@@ -206,14 +205,14 @@ class DeconvolutionAlgorithmBase(ABC):
 
     def calc_summed_exposure_map(self):
         """
-        Calculate a list of exposure maps from the registered dataset.
+        Calculate a summed exposure maps from the registered dataset.
 
         Returns
         -------
-        list of :py:class:`histpy.Histogram`
+        :py:class:`histpy.Histogram`
         """
 
-        return functools.reduce(lambda x, y: x + y, map(lambda data: data.exposure_map, self.dataset))
+        return self._histogram_sum([ data.exposure_map for data in self.dataset ])
 
     def calc_summed_bkg_model(self, key):
         """
@@ -228,10 +227,10 @@ class DeconvolutionAlgorithmBase(ABC):
         -------
         float
         """
-        
+
         indexlist = self.dict_dataset_indexlist_for_bkg_models[key]
-        
-        return np.sum([self.dataset[i].summed_bkg_model(key) for i in indexlist])
+
+        return sum([self.dataset[i].summed_bkg_model(key) for i in indexlist])
 
     def calc_summed_T_product(self, dataspace_histogram_list):
         """
@@ -247,7 +246,8 @@ class DeconvolutionAlgorithmBase(ABC):
         :py:class:`histpy.Histogram`
         """
 
-        return functools.reduce(lambda x, y: x + y, map(lambda data, hist: data.calc_T_product(hist), self.dataset, dataspace_histogram_list))
+        return self._histogram_sum([data.calc_T_product(hist)
+                                    for data, hist in zip(self.dataset, dataspace_histogram_list)])
 
     def calc_summed_bkg_model_product(self, key, dataspace_histogram_list):
         """
@@ -262,9 +262,25 @@ class DeconvolutionAlgorithmBase(ABC):
 
         Returns
         -------
-        flaot
+        float
         """
 
         indexlist = self.dict_dataset_indexlist_for_bkg_models[key]
 
-        return functools.reduce(lambda x, y: x + y, map(lambda i: self.dataset[i].calc_bkg_model_product(key = key, dataspace_histogram = dataspace_histogram_list[i]), indexlist))
+        return sum([
+            self.dataset[i].calc_bkg_model_product(key = key, dataspace_histogram = dataspace_histogram_list[i])
+            for i in indexlist
+        ])
+
+    @staticmethod
+    def _histogram_sum(hlist):
+        """
+        Sum a list of Histograms.  If only one input, just return it.
+        """
+        if len(hlist) == 1:
+            return hlist[0]
+        else:
+            result = hlist[0].copy()
+            for h in hlist[1:]:
+                result += h
+            return result

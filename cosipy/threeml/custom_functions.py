@@ -52,7 +52,7 @@ class Band_Eflux(Function1D, metaclass=FunctionMeta):
             min : 0
             fix: yes
     """
-    
+
     def _set_units(self, x_unit, y_unit):
         # The normalization has the unit of x * y
         self.K.unit = y_unit * x_unit
@@ -86,7 +86,7 @@ class Band_Eflux(Function1D, metaclass=FunctionMeta):
         else:
             unit_ = 1.0
             alpha_, beta_, K_, E0_, a_, b_, x_ = alpha, beta, K, E0, a, b, x
-            
+
         spectrum_ = Band(alpha=alpha_,
                          beta=beta_,
                          K=1.0,
@@ -115,26 +115,26 @@ class SpecFromDat(Function1D, metaclass=FunctionMeta):
                 desc: the data file to load
                 initial value: test.dat
                 defer: True
-                units: 
+                units:
                     energy: keV
                     flux: ph/cm2/s/kev
-        """            
+        """
         def _set_units(self, x_unit, y_unit):
-            
+
             self.K.unit = y_unit
 
         def evaluate(self, x, K):
             dataFlux = np.genfromtxt(self.dat.value,comments = "#",usecols = (2),skip_footer=1,skip_header=5)
             dataEn = np.genfromtxt(self.dat.value,comments = "#",usecols = (1),skip_footer=1,skip_header=5)
-            
+
             # Calculate the widths of the energy bins
             ewidths = np.diff(dataEn, append=dataEn[-1])
 
             # Normalize dataFlux using the energy bin widths
             dataFlux = dataFlux  / np.sum(dataFlux * ewidths)
-            
+
             fun = interp1d(dataEn,dataFlux,fill_value=0,bounds_error=False)
-            
+
             if self._x_unit != None:
                 dataEn *= self._x_unit
 
@@ -235,7 +235,7 @@ class Wide_Asymm_Gaussian_on_sphere(Function2D, metaclass=FunctionMeta):
         sin_2phi = np.sin(2.0 * phi * np.pi / 180.0)
 
         A = old_div(cos2_phi, (2.0 * b**2)) + old_div(sin2_phi, (2.0 * a**2))
-        
+
         B = old_div(-sin_2phi, (4.0 * b**2)) + old_div(sin_2phi, (4.0 * a**2))
 
         C = old_div(sin2_phi, (2.0 * b**2)) + old_div(cos2_phi, (2.0 * a**2))
@@ -290,5 +290,4 @@ class Wide_Asymm_Gaussian_on_sphere(Function2D, metaclass=FunctionMeta):
 
         if isinstance(z, u.Quantity):
             z = z.value
-        return np.ones_like(z)        
-        
+        return np.ones_like(z)

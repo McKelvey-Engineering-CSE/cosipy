@@ -22,7 +22,7 @@ setup(name='cosipy',
       author_email='imc@umd.edu',
       url='https://github.com/cositools/cosipy',
       packages = find_packages(include=["cosipy", "cosipy.*"]),
-      install_requires = ["histpy",
+      install_requires = ["histpy @ git+https://gitlab.com/washu-sbs-lab/histpy.git@hist_cleanup_2#egg=histpy",
                           "mhealpy",
                           "scoords",
                           'astromodels>=2.4.2',
@@ -31,13 +31,12 @@ setup(name='cosipy',
                           'numba',
                           'yayc',
                           'awscli',
-                          'scipy<=1.13.0'],
+                          'scipy'],
       description = "High-level analysis for the COSI telescope data",
       entry_points={"console_scripts":[
           "cosi-response = cosipy.response.FullDetectorResponse:cosi_response",
                               ]},
-      
+
       long_description = long_description,
       long_description_content_type="text/markdown",
       )
-

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import astropy.units as u
 import numpy as np
-import copy
 from histpy import Histogram
 
 class ModelBase(Histogram, ABC):
@@ -16,10 +15,11 @@ class ModelBase(Histogram, ABC):
     """
 
     def __init__(self, edges, contents = None, sumw2 = None,
-                 labels=None, axis_scale = None, sparse = None, unit = None):
+                 labels=None, axis_scale = None, sparse = None, unit = None, dtype = None):
 
-        super().__init__(edges, contents = contents, sumw2 = sumw2, 
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit)
+        super().__init__(edges, contents = contents, sumw2 = sumw2,
+                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit, dtype = dtype,
+                         track_overflow = False)
 
     @classmethod
     @abstractmethod
@@ -42,7 +42,7 @@ class ModelBase(Histogram, ABC):
     @abstractmethod
     def set_values_from_parameters(self, parameter):
         """
-        Set values accordinng to the give parameters. 
+        Set values accordinng to the give parameters.
 
         Parameters
         ----------
@@ -65,7 +65,4 @@ class ModelBase(Histogram, ABC):
         if not isinstance(fill_value, u.quantity.Quantity) and self.unit is not None:
             fill_value *= self.contents.unit
 
-        model_new = copy.deepcopy(self)
-        model_new[:] = np.where(mask.contents, model_new.contents, fill_value)
-
-        return model_new
+        self[:] = np.where(mask.contents, self.contents, fill_value)

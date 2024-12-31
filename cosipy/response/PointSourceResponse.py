@@ -30,7 +30,7 @@ class PointSourceResponse(Histogram):
         Physical units, if not specified as part of ``contents``. Units of ``area*time``
         are expected.
     """
-    
+
     @property
     def photon_energy_axis(self):
         """
@@ -40,9 +40,9 @@ class PointSourceResponse(Histogram):
         -------
         :py:class:`histpy.Axes`
         """
-        
+
         return self.axes['Ei']
-       
+
     def get_expectation(self, spectrum):
         """
         Convolve the response with a spectral hypothesis to obtain the expected
@@ -58,17 +58,19 @@ class PointSourceResponse(Histogram):
         :py:class:`histpy.Histogram`
              Histogram with the expected counts on each analysis bin
         """
-        
+
         energy_axis = self.photon_energy_axis
 
         flux = get_integrated_spectral_model(spectrum, energy_axis)
-        
-        expectation = np.tensordot(self.contents, flux.contents, axes = ([0], [0]))
-        
+
+        expectation = np.tensordot(self.contents, flux.contents, axes = (0, 0))
+
         # Note: np.tensordot loses unit if we use a sparse matrix as it input.
         if self.is_sparse:
-            expectation *= self.unit * flux.unit
+            expectation = u.Quantity(expectation, unit = self.unit * flux.unit, copy = False)
 
-        hist = Histogram(self.axes[1:], contents = expectation)
-        
+        hist = Histogram(Axes(self.axes[1:], copy_axes=False),
+                         contents = expectation,
+                         track_overflow = False, copy_contents = False)
+
         return hist

@@ -1,4 +1,4 @@
-from histpy import Histogram, HealpixAxis
+from histpy import Histogram, HealpixAxis, Axes
 
 import astropy.units as u
 
@@ -11,9 +11,9 @@ class SpacecraftAttitudeMap(Histogram):
                  labels = ['x', 'y']
                  ):
         """
-        Bin the spacecraft attitude history into a 4D histogram that contains 
-        the accumulated time the axes of the spacecraft where looking at a 
-        given direction. 
+        Bin the spacecraft attitude history into a 4D histogram that contains
+        the accumulated time the axes of the spacecraft where looking at a
+        given direction.
 
         Same arguments as an HealpixAxis.
 
@@ -28,18 +28,20 @@ class SpacecraftAttitudeMap(Histogram):
         labels : list, optional
             The labels of the two axes of the spacecraft attitude map (the default is `["x", "y"]`.
 
-            
+
         """
 
-        super().__init__([HealpixAxis(nside = nside,
+        axes = Axes([HealpixAxis(nside = nside,
                                       scheme = scheme,
                                       coordsys = coordsys,
-                                      label = labels[0]), 
+                                      label = labels[0]),
                           HealpixAxis(nside = nside,
                                       scheme = scheme,
                                       coordsys = coordsys,
                                       label = labels[1])],
-                         sparse = True,
-                         unit = u.s)    
+                    copy_axes=False)
 
-        
+        super().__init__(axes,
+                         sparse = True,
+                         unit = u.s,
+                         track_overflow = False)

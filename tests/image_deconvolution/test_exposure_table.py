@@ -32,4 +32,6 @@ def test_exposure_table(tmp_path):
 
     map_pointing_zx = exposure_table.calc_pointing_trajectory_map()
 
-    assert map_pointing_zx == Histogram.open(test_data.path / "image_deconvolution/map_pointing_zx_test_nside1_ring.hdf5")
+    h = Histogram.open(test_data.path / "image_deconvolution/map_pointing_zx_test_nside1_ring.hdf5")
+    h.track_overflow(track_overflow=False)
+    assert map_pointing_zx == h

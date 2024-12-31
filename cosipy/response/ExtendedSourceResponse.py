@@ -29,7 +29,7 @@ class ExtendedSourceResponse(Histogram):
         Initialize an ExtendedSourceResponse object.
         """
         super().__init__(*args, **kwargs)
-        
+
         if not np.all(self.axes.labels == ['NuLambda', 'Ei', 'Em', 'Phi', 'PsiChi']):
             # 'NuLambda' should be 'lb' if it is in the gal. coordinates?
             raise ValueError(f"The input axes {self.axes.labels} is not supported by ExtendedSourceResponse class.")
@@ -56,26 +56,12 @@ class ExtendedSourceResponse(Histogram):
         ValueError
             If the shape of the contents does not match the axes.
         """
-        hist = super().open(filename, name)
+        resp = super().open(filename, name)
 
-        axes = hist.axes
-        contents = hist[:]
-        sumw2 = hist.sumw2 
-        unit = hist.unit
-        track_overflow = False
-        
-        new = cls(axes, contents = contents,
-                        sumw2 = sumw2,
-                        unit = unit,
-                        track_overflow = track_overflow)
+        if resp.is_sparse:
+            resp = resp.to_dense()
 
-        if new.is_sparse:
-            new = new.to_dense()
-        
-        del hist
-        gc.collect()
-
-        return new
+        return resp
 
     def get_expectation(self, allsky_image_model):
         """
@@ -83,7 +69,7 @@ class ExtendedSourceResponse(Histogram):
 
         Parameters
         ----------
-        allsky_image_model : Histogram 
+        allsky_image_model : Histogram
             The all-sky image model to use for calculation.
 
         Returns
@@ -96,12 +82,13 @@ class ExtendedSourceResponse(Histogram):
             and np.all(self.axes[0].edges == allsky_image_model.axes[0].edges) \
             and np.all(self.axes[1].edges == allsky_image_model.axes[1].edges) \
             and allsky_image_model.unit == u.Unit('1/(s*cm*cm*sr)'):
-            
+
             contents = np.tensordot(allsky_image_model.contents, self.contents, axes=([0,1], [0,1]))
             contents *= self.axes[0].pixarea()
 
-            return Histogram(edges=self.axes[2:], contents=contents)
-        
+            return Histogram(edges=Axes(self.axes[2:], copy_axes=False),
+                             track_overflow = False, contents=contents, copy_contents=False)
+
         else:
             raise ValueError(f"The input allskymodel mismatches with the extended source response.")
 
