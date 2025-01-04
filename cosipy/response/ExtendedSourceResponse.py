@@ -64,10 +64,12 @@ class ExtendedSourceResponse(Histogram):
         unit = hist.unit
         track_overflow = False
         
-        new = cls(axes, contents = contents,
-                        sumw2 = sumw2,
-                        unit = unit,
-                        track_overflow = track_overflow)
+        new = cls(
+            axes, 
+            contents = contents,
+            sumw2 = sumw2,
+            unit = unit,
+            track_overflow = track_overflow)
 
         if new.is_sparse:
             new = new.to_dense()

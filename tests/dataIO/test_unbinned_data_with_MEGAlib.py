@@ -81,9 +81,10 @@ def test_unbinned_data_with_MEGAlib(tmp_path):
 
     # Make comparison:
     print("Comparing to MEGAlib calculation:")
-    test_list = [energies_dict,time_dict,phi_dict,\
-            dist_dict,lonX_dict,latX_dict,lonZ_dict,latZ_dict,lonY_dict,latY_dict,\
-            chi_loc_dict,psi_loc_dict,chi_gal_dict,psi_gal_dict]
+    test_list = [
+        energies_dict, time_dict, phi_dict,\
+        dist_dict, lonX_dict, latX_dict, lonZ_dict, latZ_dict, lonY_dict, latY_dict,\
+        chi_loc_dict, psi_loc_dict, chi_gal_dict, psi_gal_dict]
     for each in test_list:
         diff = compare(each["old"],each["new"],each["name"],make_plots=False)
         thresh = 1e-10

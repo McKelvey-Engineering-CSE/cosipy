@@ -293,7 +293,8 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
         formats = ['K', 'D', 'K', 'K']
         units = ['', 's', '', '']
         
-        columns = [ fits.Column(name=names[i], array=self[names[i]].to_numpy(), format = formats[i], unit = units[i]) 
+        columns = [ 
+            fits.Column(name=names[i], array=self[names[i]].to_numpy(), format = formats[i], unit = units[i]) 
             for i in range(len(names))]
         
         column_healpix_index_z_pointing = fits.Column(name='healpix_index_z_pointing', 
@@ -308,36 +309,44 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
                                         array=np.array(self['delta_time'].array, dtype=np.object_))
         columns.append(column_delta_time)    
         
-        column_zpointing_l = fits.Column(name='zpointing_l', format='PD()', unit = 'degree',
-                                        array=np.array([[pointing[0] for pointing in pointings] for pointings in self['zpointing']], dtype=np.object_))
+        column_zpointing_l = fits.Column(
+            name='zpointing_l', format='PD()', unit = 'degree',
+            array=np.array([[pointing[0] for pointing in pointings] for pointings in self['zpointing']], dtype=np.object_))
         columns.append(column_zpointing_l)    
     
-        column_zpointing_b = fits.Column(name='zpointing_b', format='PD()', unit = 'degree',
-                                        array=np.array([[pointing[1] for pointing in pointings] for pointings in self['zpointing']], dtype=np.object_))
+        column_zpointing_b = fits.Column(
+            name='zpointing_b', format='PD()', unit = 'degree',
+            array=np.array([[pointing[1] for pointing in pointings] for pointings in self['zpointing']], dtype=np.object_))
         columns.append(column_zpointing_b)   
     
-        column_xpointing_l = fits.Column(name='xpointing_l', format='PD()', unit = 'degree',
-                                        array=np.array([[pointing[0] for pointing in pointings] for pointings in self['xpointing']], dtype=np.object_))
+        column_xpointing_l = fits.Column(
+            name='xpointing_l', format='PD()', unit = 'degree',
+            array=np.array([[pointing[0] for pointing in pointings] for pointings in self['xpointing']], dtype=np.object_))
         columns.append(column_xpointing_l)    
     
-        column_xpointing_b = fits.Column(name='xpointing_b', format='PD()', unit = 'degree',
-                                        array=np.array([[pointing[1] for pointing in pointings] for pointings in self['xpointing']], dtype=np.object_))
+        column_xpointing_b = fits.Column(
+            name='xpointing_b', format='PD()', unit = 'degree',
+            array=np.array([[pointing[1] for pointing in pointings] for pointings in self['xpointing']], dtype=np.object_))
         columns.append(column_xpointing_b)  
 
-        column_zpointing_averaged_l = fits.Column(name='zpointing_averaged_l', format='D', unit = 'degree',
-                                                  array=np.array([_[0] for _ in self['zpointing_averaged']]))
+        column_zpointing_averaged_l = fits.Column(
+            name='zpointing_averaged_l', format='D', unit = 'degree',
+            array=np.array([_[0] for _ in self['zpointing_averaged']]))
         columns.append(column_zpointing_averaged_l)    
 
-        column_zpointing_averaged_b = fits.Column(name='zpointing_averaged_b', format='D', unit = 'degree',
-                                                  array=np.array([_[1] for _ in self['zpointing_averaged']]))
+        column_zpointing_averaged_b = fits.Column(
+            name='zpointing_averaged_b', format='D', unit = 'degree',
+            array=np.array([_[1] for _ in self['zpointing_averaged']]))
         columns.append(column_zpointing_averaged_b)    
 
-        column_xpointing_averaged_l = fits.Column(name='xpointing_averaged_l', format='D', unit = 'degree',
-                                                  array=np.array([_[0] for _ in self['xpointing_averaged']]))
+        column_xpointing_averaged_l = fits.Column(
+            name='xpointing_averaged_l', format='D', unit = 'degree',
+            array=np.array([_[0] for _ in self['xpointing_averaged']]))
         columns.append(column_xpointing_averaged_l)    
 
-        column_xpointing_averaged_b = fits.Column(name='xpointing_averaged_b', format='D', unit = 'degree',
-                                                  array=np.array([_[1] for _ in self['xpointing_averaged']]))
+        column_xpointing_averaged_b = fits.Column(
+            name='xpointing_averaged_b', format='D', unit = 'degree',
+            array=np.array([_[1] for _ in self['xpointing_averaged']]))
         columns.append(column_xpointing_averaged_b)    
         
         table_hdu = fits.BinTableHDU.from_columns(columns) 

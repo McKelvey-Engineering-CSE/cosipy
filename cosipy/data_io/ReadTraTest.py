@@ -182,8 +182,9 @@ class ReadTraTest(UnBinnedData):
         self.psi_gal_old = psi_gal
          
         # Construct Y direction from X and Z direction
-        lonlatY = self.construct_scy(np.rad2deg(lonX),np.rad2deg(latX),
-                                np.rad2deg(lonZ),np.rad2deg(latZ))
+        lonlatY = self.construct_scy(
+            np.rad2deg(lonX),np.rad2deg(latX),
+            np.rad2deg(lonZ),np.rad2deg(latZ))
         lonY = np.deg2rad(lonlatY[0])
         latY = np.deg2rad(lonlatY[1])
 

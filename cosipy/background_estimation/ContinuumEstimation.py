@@ -231,7 +231,8 @@ class ContinuumEstimation:
     
         return interp_list
 
-    def continuum_bg_estimation(self, data_file, data_yaml, psr, \
+    def continuum_bg_estimation(
+            self, data_file, data_yaml, psr, \
             containment=0.4, make_plots=False,\
             e_loop="default", s_loop="default"):
 

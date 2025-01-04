@@ -77,8 +77,9 @@ def test_unbinned_data_all(tmp_path):
     # Test combine method.
     # Also test reading in fits file:
     analysis.unbinned_output = "fits"
-    analysis.combine_unbinned_data([tmp_path/"test_fits.fits.gz",tmp_path/"test_fits.fits.gz"]\
-            ,output_name=tmp_path/"temp_test_file")
+    analysis.combine_unbinned_data(
+        [tmp_path/"test_fits.fits.gz",tmp_path/"test_fits.fits.gz"],
+        output_name  =tmp_path/"temp_test_file")
     assert len(analysis.cosi_dataset['TimeTags']) == 2*n_events
     
     # Test selections method.
@@ -90,8 +91,9 @@ def test_unbinned_data_all(tmp_path):
     assert np.amax(analysis.cosi_dataset['TimeTags']) <= 1835478001.0    
 
     # Test reading tra with no pointing info:
-    analysis.data_file = os.path.join(test_data.path,\
-            "GalacticScan.inc1.id1.crab10sec.extracted.testsample.nopointinginfo.tra.gz")
+    analysis.data_file = os.path.join(
+        test_data.path,
+        "GalacticScan.inc1.id1.crab10sec.extracted.testsample.nopointinginfo.tra.gz")
     analysis.read_tra()
 
     return

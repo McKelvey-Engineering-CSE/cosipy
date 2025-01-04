@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 class SpacecraftFile():
 
-    def __init__(self, time, x_pointings = None, y_pointings = None, \
+    def __init__(
+            self, time, x_pointings = None, y_pointings = None, \
             z_pointings = None, earth_zenith = None, altitude = None,\
             attitude = None, instrument = "COSI", frame = "galactic"):
 

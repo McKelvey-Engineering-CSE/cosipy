@@ -31,8 +31,11 @@ def test_binned_data(tmp_path):
     analysis.tmax = 1835478010.0 # to match time bin size of 5 seconds.  
     analysis.nside = 1
     analysis.phi_pix_size = 90
-    analysis.get_binned_data(unbinned_data=tmp_path/"temp_unbinned.hdf5", output_name=tmp_path/"temp_binned_data",\
-            make_binning_plots=True, show_plots=False)
+    analysis.get_binned_data(
+        unbinned_data = tmp_path/"temp_unbinned.hdf5", 
+        output_name = tmp_path/"temp_binned_data",\
+        make_binning_plots = True, 
+        show_plots = False)
     os.system("rm *.pdf *.png")
 
     assert analysis.binned_data.axes["Em"].unit == "keV" 
@@ -59,9 +62,13 @@ def test_binned_data(tmp_path):
 
     # Test plots:
     analysis.make_basic_plot([1,1],[1,1],plt_scale="semilogx",x_error=[1,1])
-    analysis.get_raw_spectrum(binned_data=tmp_path/"temp_binned_data.hdf5",\
-            output_name=tmp_path/"temp_spec", show_plots=False)
+    analysis.get_raw_spectrum(
+        binned_data = tmp_path/"temp_binned_data.hdf5",\
+        output_name = tmp_path/"temp_spec", 
+        show_plots = False)
     analysis.get_raw_spectrum(time_rate=True, show_plots=False)
-    analysis.get_raw_lightcurve(binned_data=tmp_path/"temp_binned_data.hdf5",\
-            output_name=tmp_path/"temp_lc", show_plots=False)
+    analysis.get_raw_lightcurve(
+        binned_data = tmp_path/"temp_binned_data.hdf5",\
+        output_name = tmp_path/"temp_lc", 
+        show_plots = False)
     analysis.plot_psichi_map_slices(0,0,tmp_path/"temp_psichi",coords=[0,0], show_plots=False)

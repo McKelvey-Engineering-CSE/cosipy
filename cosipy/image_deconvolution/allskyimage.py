@@ -74,13 +74,14 @@ class AllSkyImageModel(ModelBase):
 
         hist = Histogram.open(filename, name)
 
-        allskyimage = AllSkyImageModel(nside = hist.axes[0].nside, 
-                                    energy_edges = hist.axes[1].edges,
-                                    scheme = hist.axes[0].scheme, 
-                                    coordsys = hist.axes[0].coordsys.name, 
-                                    label_image = hist.axes[0].label, 
-                                    label_energy = hist.axes[1].label,
-                                    unit = hist.unit)
+        allskyimage = AllSkyImageModel(
+            nside = hist.axes[0].nside, 
+            energy_edges = hist.axes[1].edges,
+            scheme = hist.axes[0].scheme, 
+            coordsys = hist.axes[0].coordsys.name, 
+            label_image = hist.axes[0].label, 
+            label_energy = hist.axes[1].label,
+            unit = hist.unit)
 
         allskyimage[:] = hist.contents
 

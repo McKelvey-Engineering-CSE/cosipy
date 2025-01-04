@@ -28,8 +28,9 @@ logger = logging.getLogger(__name__)
 class UnBinnedData(DataIO):
     """Handles unbinned data."""
 
-    def read_tra(self, output_name=None, run_test=False, use_ori=False,
-            event_min=None, event_max=None):
+    def read_tra(
+        self, output_name=None, run_test=False, use_ori=False,
+        event_min=None, event_max=None):
         
         """Reads MEGAlib .tra (or .tra.gz) file and creates cosi datset.
         
@@ -139,8 +140,9 @@ class UnBinnedData(DataIO):
             # Need to get number of lines for progress bar.
             # First try fast method for unix-based systems:
             try:
-                proc=subprocess.Popen('gunzip -c %s | wc -l' %self.data_file, \
-                        shell=True, stdout=subprocess.PIPE)
+                proc=subprocess.Popen(
+                    'gunzip -c %s | wc -l' %self.data_file, \
+                    shell=True, stdout=subprocess.PIPE)
                 num_lines = float(proc.communicate()[0])
 
             # If fast method fails, use long method, which should work in all cases.
@@ -156,8 +158,9 @@ class UnBinnedData(DataIO):
             f = open(self.data_file,"r")
 
             try:
-                proc=subprocess.Popen('wc -l < %s' %self.data_file, \
-                        shell=True, stdout=subprocess.PIPE)
+                proc=subprocess.Popen(
+                    'wc -l < %s' %self.data_file, \
+                    shell=True, stdout=subprocess.PIPE)
                 num_lines = float(proc.communicate()[0])
                 
             except:
@@ -246,13 +249,23 @@ class UnBinnedData(DataIO):
                 
                 # First interaction:
                 if this_line[1] == "0":
-                    v1 = np.array((float(this_line[2]),\
-                            float(this_line[3]),float(this_line[4])))
+                    v1 = np.array(
+                        (
+                            float(this_line[2]),
+                            float(this_line[3]),
+                            float(this_line[4])
+                        )
+                    )
                 
                 # Second interaction:
                 if this_line[1] == "1":
-                    v2 = np.array((float(this_line[2]),
-                        float(this_line[3]), float(this_line[4])))
+                    v2 = np.array(
+                        (
+                            float(this_line[2]), 
+                            float(this_line[3]),
+                            float(this_line[4])
+                        )
+                    )
                 
                     # Compute position vector between first two interactions:
                     dg = v1 - v2
@@ -284,7 +297,7 @@ class UnBinnedData(DataIO):
  
         # Check if the input data has pointing information, 
         # if not, set dummy values:
-        if (use_ori == False) & (len(lonZ)==0):
+        if (use_ori == False) & (len(lonZ) == 0):
                 logger.warning("WARNING: No pointing information in input data and no ori file.")
                 logger.warning("Setting pointing to arbitrary location (Galactic center).")
                 lonX = np.array([0]*len(tt))
@@ -313,7 +326,8 @@ class UnBinnedData(DataIO):
         xcoords = SkyCoord(lonX*u.rad, latX*u.rad, frame = 'galactic')
         zcoords = SkyCoord(lonZ*u.rad, latZ*u.rad, frame = 'galactic')
         attitude = Attitude.from_axes(x=xcoords, z=zcoords, frame = 'galactic')
-        c = SkyCoord(dg_x, dg_y, dg_z, \
+        c = SkyCoord(
+            dg_x, dg_y, dg_z, \
             representation_type='cartesian', frame = SpacecraftFrame(attitude = attitude))   
         c_rotated = c.transform_to('galactic')
         chi_gal = np.array(c_rotated.l.deg)
@@ -327,8 +341,9 @@ class UnBinnedData(DataIO):
             logger.warning("Warning: No pointing info to rotate.")
 
         # Construct Y direction from X and Z direction
-        lonlatY = self.construct_scy(np.rad2deg(lonX),np.rad2deg(latX),
-                            np.rad2deg(lonZ),np.rad2deg(latZ))
+        lonlatY = self.construct_scy(
+            np.rad2deg(lonX), np.rad2deg(latX),
+            np.rad2deg(lonZ), np.rad2deg(latZ))
         lonY = np.deg2rad(lonlatY[0])
         latY = np.deg2rad(lonlatY[1])
     
@@ -357,17 +372,18 @@ class UnBinnedData(DataIO):
         
         # Make observation dictionary
         logger.info("Making dictionary...")
-        cosi_dataset = {'Energies':erg,
-                        'TimeTags':tt,
-                        'Xpointings (glon,glat)':np.array([lonX,latX]).T,
-                        'Ypointings (glon,glat)':np.array([lonY,latY]).T,
-                        'Zpointings (glon,glat)':np.array([lonZ,latZ]).T,
-                        'Phi':phi,
-                        'Chi local':chi_loc,
-                        'Psi local':psi_loc,
-                        'Distance':dist,
-                        'Chi galactic':chi_gal,
-                        'Psi galactic':psi_gal} 
+        cosi_dataset = {
+            'Energies':erg,
+            'TimeTags':tt,
+            'Xpointings (glon,glat)':np.array([lonX,latX]).T,
+            'Ypointings (glon,glat)':np.array([lonY,latY]).T,
+            'Zpointings (glon,glat)':np.array([lonZ,latZ]).T,
+            'Phi':phi,
+            'Chi local':chi_loc,
+            'Psi local':psi_loc,
+            'Distance':dist,
+            'Chi galactic':chi_gal,
+            'Psi galactic':psi_gal} 
         self.cosi_dataset = cosi_dataset
 
         # Option to write unbinned data to file (either fits or hdf5):
@@ -506,15 +522,17 @@ class UnBinnedData(DataIO):
         """
 
         # Data units:
-        units = ['keV','s','rad','rad',
+        units = [
+            'keV','s','rad','rad',
             'rad','rad','rad','rad','cm','deg','deg']
             
         # For fits output: 
         if self.unbinned_output == 'fits':
-            table = Table(list(self.cosi_dataset.values()),\
-                    names=list(self.cosi_dataset.keys()), \
-                    units=units, \
-                    meta={'version':cosipy.__version__})
+            table = Table(
+                list(self.cosi_dataset.values()),\
+                names=list(self.cosi_dataset.keys()), \
+                units=units, \
+                meta={'version':cosipy.__version__})
             table.write("%s.fits" %output_name, overwrite=True)
             os.system('gzip -f %s.fits' %output_name)
 

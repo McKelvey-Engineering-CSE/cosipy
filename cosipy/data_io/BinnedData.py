@@ -19,8 +19,8 @@ class BinnedData(UnBinnedData):
     """Handles binned data."""
 
     def get_binned_data(self, unbinned_data=None, output_name=None, \
-            make_binning_plots=False, show_plots=False, \
-            psichi_binning="galactic", event_range=None):
+                        make_binning_plots=False, show_plots=False, \
+                        psichi_binning="galactic", event_range=None):
 
         """Bin the data using histpy and mhealpy.
         
@@ -91,37 +91,46 @@ class BinnedData(UnBinnedData):
 
         # Define psichi axis and data for binning:
         if psichi_binning == 'galactic':
-            psichi_axis = HealpixAxis(nside = self.nside, 
-                    scheme = self.scheme, coordsys = 'galactic', label='PsiChi')
-            coords = SkyCoord(l=self.cosi_dataset['Chi galactic']*u.deg, 
-                    b=self.cosi_dataset['Psi galactic']*u.deg, frame = 'galactic')
+            psichi_axis = HealpixAxis(
+                                    nside = self.nside, 
+                                    scheme = self.scheme, coordsys = 'galactic', label='PsiChi')
+            coords = SkyCoord(
+                            l=self.cosi_dataset['Chi galactic']*u.deg, 
+                            b=self.cosi_dataset['Psi galactic']*u.deg, frame = 'galactic')
         if psichi_binning == 'local':
-            psichi_axis = HealpixAxis(nside = self.nside, 
-                    scheme = self.scheme, coordsys = SpacecraftFrame(), label='PsiChi')
-            coords = SkyCoord(lon=self.cosi_dataset['Chi local']*u.rad, 
-                    lat=((np.pi/2.0) - self.cosi_dataset['Psi local'])*u.rad, 
-                    frame = SpacecraftFrame())
+            psichi_axis = HealpixAxis(
+                                    nside = self.nside, 
+                                    scheme = self.scheme, coordsys = SpacecraftFrame(), label='PsiChi')
+            coords = SkyCoord(
+                            lon=self.cosi_dataset['Chi local']*u.rad, 
+                            lat=((np.pi/2.0) - self.cosi_dataset['Psi local'])*u.rad, 
+                            frame = SpacecraftFrame())
 
         # Initialize histogram:
-        self.binned_data = Histogram([Axis(time_bin_edges*u.s, label='Time'), 
-            Axis(energy_bin_edges*u.keV, label='Em'), 
-            Axis(phi_bin_edges*u.deg, label='Phi'), 
-            psichi_axis], 
-            sparse=True)
+        self.binned_data = Histogram(
+                                        [
+                                            Axis(time_bin_edges*u.s, label='Time'), 
+                                            Axis(energy_bin_edges*u.keV, label='Em'), 
+                                            Axis(phi_bin_edges*u.deg, label='Phi'), 
+                                            psichi_axis
+                                        ], 
+                                    sparse=True)
          
         # Fill histogram:
         if event_range == None:
-            self.binned_data.fill(self.cosi_dataset['TimeTags']*u.s, 
-                    self.cosi_dataset['Energies']*u.keV, 
-                    np.rad2deg(self.cosi_dataset['Phi'])*u.deg, 
-                    coords)
+            self.binned_data.fill(
+                                self.cosi_dataset['TimeTags']*u.s, 
+                                self.cosi_dataset['Energies']*u.keV, 
+                                np.rad2deg(self.cosi_dataset['Phi'])*u.deg, 
+                                coords)
         if event_range != None:
             low = int(event_range[0])
             high = int(event_range[1])
-            self.binned_data.fill(self.cosi_dataset['TimeTags'][low:high]*u.s, 
-                    self.cosi_dataset['Energies'][low:high]*u.keV, 
-                    np.rad2deg(self.cosi_dataset['Phi'][low:high])*u.deg, 
-                    coords[low:high])
+            self.binned_data.fill(
+                                self.cosi_dataset['TimeTags'][low:high]*u.s, 
+                                self.cosi_dataset['Energies'][low:high]*u.keV, 
+                                np.rad2deg(self.cosi_dataset['Phi'][low:high])*u.deg, 
+                                coords[low:high])
 
         # Save binned data to hdf5 file:
         if output_name != None:
@@ -229,17 +238,22 @@ class BinnedData(UnBinnedData):
             self.load_binned_data_from_hdf5(binned_data)
     
         # Define plot dictionaries:
-        time_energy_plot = {"projection":["Time","Em"],"xlabel":"Time [s]",\
-                "ylabel":"Em [keV]","savefig":"2d_time_energy.png"}
-        time_plot = {"projection":"Time","xlabel":"Time [s]",\
-                "ylabel":"Counts","savefig":"time_binning.pdf"}
-        energy_plot = {"projection":"Em","xlabel":"Em [keV]",\
-                "ylabel":"Counts","savefig":"energy_binning.pdf"}
-        phi_plot = {"projection":"Phi","xlabel":"Phi [deg]",\
-                "ylabel":"Counts","savefig":"phi_binning.pdf"}
-        psichi_plot = {"projection":"PsiChi",\
-                "xlabel":"PsiChi [HEALPix ring pixel number]",\
-                "ylabel":"Counts","savefig":"psichi_binning.pdf"}
+        time_energy_plot = {
+            "projection":["Time","Em"],"xlabel":"Time [s]",\
+            "ylabel":"Em [keV]","savefig":"2d_time_energy.png"}
+        time_plot = {
+            "projection":"Time","xlabel":"Time [s]",\
+            "ylabel":"Counts","savefig":"time_binning.pdf"}
+        energy_plot = {
+            "projection":"Em","xlabel":"Em [keV]",\
+            "ylabel":"Counts","savefig":"energy_binning.pdf"}
+        phi_plot = {
+            "projection":"Phi","xlabel":"Phi [deg]",\
+            "ylabel":"Counts","savefig":"phi_binning.pdf"}
+        psichi_plot = {
+            "projection":"PsiChi",\
+            "xlabel":"PsiChi [HEALPix ring pixel number]",\
+            "ylabel":"Counts","savefig":"psichi_binning.pdf"}
         
         # Make plots:
         plot_list = [time_energy_plot,time_plot,energy_plot,phi_plot,psichi_plot]
@@ -277,8 +291,9 @@ class BinnedData(UnBinnedData):
 
         return
 
-    def plot_psichi_map_slices(self, Em, phi, output, binned_data=None, \
-            coords=None, show_plots=True):
+    def plot_psichi_map_slices(
+        self, Em, phi, output, binned_data=None, \
+        coords=None, show_plots=True):
 
         """Plot psichi map in slices of Em and phi.
         
@@ -334,8 +349,9 @@ class BinnedData(UnBinnedData):
 
         return
 
-    def make_basic_plot(self, x, y, plt_scale='loglog', output_name=None,\
-            x_error=[], plot_kwargs={}, fig_kwargs={}, show_plots=True):
+    def make_basic_plot(
+        self, x, y, plt_scale='loglog', output_name=None,\
+        x_error=[], plot_kwargs={}, fig_kwargs={}, show_plots=True):
 
         """Make a basic plot.
 
@@ -432,7 +448,8 @@ class BinnedData(UnBinnedData):
         # Plot:
         plot_kwargs = {"label":"raw spectrum", "ls":"", "marker":"o", "color":"black"}
         fig_kwargs = {"xlabel":"Energy [keV]", "ylabel":ylabel}
-        self.make_basic_plot(self.energy_bin_centers, raw_rate,\
+        self.make_basic_plot(
+            self.energy_bin_centers, raw_rate,\
             x_error=self.energy_bin_widths/2.0, output_name=output_name,\
             plot_kwargs=plot_kwargs, fig_kwargs=fig_kwargs, show_plots=show_plots)
 
@@ -472,7 +489,8 @@ class BinnedData(UnBinnedData):
         # Plot:
         plot_kwargs = {"ls":"-", "marker":"", "color":"black", "label":"raw lightcurve"}
         fig_kwargs = {"xlabel":"Time [s]", "ylabel":"Rate [$\mathrm{ct \ s^{-1}}$]"}
-        self.make_basic_plot(self.time_bin_centers - self.time_bin_centers[0], raw_lc,\
+        self.make_basic_plot(
+            self.time_bin_centers - self.time_bin_centers[0], raw_lc,\
             output_name=output_name, plt_scale="semilogy", 
             plot_kwargs=plot_kwargs, fig_kwargs=fig_kwargs, show_plots=show_plots)
             

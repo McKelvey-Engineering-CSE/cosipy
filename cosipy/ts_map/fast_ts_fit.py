@@ -402,9 +402,14 @@ class FastTSMap():
         start = time.time()
         multiprocessing.set_start_method(start_method, force = True)
         pool = multiprocessing.Pool(processes = cores)
-        results = pool.starmap(FastTSMap.fast_ts_fit, product(hypothesis_coords, [energy_channel], [data_cds_array], [bkg_model_cds_array], 
-                                                             [self._orientation], [self._response_path], [spectrum], [self._cds_frame], 
-                                                             [ts_nside], [ts_scheme]))
+        results = pool.starmap(
+            FastTSMap.fast_ts_fit, 
+            product(
+                hypothesis_coords, [energy_channel], [data_cds_array], [bkg_model_cds_array], 
+                [self._orientation], [self._response_path], [spectrum], [self._cds_frame], 
+                [ts_nside], [ts_scheme]
+            )
+        )
             
         pool.close()
         pool.join()

@@ -121,28 +121,37 @@ class FullDetectorResponse(HealpixBase):
 
             if axis_type == 'healpix':
 
-                axes += [HealpixAxis(edges=np.array(axis), \
-                                    nside=axis.attrs['NSIDE'], \
-                                    label=axis_label, \
-                                    scheme=axis.attrs['SCHEME'], \
-                                    coordsys=SpacecraftFrame())]
+                axes += [
+                    HealpixAxis(
+                        edges=np.array(axis), \
+                        nside=axis.attrs['NSIDE'], \
+                        label=axis_label, \
+                        scheme=axis.attrs['SCHEME'], \
+                        coordsys=SpacecraftFrame()
+                    )
+                ]
 
             else:
-                axes += [Axis(np.array(axis) * u.Unit(axis.attrs['UNIT']), \
-                            scale=axis_type, \
-                            label=axis_label)]
+                axes += [
+                    Axis(
+                        np.array(axis) * u.Unit(axis.attrs['UNIT']), \
+                        scale=axis_type, \
+                        label=axis_label
+                    )
+                ]
 
         new._axes = Axes(axes)
 
         # Init HealpixMap (local coordinates, main axis)
-        HealpixBase.__init__(new, \
-                            base=new.axes['NuLambda'], \
-                            coordsys=SpacecraftFrame())
+        HealpixBase.__init__(
+            new, \
+            base=new.axes['NuLambda'], \
+            coordsys=SpacecraftFrame())
 
         return new
 
     @classmethod
-    def _open_rsp(cls, filename, Spectrumfile=None,norm="Linear" ,single_pixel = False,alpha=0,emin=90,emax=10000):
+    def _open_rsp(cls, filename, Spectrumfile=None, norm="Linear" , single_pixel = False, alpha=0, emin=90, emax=10000):
         """
         
          Open a detector response rsp file.
@@ -304,8 +313,9 @@ class FullDetectorResponse(HealpixBase):
             # Need to get number of lines for progress bar.
             # First try fast method for unix-based systems:
             try:
-                proc=subprocess.Popen('gunzip -c %s | wc -l' %filename, \
-                        shell=True, stdout=subprocess.PIPE)
+                proc=subprocess.Popen(
+                    'gunzip -c %s | wc -l' %filename, \
+                    shell=True, stdout=subprocess.PIPE)
                 nlines = int(proc.communicate()[0])
 
 
@@ -406,8 +416,9 @@ class FullDetectorResponse(HealpixBase):
 
                         break
         
-        logger.info("response file read ! Now we create the histogram and weight in order to "+ 
-                "get the effective area")
+        logger.info(
+            "response file read ! Now we create the histogram and weight in order to " + 
+            "get the effective area")
         # create histpy histogram
 
         
@@ -446,11 +457,12 @@ class FullDetectorResponse(HealpixBase):
             spec = pd.read_csv(Spectrumfile, sep=" ")
             spec = spec.iloc[:-1]
             hspec = Histogram([h_spec.axes[1]])
-            hspec[:] = np.interp(hspec.axis.centers,
-                             spec.iloc[:, 0].to_numpy(),
-                             spec.iloc[:, 1].to_numpy(),
-                             left=0,
-                             right=0) * ewidth
+            hspec[:] = np.interp(
+                hspec.axis.centers,
+                spec.iloc[:, 0].to_numpy(),
+                spec.iloc[:, 1].to_numpy(),
+                left=0,
+                right=0) * ewidth
             hspec /= np.sum(hspec)
 
             nperchannel_norm = hspec[:]
@@ -557,9 +569,9 @@ class FullDetectorResponse(HealpixBase):
 
         for axis in dr.axes[axes_to_write]:
 
-            axis_dataset = axes.create_dataset(axis.label,
-                                    data=axis.edges)
-
+            axis_dataset = axes.create_dataset(
+                axis.label,
+                data=axis.edges)
 
             if axis.label in ['NuLambda', 'PsiChi','SigmaTau']:
 
@@ -590,24 +602,22 @@ class FullDetectorResponse(HealpixBase):
             axis_dataset.attrs['DESCRIPTION'] = axis_description[axis.label]
 
         #sparse matrice
-        if sparse :
+        if sparse:
         
             progress_bar = tqdm(total=npix, desc="Progress", unit="nbpixel")
             # Contents. Sparse arrays
-            coords = drm.create_dataset('BIN_NUMBERS',
-                                (npix,),
-                                dtype=h5.vlen_dtype(int),
-                                compression="gzip")
+            coords = drm.create_dataset(
+                'BIN_NUMBERS',
+                (npix,),
+                dtype=h5.vlen_dtype(int),
+                compression="gzip")
 
-            data = drm.create_dataset('CONTENTS',
-                              (npix,),
-                              dtype=h5.vlen_dtype(float),
-                              compression="gzip")
+            data = drm.create_dataset(
+                'CONTENTS',
+                (npix,),
+                dtype=h5.vlen_dtype(float),
+                compression="gzip")
         
-
-        
-
-
             for b in range(npix):
         
                 #print(f"{b}/{npix}")
@@ -622,13 +632,11 @@ class FullDetectorResponse(HealpixBase):
             progress_bar.close()
 
         #non sparse
-        else :
-           
-     
-            data = drm.create_dataset('CONTENTS',
-                              data=np.transpose(dr_area.contents, axes = [1,0,2,3,4]),
-                              
-                              compression="gzip")
+        else:
+            data = drm.create_dataset(
+                'CONTENTS',
+                data=np.transpose(dr_area.contents, axes = [1,0,2,3,4]),
+                compression="gzip")
         
             
                 
@@ -661,25 +669,32 @@ class FullDetectorResponse(HealpixBase):
 
             if axis_type == 'healpix':
 
-                axes += [HealpixAxis(edges=np.array(axis),
-                                    nside=axis.attrs['NSIDE'],
-                                    label=axis_label,
-                                    scheme=axis.attrs['SCHEME'],
-                                    coordsys=SpacecraftFrame())]
+                axes += [
+                    HealpixAxis(
+                        edges=np.array(axis),
+                        nside=axis.attrs['NSIDE'],
+                        label=axis_label,
+                        scheme=axis.attrs['SCHEME'],
+                        coordsys=SpacecraftFrame()
+                    )
+                ]
 
             else:
-                axes += [Axis(np.array(axis) * u.Unit(axis.attrs['UNIT']),
-                            scale=axis_type,
-                            label=axis_label)]
-
-                
+                axes += [
+                    Axis(
+                        np.array(axis) * u.Unit(axis.attrs['UNIT']),
+                        scale=axis_type,
+                        label=axis_label
+                    )
+                ]
 
         new._axes = Axes(axes)
 
         # Init HealpixMap (local coordinates, main axis)
-        HealpixBase.__init__(new,
-                            base=new.axes['NuLambda'],
-                            coordsys=SpacecraftFrame())
+        HealpixBase.__init__(
+            new,
+            base=new.axes['NuLambda'],
+            coordsys=SpacecraftFrame())
 
         return new
 
@@ -734,16 +749,20 @@ class FullDetectorResponse(HealpixBase):
                 self._file['DRM']['BIN_NUMBERS'][pix], (self.ndim-1, -1))
             data = np.array(self._file['DRM']['CONTENTS'][pix])
 
-            return DetectorResponse(self.axes[1:],
-                                contents=COO(coords=coords,
-                                             data=data,
-                                             shape=tuple(self.axes.nbins[1:])),
-                                unit=self.unit)
+            return DetectorResponse(
+                self.axes[1:],
+                contents=COO(
+                    coords=coords,
+                    data=data,
+                    shape=tuple(self.axes.nbins[1:])),
+                unit=self.unit)
                                 
         else :
             data = self._file['DRM']['CONTENTS'][pix]
-            return DetectorResponse(self.axes[1:],
-                                contents=data, unit=self.unit)                 
+            return DetectorResponse(
+                self.axes[1:],
+                contents=data, 
+                unit=self.unit)                 
 
     def close(self):
         """
