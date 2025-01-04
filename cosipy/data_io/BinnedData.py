@@ -92,45 +92,45 @@ class BinnedData(UnBinnedData):
         # Define psichi axis and data for binning:
         if psichi_binning == 'galactic':
             psichi_axis = HealpixAxis(
-                                    nside = self.nside, 
-                                    scheme = self.scheme, coordsys = 'galactic', label='PsiChi')
+                nside = self.nside, 
+                scheme = self.scheme, coordsys = 'galactic', label = 'PsiChi')
             coords = SkyCoord(
-                            l=self.cosi_dataset['Chi galactic']*u.deg, 
-                            b=self.cosi_dataset['Psi galactic']*u.deg, frame = 'galactic')
+                l=self.cosi_dataset['Chi galactic']*u.deg, 
+                b=self.cosi_dataset['Psi galactic']*u.deg, frame = 'galactic')
         if psichi_binning == 'local':
             psichi_axis = HealpixAxis(
-                                    nside = self.nside, 
-                                    scheme = self.scheme, coordsys = SpacecraftFrame(), label='PsiChi')
+                nside = self.nside, 
+                scheme = self.scheme, coordsys = SpacecraftFrame(), label = 'PsiChi')
             coords = SkyCoord(
-                            lon=self.cosi_dataset['Chi local']*u.rad, 
-                            lat=((np.pi/2.0) - self.cosi_dataset['Psi local'])*u.rad, 
-                            frame = SpacecraftFrame())
+                lon = self.cosi_dataset['Chi local']*u.rad, 
+                lat = ((np.pi/2.0) - self.cosi_dataset['Psi local'])*u.rad, 
+                frame = SpacecraftFrame())
 
         # Initialize histogram:
         self.binned_data = Histogram(
-                                        [
-                                            Axis(time_bin_edges*u.s, label='Time'), 
-                                            Axis(energy_bin_edges*u.keV, label='Em'), 
-                                            Axis(phi_bin_edges*u.deg, label='Phi'), 
-                                            psichi_axis
-                                        ], 
-                                    sparse=True)
+            [
+                Axis(time_bin_edges*u.s, label = 'Time'), 
+                Axis(energy_bin_edges*u.keV, label = 'Em'), 
+                Axis(phi_bin_edges*u.deg, label = 'Phi'), 
+                psichi_axis
+            ], 
+            sparse = True)
          
         # Fill histogram:
         if event_range == None:
             self.binned_data.fill(
-                                self.cosi_dataset['TimeTags']*u.s, 
-                                self.cosi_dataset['Energies']*u.keV, 
-                                np.rad2deg(self.cosi_dataset['Phi'])*u.deg, 
-                                coords)
+                self.cosi_dataset['TimeTags']*u.s, 
+                self.cosi_dataset['Energies']*u.keV, 
+                np.rad2deg(self.cosi_dataset['Phi'])*u.deg, 
+                coords)
         if event_range != None:
             low = int(event_range[0])
             high = int(event_range[1])
             self.binned_data.fill(
-                                self.cosi_dataset['TimeTags'][low:high]*u.s, 
-                                self.cosi_dataset['Energies'][low:high]*u.keV, 
-                                np.rad2deg(self.cosi_dataset['Phi'][low:high])*u.deg, 
-                                coords[low:high])
+                self.cosi_dataset['TimeTags'][low:high]*u.s, 
+                self.cosi_dataset['Energies'][low:high]*u.keV, 
+                np.rad2deg(self.cosi_dataset['Phi'][low:high])*u.deg, 
+                coords[low:high])
 
         # Save binned data to hdf5 file:
         if output_name != None:

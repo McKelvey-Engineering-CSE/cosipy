@@ -212,17 +212,20 @@ def test_get_arf():
     fits_file = fits.open("test.arf")
     
     assert np.allclose(
-                        fits_file[1].data.field("ENERG_LO"), 
-                        np.array([150.,  220.,  325.,  480.,  520.,  765., 1120., 1650., 2350., 3450.]))
+        fits_file[1].data.field("ENERG_LO"), 
+        np.array([150.,  220.,  325.,  480.,  520.,  765., 1120., 1650., 2350., 3450.]))
     
     assert np.allclose(
-                        fits_file[1].data.field("ENERG_HI"), 
-                        np.array([220.,  325.,  480.,  520.,  765., 1120., 1650., 2350., 3450., 5000.]))   
+        fits_file[1].data.field("ENERG_HI"), 
+        np.array([220.,  325.,  480.,  520.,  765., 1120., 1650., 2350., 3450., 5000.]))   
     
     assert np.allclose(
-                        fits_file[1].data.field("SPECRESP"), 
-                       np.array([0.06089862, 0.4563752 , 1.1601573 , 1.6237522 , 2.0216975 , 
-                                 2.2039971 , 2.0773466 , 1.7005537 , 1.1626455 , 0.80194914]))   
+        fits_file[1].data.field("SPECRESP"), 
+        np.array([
+            0.06089862, 0.4563752, 1.1601573, 1.6237522, 2.0216975, 
+            2.2039971, 2.0773466, 1.7005537, 1.1626455, 0.80194914
+            ])
+        )   
     
     os.remove("test.arf")
 
