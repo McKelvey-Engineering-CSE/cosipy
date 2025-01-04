@@ -1,0 +1,180 @@
+./cosipy/data_io/UnBinnedData.py:288:14: E111 indentation is not a multiple of 4
+             logger.warning("WARNING: No pointing information in input data and no ori file.")
+             ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2
+./cosipy/data_io/UnBinnedData.py:289:14: E111 indentation is not a multiple of 4
+             logger.warning("Setting pointing to arbitrary location (Galactic center).")
+             ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2
+./cosipy/data_io/UnBinnedData.py:290:14: E111 indentation is not a multiple of 4
+             lonX = np.array([0]*len(tt))
+             ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2
+./cosipy/data_io/UnBinnedData.py:291:14: E111 indentation is not a multiple of 4
+             latX = np.array([0]*len(tt))
+             ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2
+./cosipy/data_io/UnBinnedData.py:292:14: E111 indentation is not a multiple of 4
+             lonZ = np.array([0]*len(tt))
+             ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2
+./cosipy/data_io/UnBinnedData.py:293:14: E111 indentation is not a multiple of 4
+             latZ = np.array([0]*len(tt))
+             ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2
+./cosipy/response/FullDetectorResponse.py:109:14: E111 indentation is not a multiple of 4
+             new._sparse = new._drm.attrs['SPARSE']
+             ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2
+./cosipy/response/FullDetectorResponse.py:111:14: E111 indentation is not a multiple of 4
+             new._sparse = True
+             ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2
+./cosipy/response/FullDetectorResponse.py:588:20: E111 indentation is not a multiple of 4
+                   raise ValueError("Shouldn't happend")
+                   ^
+    Use indent_size (PEP8 says 4) spaces per indentation level.
+
+    For really old code that you don't want to mess up, you can continue
+    to use 8-space tabs.
+
+    Okay: a = 1
+    Okay: if a == 0:\n    a = 1
+    E111:   a = 1
+    E114:   # a = 1
+
+    Okay: for item in items:\n    pass
+    E112: for item in items:\npass
+    E115: for item in items:\n# Hi\n    pass
+
+    Okay: a = 1\nb = 2
+    E113: a = 1\n    b = 2
+    E116: a = 1\n    # b = 2

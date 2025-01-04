@@ -285,12 +285,12 @@ class UnBinnedData(DataIO):
         # Check if the input data has pointing information, 
         # if not, set dummy values:
         if (use_ori == False) & (len(lonZ)==0):
-             logger.warning("WARNING: No pointing information in input data and no ori file.")
-             logger.warning("Setting pointing to arbitrary location (Galactic center).")
-             lonX = np.array([0]*len(tt))
-             latX = np.array([0]*len(tt))
-             lonZ = np.array([0]*len(tt))
-             latZ = np.array([0]*len(tt))
+                logger.warning("WARNING: No pointing information in input data and no ori file.")
+                logger.warning("Setting pointing to arbitrary location (Galactic center).")
+                lonX = np.array([0]*len(tt))
+                latX = np.array([0]*len(tt))
+                lonZ = np.array([0]*len(tt))
+                latZ = np.array([0]*len(tt))
 
         # Option to get X and Z pointing information from orientation file:
         if use_ori == True:

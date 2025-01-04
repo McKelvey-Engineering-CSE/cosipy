@@ -650,7 +650,7 @@ class SpacecraftFile():
             self.Em_lo = np.float32(self.Em_edges[:-1])
             self.Em_hi = np.float32(self.Em_edges[1:])
 
-         # get the effective area and matrix
+        # get the effective area and matrix
         logger.info("Getting the effective area ...")
         self.areas = np.float32(np.array(self.psr.project('Ei').to_dense().contents))/self.dts.to_value(u.second).sum()
         spectral_response = np.float32(np.array(self.psr.project(['Ei','Em']).to_dense().contents))

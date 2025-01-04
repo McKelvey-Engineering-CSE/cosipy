@@ -106,9 +106,9 @@ class FullDetectorResponse(HealpixBase):
         new._unit = u.Unit(new._drm.attrs['UNIT'])
         
         try:
-             new._sparse = new._drm.attrs['SPARSE']
+                new._sparse = new._drm.attrs['SPARSE']
         except KeyError:
-             new._sparse = True
+                new._sparse = True
 
         # Axes
         axes = []
@@ -585,7 +585,7 @@ class FullDetectorResponse(HealpixBase):
                     axis_dataset.attrs['UNIT'] = 'cm'
                     axis_dataset.attrs['TYPE'] = 'linear'
                 else:
-                   raise ValueError("Shouldn't happend")
+                    raise ValueError("Shouldn't happend")
 
             axis_dataset.attrs['DESCRIPTION'] = axis_description[axis.label]
 
