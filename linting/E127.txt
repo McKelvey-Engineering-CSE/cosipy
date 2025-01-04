@@ -1,0 +1,840 @@
+./cosipy/data_io/UnBinnedData.py:510:17: E127 continuation line over-indented for visual indent
+                'rad','rad','rad','rad','cm','deg','deg']
+                ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/image_deconvolution/dataIF_COSI_DC2.py:303:25: E127 continuation line over-indented for visual indent
+                        * _.unit * self._coordsys_conv_matrix.unit * self.model_axes['lb'].pixarea()
+                        ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/image_deconvolution/exposure_table.py:297:22: E127 continuation line over-indented for visual indent
+                     for i in range(len(names))]
+                     ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/ExtendedSourceResponse.py:68:25: E127 continuation line over-indented for visual indent
+                        sumw2 = sumw2,
+                        ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/ExtendedSourceResponse.py:69:25: E127 continuation line over-indented for visual indent
+                        unit = unit,
+                        ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/ExtendedSourceResponse.py:70:25: E127 continuation line over-indented for visual indent
+                        track_overflow = track_overflow)
+                        ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:125:42: E127 continuation line over-indented for visual indent
+                                         nside=axis.attrs['NSIDE'],
+                                         ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:126:42: E127 continuation line over-indented for visual indent
+                                         label=axis_label,
+                                         ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:127:42: E127 continuation line over-indented for visual indent
+                                         scheme=axis.attrs['SCHEME'],
+                                         ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:128:42: E127 continuation line over-indented for visual indent
+                                         coordsys=SpacecraftFrame())]
+                                         ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:132:35: E127 continuation line over-indented for visual indent
+                                  scale=axis_type,
+                                  ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:133:35: E127 continuation line over-indented for visual indent
+                                  label=axis_label)]
+                                  ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:139:34: E127 continuation line over-indented for visual indent
+                                 base=new.axes['NuLambda'],
+                                 ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:140:34: E127 continuation line over-indented for visual indent
+                                 coordsys=SpacecraftFrame())
+                                 ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:665:42: E127 continuation line over-indented for visual indent
+                                         nside=axis.attrs['NSIDE'],
+                                         ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:666:42: E127 continuation line over-indented for visual indent
+                                         label=axis_label,
+                                         ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:667:42: E127 continuation line over-indented for visual indent
+                                         scheme=axis.attrs['SCHEME'],
+                                         ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:668:42: E127 continuation line over-indented for visual indent
+                                         coordsys=SpacecraftFrame())]
+                                         ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:672:35: E127 continuation line over-indented for visual indent
+                                  scale=axis_type,
+                                  ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:673:35: E127 continuation line over-indented for visual indent
+                                  label=axis_label)]
+                                  ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:681:34: E127 continuation line over-indented for visual indent
+                                 base=new.axes['NuLambda'],
+                                 ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./cosipy/response/FullDetectorResponse.py:682:34: E127 continuation line over-indented for visual indent
+                                 coordsys=SpacecraftFrame())
+                                 ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./tests/spacecraftfile/test_spacecraftfile.py:167:35: E127 continuation line over-indented for visual indent
+                                  [1.90035217e-02, 9.44634676e-01, 1.28470331e-01, 9.38407257e-02,
+                                  ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./tests/spacecraftfile/test_spacecraftfile.py:170:36: E127 continuation line over-indented for visual indent
+                                   [0.00000000e+00, 8.53277557e-03, 8.48568857e-01, 2.18858123e-01,
+                                   ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./tests/spacecraftfile/test_spacecraftfile.py:259:25: E127 continuation line over-indented for visual indent
+                        [0.9809964299201965,
+                        ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./tests/spacecraftfile/test_spacecraftfile.py:356:28: E127 continuation line over-indented for visual indent
+                           np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
+                           ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./tests/spacecraftfile/test_spacecraftfile.py:359:28: E127 continuation line over-indented for visual indent
+                           np.array([10, 47, 67, 13, 54, 31, 18,  7,  1,  0]))
+                           ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./tests/spacecraftfile/test_spacecraftfile.py:362:28: E127 continuation line over-indented for visual indent
+                           np.array([3, 6, 8, 3, 7, 5, 4, 2, 1, 0]))
+                           ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./tests/polarization/test_polarization_asad.py:45:25: E127 continuation line over-indented for visual indent
+                        np.array([[0.82724622, 1.29181456, 1.63270469, 2.15969114, 3.16227766, 7.07106781, 10., 31.6227766, 100., 316.22776602],
+                        ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)
+./tests/polarization/test_polarization_asad.py:62:25: E127 continuation line over-indented for visual indent
+                        [1.5707963267948966, -1.5707963267948966, -1.097213841102146, 0.1949572818104049])
+                        ^
+    Continuation lines indentation.
+
+    Continuation lines should align wrapped elements either vertically
+    using Python's implicit line joining inside parentheses, brackets
+    and braces, or using a hanging indent.
+
+    When using a hanging indent these considerations should be applied:
+    - there should be no arguments on the first line, and
+    - further indentation should be used to clearly distinguish itself
+      as a continuation line.
+
+    Okay: a = (\n)
+    E123: a = (\n    )
+
+    Okay: a = (\n    42)
+    E121: a = (\n   42)
+    E122: a = (\n42)
+    E123: a = (\n    42\n    )
+    E124: a = (24,\n     42\n)
+    E125: if (\n    b):\n    pass
+    E126: a = (\n        42)
+    E127: a = (24,\n      42)
+    E128: a = (24,\n    42)
+    E129: if (a or\n    b):\n    pass
+    E131: a = (\n    42\n 24)

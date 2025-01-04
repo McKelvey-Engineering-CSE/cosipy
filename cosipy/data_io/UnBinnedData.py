@@ -506,8 +506,8 @@ class UnBinnedData(DataIO):
         """
 
         # Data units:
-        units=['keV','s','rad','rad',
-                'rad','rad','rad','rad','cm','deg','deg']
+        units = ['keV','s','rad','rad',
+            'rad','rad','rad','rad','cm','deg','deg']
             
         # For fits output: 
         if self.unbinned_output == 'fits':

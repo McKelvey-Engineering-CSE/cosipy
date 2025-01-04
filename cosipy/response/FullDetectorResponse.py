@@ -121,23 +121,23 @@ class FullDetectorResponse(HealpixBase):
 
             if axis_type == 'healpix':
 
-                axes += [HealpixAxis(edges=np.array(axis),
-                                         nside=axis.attrs['NSIDE'],
-                                         label=axis_label,
-                                         scheme=axis.attrs['SCHEME'],
-                                         coordsys=SpacecraftFrame())]
+                axes += [HealpixAxis(edges=np.array(axis), \
+                                    nside=axis.attrs['NSIDE'], \
+                                    label=axis_label, \
+                                    scheme=axis.attrs['SCHEME'], \
+                                    coordsys=SpacecraftFrame())]
 
             else:
-                axes += [Axis(np.array(axis) * u.Unit(axis.attrs['UNIT']),
-                                  scale=axis_type,
-                                  label=axis_label)]
+                axes += [Axis(np.array(axis) * u.Unit(axis.attrs['UNIT']), \
+                            scale=axis_type, \
+                            label=axis_label)]
 
         new._axes = Axes(axes)
 
         # Init HealpixMap (local coordinates, main axis)
-        HealpixBase.__init__(new,
-                                 base=new.axes['NuLambda'],
-                                 coordsys=SpacecraftFrame())
+        HealpixBase.__init__(new, \
+                            base=new.axes['NuLambda'], \
+                            coordsys=SpacecraftFrame())
 
         return new
 
@@ -662,15 +662,15 @@ class FullDetectorResponse(HealpixBase):
             if axis_type == 'healpix':
 
                 axes += [HealpixAxis(edges=np.array(axis),
-                                         nside=axis.attrs['NSIDE'],
-                                         label=axis_label,
-                                         scheme=axis.attrs['SCHEME'],
-                                         coordsys=SpacecraftFrame())]
+                                    nside=axis.attrs['NSIDE'],
+                                    label=axis_label,
+                                    scheme=axis.attrs['SCHEME'],
+                                    coordsys=SpacecraftFrame())]
 
             else:
                 axes += [Axis(np.array(axis) * u.Unit(axis.attrs['UNIT']),
-                                  scale=axis_type,
-                                  label=axis_label)]
+                            scale=axis_type,
+                            label=axis_label)]
 
                 
 
@@ -678,8 +678,8 @@ class FullDetectorResponse(HealpixBase):
 
         # Init HealpixMap (local coordinates, main axis)
         HealpixBase.__init__(new,
-                                 base=new.axes['NuLambda'],
-                                 coordsys=SpacecraftFrame())
+                            base=new.axes['NuLambda'],
+                            coordsys=SpacecraftFrame())
 
         return new
 

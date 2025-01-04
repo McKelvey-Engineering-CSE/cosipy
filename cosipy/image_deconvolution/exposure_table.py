@@ -294,7 +294,7 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
         units = ['', 's', '', '']
         
         columns = [ fits.Column(name=names[i], array=self[names[i]].to_numpy(), format = formats[i], unit = units[i]) 
-                     for i in range(len(names))]
+            for i in range(len(names))]
         
         column_healpix_index_z_pointing = fits.Column(name='healpix_index_z_pointing', 
                                                       array=np.array([idx[0] for idx in self['healpix_index']]), format = 'K')
