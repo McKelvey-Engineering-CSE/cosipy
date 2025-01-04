@@ -48,7 +48,7 @@ class SpacecraftFile():
         earth_zenith : astropy.coordinates.SkyCoord, optional
             The pointings (galactic system) of the Earth zenith (the 
             default is `None`, which implies no input for the earth pointings).
-	altitude : array, optional 
+        altitude : array, optional 
             Altitude of the spacecraft in km.
         attitude : numpy.ndarray, optional 
             The attitude of the spacecraft (the default is `None`, 
@@ -87,8 +87,8 @@ class SpacecraftFile():
             self.z_pointings = z_pointings
         else:
             raise TypeError("The z_pointing should be a NoneType or SkyCoord object!")
-	    
-	    # earth pointings
+        
+        # earth pointings
         if isinstance(earth_zenith, (SkyCoord, type(None))):
             self.earth_zenith = earth_zenith
         else:
@@ -286,7 +286,7 @@ class SpacecraftFile():
 
             new_z_direction = self._z_direction[start_idx + 1 : stop_idx + 1]
             new_z_direction = np.insert(new_z_direction, 0, z_direction_start, axis = 0)
-	    
+        
             new_earth_direction = self._earth_direction[start_idx + 1 : stop_idx + 1]
             new_earth_direction = np.insert(new_earth_direction, 0, earth_direction_start, axis = 0)
 

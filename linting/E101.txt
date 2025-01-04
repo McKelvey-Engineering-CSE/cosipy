@@ -1,0 +1,140 @@
+./cosipy/response/FullDetectorResponse.py:211:3: E101 indentation contains mixed spaces and tabs
+
+  ^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/response/FullDetectorResponse.py:423:1: E101 indentation contains mixed spaces and tabs
+
+^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/response/FullDetectorResponse.py:425:1: E101 indentation contains mixed spaces and tabs
+        # Weight to get effective area
+^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/spacecraftfile/SpacecraftFile.py:51:1: E101 indentation contains mixed spaces and tabs
+	altitude : array, optional
+^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/spacecraftfile/SpacecraftFile.py:52:1: E101 indentation contains mixed spaces and tabs
+            Altitude of the spacecraft in km.
+^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/spacecraftfile/SpacecraftFile.py:90:1: E101 indentation contains mixed spaces and tabs
+
+^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/spacecraftfile/SpacecraftFile.py:91:2: E101 indentation contains mixed spaces and tabs
+	    # earth pointings
+	^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/spacecraftfile/SpacecraftFile.py:92:1: E101 indentation contains mixed spaces and tabs
+        if isinstance(earth_zenith, (SkyCoord, type(None))):
+^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/spacecraftfile/SpacecraftFile.py:289:1: E101 indentation contains mixed spaces and tabs
+
+^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1
+./cosipy/spacecraftfile/SpacecraftFile.py:290:1: E101 indentation contains mixed spaces and tabs
+            new_earth_direction = self._earth_direction[start_idx + 1 : stop_idx + 1]
+^
+    Never mix tabs and spaces.
+
+    The most popular way of indenting Python is with spaces only.  The
+    second-most popular way is with tabs only.  Code indented with a
+    mixture of tabs and spaces should be converted to using spaces
+    exclusively.  When invoking the Python command line interpreter with
+    the -t option, it issues warnings about code that illegally mixes
+    tabs and spaces.  When using -tt these warnings become errors.
+    These options are highly recommended!
+
+    Okay: if a == 0:\n    a = 1\n    b = 1

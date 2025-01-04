@@ -208,7 +208,7 @@ class FullDetectorResponse(HealpixBase):
                         Gauss_mean = float(line[2])   
                         Gauss_sig = float(line[3])
                         Gauss_cutoff = float(line[4])          
-  	
+                
                 elif key == "MS":
                     if line[1] == "true" :
                         sparse = True
@@ -420,8 +420,8 @@ class FullDetectorResponse(HealpixBase):
         
         
         
-	
-	
+    
+    
         # Weight to get effective area
 
         ewidth = dr.axes['Ei'].widths
