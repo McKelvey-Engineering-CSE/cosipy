@@ -512,14 +512,14 @@ class SpacecraftFile():
 
         return self.dwell_map
 
-    def get_scatt_map(self,
-                       target_coord,
-                       nside,
-                       scheme = 'ring',
-                       coordsys = 'galactic',
-                       r_earth = 6378.0,
-                       earth_occ = True
-                       ):
+    def get_scatt_map(
+                    self,
+                    target_coord,
+                    nside,
+                    scheme = 'ring',
+                    coordsys = 'galactic',
+                    r_earth = 6378.0,
+                    earth_occ = True):
 
         """
         Bin the spacecraft attitude history into a 4D histogram that 

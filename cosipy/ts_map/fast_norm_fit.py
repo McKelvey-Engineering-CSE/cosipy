@@ -210,7 +210,7 @@ class FastNormFit:
 
             step = (-self.dts(data, bkg, unit_excess, norm, order = 1) /
                     self.dts(data, bkg, unit_excess, norm, order = 2)
-)
+                    )
         
             norm += step
 
