@@ -335,7 +335,7 @@ class BinnedData(UnBinnedData):
         return
 
     def make_basic_plot(self, x, y, plt_scale='loglog', output_name=None,\
-        x_error=[], plot_kwargs={}, fig_kwargs={}, show_plots=True):
+            x_error=[], plot_kwargs={}, fig_kwargs={}, show_plots=True):
 
         """Make a basic plot.
 

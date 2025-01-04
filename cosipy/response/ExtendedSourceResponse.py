@@ -92,10 +92,10 @@ class ExtendedSourceResponse(Histogram):
             A histogram representing the calculated expectation.
         """
         if self.axes[0].label == allsky_image_model.axes[0].label \
-            and self.axes[1].label == allsky_image_model.axes[1].label \
-            and np.all(self.axes[0].edges == allsky_image_model.axes[0].edges) \
-            and np.all(self.axes[1].edges == allsky_image_model.axes[1].edges) \
-            and allsky_image_model.unit == u.Unit('1/(s*cm*cm*sr)'):
+                and self.axes[1].label == allsky_image_model.axes[1].label \
+                and np.all(self.axes[0].edges == allsky_image_model.axes[0].edges) \
+                and np.all(self.axes[1].edges == allsky_image_model.axes[1].edges) \
+                and allsky_image_model.unit == u.Unit('1/(s*cm*cm*sr)'):
             
             contents = np.tensordot(allsky_image_model.contents, self.contents, axes=([0,1], [0,1]))
             contents *= self.axes[0].pixarea()
