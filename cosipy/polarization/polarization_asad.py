@@ -65,7 +65,7 @@ class PolarizationASAD():
         else:
             self._convention = fit_convention
 
-        reference_vector = self._convention.get_basis(source_vector)[0] #px
+        reference_vector = self._convention.get_basis(source_vector)[0]  # px
 
         if isinstance(source_vector.frame, SpacecraftFrame):
             self._source_vector = source_vector

@@ -21,7 +21,7 @@ class CoordsysConversionMatrix(Histogram):
         super().__init__(edges, contents=contents, sumw2=sumw2,
                          labels=labels, axis_scale=axis_scale, sparse=sparse, unit=unit)
 
-        self.binning_method = binning_method #'Time' or 'ScAtt'
+        self.binning_method = binning_method  # 'Time' or 'ScAtt'
 
     @classmethod
     def time_binning_ccm(cls, full_detector_response, orientation, time_intervals, nside_model=None, is_nest_model=False):
@@ -54,12 +54,12 @@ class CoordsysConversionMatrix(Histogram):
         axis_model_map = HealpixAxis(nside=nside_model, coordsys="galactic", label="lb")
         axis_local_map = full_detector_response.axes["NuLambda"]
 
-        axis_coordsys_conv_matrix = [axis_time, axis_model_map, axis_local_map] #Time, lb, NuLambda
+        axis_coordsys_conv_matrix = [axis_time, axis_model_map, axis_local_map]  # Time, lb, NuLambda
 
         contents = []
 
         for i_time, [init_time, end_time] in tqdm(enumerate(axis_time.bounds), total=len(axis_time.bounds)):
-            ccm_thispix = np.zeros((axis_model_map.nbins, axis_local_map.nbins)) # without unit
+            ccm_thispix = np.zeros((axis_model_map.nbins, axis_local_map.nbins))  # without unit
 
             init_time = Time(init_time, format='unix')
             end_time = Time(end_time, format='unix')
@@ -130,12 +130,12 @@ class CoordsysConversionMatrix(Histogram):
         axis_model_map = HealpixAxis(nside=nside_model, coordsys="galactic", scheme=exposure_table.scheme, label="lb")
         axis_local_map = full_detector_response.axes["NuLambda"]
 
-        axis_coordsys_conv_matrix = [axis_scatt, axis_model_map, axis_local_map] #lb, ScAtt, NuLambda
+        axis_coordsys_conv_matrix = [axis_scatt, axis_model_map, axis_local_map]  # lb, ScAtt, NuLambda
         
         contents = []
 
         for i_scatt_bin in tqdm(range(n_scatt_bins)):
-            ccm_thispix = np.zeros((axis_model_map.nbins, axis_local_map.nbins)) # without unit
+            ccm_thispix = np.zeros((axis_model_map.nbins, axis_local_map.nbins))  # without unit
 
             row = exposure_table.iloc[i_scatt_bin]
         
@@ -215,7 +215,7 @@ class CoordsysConversionMatrix(Histogram):
 
         new = cls(new.axes, contents=new.contents, sumw2=new.contents, unit=new.unit) 
 
-        new.binning_method = new.axes.labels[0] # 'Time' or 'ScAtt'
+        new.binning_method = new.axes.labels[0]  # 'Time' or 'ScAtt'
 
         return new
 

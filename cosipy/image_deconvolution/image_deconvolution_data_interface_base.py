@@ -53,12 +53,12 @@ class ImageDeconvolutionDataInterfaceBase(ABC):
         self._name = name
 
         # must assign data to them somewhere
-        self._event = None # histpy.Histogram
-        self._bkg_models = {} # a dictionary of histpy.Histogram
-        self._summed_bkg_models = {} # a dictionary of float
-        self._exposure_map = None # histpy.Histogram
-        self._model_axes = None # histpy.Axes
-        self._data_axes = None # histpy.Axes
+        self._event = None              # histpy.Histogram
+        self._bkg_models = {}           # a dictionary of histpy.Histogram
+        self._summed_bkg_models = {}    # a dictionary of float
+        self._exposure_map = None       # histpy.Histogram
+        self._model_axes = None         # histpy.Axes
+        self._data_axes = None          # histpy.Axes
 
     @property
     def name(self):

@@ -123,10 +123,10 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
 
         logger.info("angular resolution: ", hp.nside2resol(nside) * 180 / np.pi, "deg.")    
     
-        indices_healpix = [] # (idx_z, idx_x)
+        indices_healpix = []  # (idx_z, idx_x)
         delta_times = []
-        xpointings = [] # [l_x, b_x]
-        zpointings = [] # [l_z, b_z]
+        xpointings = []  # [l_x, b_x]
+        zpointings = []  # [l_z, b_z]
                 
         if start is not None and stop is not None:
             orientation = orientation.source_interval(start, stop)
@@ -288,7 +288,7 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
         # primary HDU
         primary_hdu = fits.PrimaryHDU()
     
-        #exposure table
+        # exposure table
         names = ['scatt_binning_index', 'exposure', 'num_pointings', 'bkg_group']
         formats = ['K', 'D', 'K', 'K']
         units = ['', 's', '', '']
@@ -297,16 +297,18 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
             fits.Column(name=names[i], array=self[names[i]].to_numpy(), format=formats[i], unit=units[i]) 
             for i in range(len(names))]
         
-        column_healpix_index_z_pointing = fits.Column(name='healpix_index_z_pointing', 
-                                                      array=np.array([idx[0] for idx in self['healpix_index']]), format='K')
-        column_healpix_index_x_pointing = fits.Column(name='healpix_index_x_pointing', 
-                                                      array=np.array([idx[1] for idx in self['healpix_index']]), format='K')
-        
+        column_healpix_index_z_pointing = fits.Column(
+            name='healpix_index_z_pointing', 
+            array=np.array([idx[0] for idx in self['healpix_index']]), format='K')
+        column_healpix_index_x_pointing = fits.Column(
+            name='healpix_index_x_pointing', 
+            array=np.array([idx[1] for idx in self['healpix_index']]), format='K')
         columns.append(column_healpix_index_z_pointing)
         columns.append(column_healpix_index_x_pointing)
     
-        column_delta_time = fits.Column(name='delta_time', format='PD()', unit='s',
-                                        array=np.array(self['delta_time'].array, dtype=np.object_))
+        column_delta_time = fits.Column(
+            name='delta_time', format='PD()', unit='s',
+            array=np.array(self['delta_time'].array, dtype=np.object_))
         columns.append(column_delta_time)    
         
         column_zpointing_l = fits.Column(

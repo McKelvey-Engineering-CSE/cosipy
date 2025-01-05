@@ -127,11 +127,11 @@ class TSMap:
         
         self.spectrum = Powerlaw()
         
-        self.spectrum.K.value = self.norm # 1/keV/cm2/s
-        self.spectrum.piv.value = self.piv # keV
+        self.spectrum.K.value = self.norm   # 1/keV/cm2/s
+        self.spectrum.piv.value = self.piv  # keV
         self.spectrum.index.value = self.index
         
-        self.source = PointSource("source", # The name of the source is arbitrary, but needs to be unique
+        self.source = PointSource("source",  # The name of the source is arbitrary, but needs to be unique
                                   ra=self.ra, 
                                   dec=self.dec,
                                   spectral_shape=self.spectrum)
@@ -165,8 +165,8 @@ class TSMap:
         """
         
         # using rad due to mollweide projection
-        self.ra_range = (-np.pi, np.pi) # rad
-        self.dec_range = (-np.pi/2, np.pi/2) # rad
+        self.ra_range = (-np.pi, np.pi)       # rad
+        self.dec_range = (-np.pi/2, np.pi/2)  # rad
         
         self.log_like = Histogram(
             [Axis(np.linspace(*self.ra_range, 50), label="ra"), 
@@ -183,10 +183,10 @@ class TSMap:
                 # changing the position parameters
                 # converting rad to deg due to ra and dec in 3ML PointSource
                 if self.log_like.axes['ra'].centers[i] < 0:
-                    self.source.position.ra = (self.log_like.axes['ra'].centers[i] + 2*np.pi) * (180/np.pi) # deg
+                    self.source.position.ra = (self.log_like.axes['ra'].centers[i] + 2*np.pi) * (180/np.pi)  # deg
                 else:
-                    self.source.position.ra = (self.log_like.axes['ra'].centers[i]) * (180/np.pi) # deg
-                self.source.position.dec = self.log_like.axes['dec'].centers[j] * (180/np.pi) # deg
+                    self.source.position.ra = (self.log_like.axes['ra'].centers[i]) * (180/np.pi)  # deg
+                self.source.position.dec = self.log_like.axes['dec'].centers[j] * (180/np.pi)  # deg
                 
                 # maximum likelihood
                 self.like.fit(quiet=True)
@@ -235,10 +235,10 @@ class TSMap:
         # report the best fit position
         # converting rad to deg due to ra and dec in 3ML PointSource
         if self.ts.axes['ra'].centers[self.argmax[0]] < 0:
-            self.best_ra = (self.ts.axes['ra'].centers[self.argmax[0]] + 2*np.pi) * (180/np.pi) # deg
+            self.best_ra = (self.ts.axes['ra'].centers[self.argmax[0]] + 2*np.pi) * (180/np.pi)  # deg
         else:
-            self.best_ra = (self.ts.axes['ra'].centers[self.argmax[0]]) * (180/np.pi) # deg
-        self.best_dec = self.ts.axes['dec'].centers[self.argmax[1]] * (180/np.pi) # deg
+            self.best_ra = (self.ts.axes['ra'].centers[self.argmax[0]]) * (180/np.pi)  # deg
+        self.best_dec = self.ts.axes['dec'].centers[self.argmax[1]] * (180/np.pi)  # deg
         logger.info(f"Best fit position: RA = {self.best_ra} deg, Dec = {self.best_dec} deg")
         
         # convert to significance based on Wilk's theorem
@@ -288,10 +288,10 @@ class TSMap:
         
         # converting rad to deg due to RA and Dec in 3ML PointSource
         if self.ts.axes['ra'].centers[self.argmax[0]] < 0:
-            self.source.position.ra = (self.ts.axes['ra'].centers[self.argmax[0]] + 2*np.pi) * (180/np.pi) # deg
+            self.source.position.ra = (self.ts.axes['ra'].centers[self.argmax[0]] + 2*np.pi) * (180/np.pi)  # deg
         else:
-            self.source.position.ra = (self.ts.axes['ra'].centers[self.argmax[0]]) * (180/np.pi) # deg
-        self.source.position.dec = self.ts.axes['dec'].centers[self.argmax[1]] * (180/np.pi) # deg
+            self.source.position.ra = (self.ts.axes['ra'].centers[self.argmax[0]]) * (180/np.pi)  # deg
+        self.source.position.dec = self.ts.axes['dec'].centers[self.argmax[1]] * (180/np.pi)  # deg
     
         # maximum likelihood
         self.like.fit()
@@ -324,7 +324,7 @@ class TSMap:
         cbar = fig.colorbar(plot)
         cbar.ax.set_ylabel("TS")
         
-        ax.set_xlabel('R.A.', fontsize=15);
-        ax.set_ylabel('Dec.', fontsize=15);
+        ax.set_xlabel('R.A.', fontsize=15)
+        ax.set_ylabel('Dec.', fontsize=15)
         ax.tick_params(axis='x', colors='White')
         ax.legend(fontsize=10)

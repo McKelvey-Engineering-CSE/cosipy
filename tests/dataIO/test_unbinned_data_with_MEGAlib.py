@@ -36,7 +36,7 @@ def test_unbinned_data_with_MEGAlib(tmp_path):
     # Read in MEGAlib's calculations from its event reader:
     mega_data = os.path.join(test_data.path, "unbinned_data_MEGAlib_calc.hdf5")
     dict_old = analysis.get_dict_from_hdf5(mega_data)
-    ntestsamples = analysis.cosi_dataset["Energies"].size #Using a reduced dataset for testing purposes
+    ntestsamples = analysis.cosi_dataset["Energies"].size  # Using a reduced dataset for testing purposes
     energy_old = dict_old["Energies"][:ntestsamples]
     time_old = dict_old["TimeTags"][:ntestsamples]
     phi_old = dict_old["Phi"][:ntestsamples]

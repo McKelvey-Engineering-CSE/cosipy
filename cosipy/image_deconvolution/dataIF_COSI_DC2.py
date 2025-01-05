@@ -22,13 +22,13 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         ImageDeconvolutionDataInterfaceBase.__init__(self, name)
 
-        self._image_response = None # histpy.Histogram (dense)
+        self._image_response = None  # histpy.Histogram (dense)
 
         # None if using Galactic CDS, mandotary if using local CDS
         self._coordsys_conv_matrix = None 
 
         # optional
-        self.is_miniDC2_format = False #should be removed in the future
+        self.is_miniDC2_format = False  # should be removed in the future
 
     @classmethod
     def load(cls, name, event_binned_data, dict_bkg_binned_data, rsp, coordsys_conv_matrix=None, is_miniDC2_format=False):
@@ -144,7 +144,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             response_edges, response_unit = self._image_response.axes[name].edges, self._image_response.axes[name].unit
             
 #            if type(response_edges) == u.quantity.Quantity and self.is_miniDC2_format == True:
-            if event_unit is None and response_unit is not None and self.is_miniDC2_format == True: # this is only for the old data in the miniDC2 challenge. I will remove them in the near future (or in the final dataIF).
+            if event_unit is None and response_unit is not None and self.is_miniDC2_format == True:  # this is only for the old data in the miniDC2 challenge. I will remove them in the near future (or in the final dataIF).
                 response_edges = response_edges.value
 
             if np.all(event_edges == response_edges):
@@ -191,7 +191,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
     
         if is_miniDC2_format:
             for ipix in tqdm(range(npix)):
-                self._image_response[ipix] = np.sum(full_detector_response[ipix].to_dense(), axis=(4, 5)) #Ei, Em, Phi, ChiPsi
+                self._image_response[ipix] = np.sum(full_detector_response[ipix].to_dense(), axis=(4, 5))  # Ei, Em, Phi, ChiPsi
         else:
             contents = full_detector_response._file['DRM']['CONTENTS'][:]
             self._image_response[:] = contents * full_detector_response.unit

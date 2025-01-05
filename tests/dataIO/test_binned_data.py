@@ -28,7 +28,7 @@ def test_binned_data(tmp_path):
     
     # Test default binning (which is in Galactic coordinates).
     # Use small number of bins to speed things up. 
-    analysis.tmax = 1835478010.0 # to match time bin size of 5 seconds.  
+    analysis.tmax = 1835478010.0  # to match time bin size of 5 seconds.  
     analysis.nside = 1
     analysis.phi_pix_size = 90
     analysis.get_binned_data(

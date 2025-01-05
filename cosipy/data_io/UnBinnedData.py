@@ -124,7 +124,7 @@ class UnBinnedData(DataIO):
 
         # Define electron rest energy, which is used in calculation
         # of Compton scattering angle.
-        c_E0 = 510.9989500015 # keV
+        c_E0 = 510.9989500015  # keV
 
         # This is for unit testing purposes only.
         # Use same value as MEGAlib for direct comparison: 
@@ -177,12 +177,12 @@ class UnBinnedData(DataIO):
         
         # Read tra file line by line:
         logger.info("Reading file...")
-        N_events = 0 # number of events
-        pbar = tqdm(total=num_lines) # start progress bar
+        N_events = 0  # number of events
+        pbar = tqdm(total=num_lines)  # start progress bar
         for line in f:
          
             this_line = line.strip().split()
-            pbar.update(1) # update progress bar
+            pbar.update(1)  # update progress bar
 
             # Make sure line isn't empty:
             if len(this_line) == 0:
@@ -214,8 +214,8 @@ class UnBinnedData(DataIO):
             if this_line[0] == "CE":
 
                 # Compute the total photon energy:
-                m_Eg = float(this_line[1]) # Energy of scattered gamma ray in keV
-                m_Ee = float(this_line[3]) # Energy of recoil electron in keV
+                m_Eg = float(this_line[1])  # Energy of scattered gamma ray in keV
+                m_Ee = float(this_line[3])  # Energy of recoil electron in keV
                 this_erg = m_Eg + m_Ee
                 erg.append(this_erg) 
              
@@ -223,7 +223,7 @@ class UnBinnedData(DataIO):
                 # i.e. neglect the movement of the electron,
                 # which would lead to a Doppler-broadening.
                 this_value = 1.0 - c_E0 * (1.0/m_Eg - 1.0/(m_Ee + m_Eg))
-                this_phi = np.arccos(this_value) # radians
+                this_phi = np.arccos(this_value)  # radians
                 phi.append(this_phi)
                 
             # Time tag in Unix time (seconds):
@@ -232,15 +232,15 @@ class UnBinnedData(DataIO):
                 
             # X axis of detector orientation in Galactic coordinates:
             if this_line[0] == "GX":
-                this_lonX = np.deg2rad(float(this_line[1])) # radians
-                this_latX = np.deg2rad(float(this_line[2])) # radians
+                this_lonX = np.deg2rad(float(this_line[1]))  # radians
+                this_latX = np.deg2rad(float(this_line[2]))  # radians
                 lonX.append(this_lonX)
                 latX.append(this_latX)
             
             # Z axis of detector orientation in Galactic coordinates:
             if this_line[0] == "GZ":
-                this_lonZ = np.deg2rad(float(this_line[1])) # radians
-                this_latZ = np.deg2rad(float(this_line[2])) # radians
+                this_lonZ = np.deg2rad(float(this_line[1]))  # radians
+                this_latZ = np.deg2rad(float(this_line[2]))  # radians
                 lonZ.append(this_lonZ)
                 latZ.append(this_latZ)
             

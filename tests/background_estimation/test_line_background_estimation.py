@@ -58,7 +58,7 @@ def test_line_background_estimation():
         bkg_model_histogram = instance.generate_bkg_model_histogram(source_range, [background_region])
 
     ## Case 4: two extracting regions
-    background_region_1 = (1120.0, 1650.0) * u.keV #background counts estimation before the line
-    background_region_2 = (3450.0, 5000.0) * u.keV #background counts estimation before the line
+    background_region_1 = (1120.0, 1650.0) * u.keV  # background counts estimation before the line
+    background_region_2 = (3450.0, 5000.0) * u.keV  # background counts estimation before the line
     
     bkg_model_histogram = instance.generate_bkg_model_histogram(source_range, [background_region_1, background_region_2])

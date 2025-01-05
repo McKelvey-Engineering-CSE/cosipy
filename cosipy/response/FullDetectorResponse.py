@@ -937,7 +937,7 @@ class FullDetectorResponse(HealpixBase):
 
         for old_pix, new_pix in zip(old_pixels, range(new_axis.npix)):
 
-            #h_new[{axis:new_pix}] += exposure * h[{axis: old_pix}] # * norm_corr
+            # h_new[{axis:new_pix}] += exposure * h[{axis: old_pix}] # * norm_corr
             # The following code does the same than the code above, but is faster
             # However, it uses some internal functionality in histpy, which is bad practice
             # TODO: change this in a future version. We might need to modify histpy so that
@@ -946,7 +946,7 @@ class FullDetectorResponse(HealpixBase):
             old_indices = tuple([slice(None)]*axis_id + [old_pix+1])
             new_indices = tuple([slice(None)]*axis_id + [new_pix+1])
 
-            h_new._contents[new_indices] += exposure * h._contents[old_indices] # * norm_corr
+            h_new._contents[new_indices] += exposure * h._contents[old_indices]  # * norm_corr
                         
 
     def __str__(self):

@@ -568,7 +568,7 @@ class SpacecraftFile():
        
         # Get max angle based on altitude:
         max_angle = np.pi - np.arcsin(r_earth/(r_earth + altitude))
-        max_angle *= (180/np.pi) # angles in degree
+        max_angle *= (180/np.pi)  # angles in degree
         
         # Calculate angle between source direction and Earth zenith
         # for each time stamp:
@@ -624,12 +624,12 @@ class SpacecraftFile():
         """
 
         if response == None:
-            pass # will use the response defined in the previous steps
+            pass  # will use the response defined in the previous steps
         else:
             self.response_file = response
 
         if dwell_map is None:  # must use is None, or it throws error!
-            pass # will use the dwelltime map calculated in the previous steps
+            pass  # will use the dwelltime map calculated in the previous steps
         else:
             self.dwell_map = HealpixMap.read_map(dwell_map)
 
@@ -655,7 +655,7 @@ class SpacecraftFile():
         logger.info("Getting the effective area ...")
         self.areas = np.float32(np.array(self.psr.project('Ei').to_dense().contents))/self.dts.to_value(u.second).sum()
         spectral_response = np.float32(np.array(self.psr.project(['Ei', 'Em']).to_dense().contents))
-        self.matrix = np.float32(np.zeros((self.Ei_lo.size, self.Em_lo.size))) # initate the matrix
+        self.matrix = np.float32(np.zeros((self.Ei_lo.size, self.Em_lo.size)))  # initate the matrix
 
         logger.info("Getting the energy redistribution matrix ...")
         for i in np.arange(self.Ei_lo.size):
@@ -686,16 +686,16 @@ class SpacecraftFile():
         copyright_string = "  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
 
         ## Create PrimaryHDU
-        primaryhdu = fits.PrimaryHDU() # create an empty primary HDU
-        primaryhdu.header["BITPIX"] = -32 # since it's an empty HDU, I can just change the data type by resetting the BIPTIX value
-        primaryhdu.header["COMMENT"] = copyright_string # add comments
-        primaryhdu.header # print headers and their values
+        primaryhdu = fits.PrimaryHDU()  # create an empty primary HDU
+        primaryhdu.header["BITPIX"] = -32  # since it's an empty HDU, I can just change the data type by resetting the BIPTIX value
+        primaryhdu.header["COMMENT"] = copyright_string  # add comments
+        primaryhdu.header  # print headers and their values
 
         col1_energ_lo = fits.Column(name="ENERG_LO", format="E", unit="keV", array=self.Em_lo)
         col2_energ_hi = fits.Column(name="ENERG_HI", format="E", unit="keV", array=self.Em_hi)
         col3_specresp = fits.Column(name="SPECRESP", format="E", unit="cm**2", array=self.areas)
-        cols = fits.ColDefs([col1_energ_lo, col2_energ_hi, col3_specresp]) # create a ColDefs (column-definitions) object for all columns
-        specresp_bintablehdu = fits.BinTableHDU.from_columns(cols) # create a binary table HDU object
+        cols = fits.ColDefs([col1_energ_lo, col2_energ_hi, col3_specresp])  # create a ColDefs (column-definitions) object for all columns
+        specresp_bintablehdu = fits.BinTableHDU.from_columns(cols)  # create a binary table HDU object
 
         specresp_bintablehdu.header.comments["TTYPE1"] = "label for field   1"
         specresp_bintablehdu.header.comments["TFORM1"] = "data format of field: 4-byte REAL"
@@ -740,10 +740,10 @@ class SpacecraftFile():
         copyright_string = "  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
 
         ## Create PrimaryHDU
-        primaryhdu = fits.PrimaryHDU() # create an empty primary HDU
-        primaryhdu.header["BITPIX"] = -32 # since it's an empty HDU, I can just change the data type by resetting the BIPTIX value
-        primaryhdu.header["COMMENT"] = copyright_string # add comments
-        primaryhdu.header # print headers and their values
+        primaryhdu = fits.PrimaryHDU()  # create an empty primary HDU
+        primaryhdu.header["BITPIX"] = -32  # since it's an empty HDU, I can just change the data type by resetting the BIPTIX value
+        primaryhdu.header["COMMENT"] = copyright_string  # add comments
+        primaryhdu.header  # print headers and their values
 
         ## Create binary table HDU for MATRIX
         ### prepare colums
@@ -758,7 +758,7 @@ class SpacecraftFile():
             energ_hi_temp = np.float32(self.Ei_hi[i])
 
             if self.matrix[:, i].sum() != 0:
-                nz_matrix_idx = np.nonzero(self.matrix[:, i])[0] # non-zero index for the matrix
+                nz_matrix_idx = np.nonzero(self.matrix[:, i])[0]  # non-zero index for the matrix
                 subsets = np.split(nz_matrix_idx, np.where(np.diff(nz_matrix_idx) != 1)[0]+1)
                 n_grp_temp = np.int16(len(subsets))
                 f_chan_temp = []
@@ -791,8 +791,8 @@ class SpacecraftFile():
         col4_f_chan = fits.Column(name="F_CHAN", format="PI(54)", array=f_chan)
         col5_n_chan = fits.Column(name="N_CHAN", format="PI(54)", array=n_chan)
         col6_n_chan = fits.Column(name="MATRIX", format="PE(161)", array=matrix)
-        cols = fits.ColDefs([col1_energ_lo, col2_energ_hi, col3_n_grp, col4_f_chan, col5_n_chan, col6_n_chan]) # create a ColDefs (column-definitions) object for all columns
-        matrix_bintablehdu = fits.BinTableHDU.from_columns(cols) # create a binary table HDU object
+        cols = fits.ColDefs([col1_energ_lo, col2_energ_hi, col3_n_grp, col4_f_chan, col5_n_chan, col6_n_chan])  # create a ColDefs (column-definitions) object for all columns
+        matrix_bintablehdu = fits.BinTableHDU.from_columns(cols)  # create a binary table HDU object
 
         matrix_bintablehdu.header.comments["TTYPE1"] = "label for field   1 "
         matrix_bintablehdu.header.comments["TFORM1"] = "data format of field: 4-byte REAL"
@@ -918,22 +918,22 @@ class SpacecraftFile():
         channels = np.arange(self.channel_number)
 
         # Create PrimaryHDU
-        primaryhdu = fits.PrimaryHDU() # create an empty primary HDU
-        primaryhdu.header["BITPIX"] = -32 # since it's an empty HDU, I can just change the data type by resetting the BIPTIX value
-        primaryhdu.header["COMMENT"] = copyright_string # add comments
-        primaryhdu.header["TELESCOP"] = telescope # add telescope keyword valie
-        primaryhdu.header["INSTRUME"] = instrument # add instrument keyword valie
-        primaryhdu.header # print headers and their values
+        primaryhdu = fits.PrimaryHDU()  # create an empty primary HDU
+        primaryhdu.header["BITPIX"] = -32  # since it's an empty HDU, I can just change the data type by resetting the BIPTIX value
+        primaryhdu.header["COMMENT"] = copyright_string  # add comments
+        primaryhdu.header["TELESCOP"] = telescope  # add telescope keyword valie
+        primaryhdu.header["INSTRUME"] = instrument  # add instrument keyword valie
+        primaryhdu.header  # print headers and their values
 
         # Create binary table HDU
-        a1 = np.array(channels, dtype="int32") # I guess I need to convert the dtype to match the format J
-        a2 = np.array(self.src_counts, dtype="int64")  # int32 is not enough for counts
-        a3 = np.array(self.errors, dtype="int64") # int32 is not enough for errors
+        a1 = np.array(channels, dtype="int32")  # I guess I need to convert the dtype to match the format J
+        a2 = np.array(self.src_counts, dtype="int64")   # int32 is not enough for counts
+        a3 = np.array(self.errors, dtype="int64")  # int32 is not enough for errors
         col1 = fits.Column(name="CHANNEL", format="J", array=a1)
         col2 = fits.Column(name="COUNTS", format="K", array=a2, unit="count")
         col3 = fits.Column(name="STAT_ERR", format="K", array=a3, unit="count")
-        cols = fits.ColDefs([col1, col2, col3]) # create a ColDefs (column-definitions) object for all columns
-        bintablehdu = fits.BinTableHDU.from_columns(cols) # create a binary table HDU object
+        cols = fits.ColDefs([col1, col2, col3])  # create a ColDefs (column-definitions) object for all columns
+        bintablehdu = fits.BinTableHDU.from_columns(cols)  # create a binary table HDU object
 
         #add other BinTableHDU hear keywords,their values, and comments
         bintablehdu.header.comments["TTYPE1"] = "label for field 1"
@@ -1000,7 +1000,7 @@ class SpacecraftFile():
 
         self.dpi = dpi
 
-        self.arf = fits.open(self.file_name) # read file
+        self.arf = fits.open(self.file_name)  # read file
 
         # SPECRESP HDU
         self.specresp_hdu = self.arf["SPECRESP"]
@@ -1053,38 +1053,38 @@ class SpacecraftFile():
         self.dpi = dpi
 
         # Read rmf file
-        self.rmf = fits.open(self.file_name) # read file
+        self.rmf = fits.open(self.file_name)  # read file
 
         # Read the ENOUNDS information
         ebounds_ext = self.rmf["EBOUNDS"]
-        channel_low = ebounds_ext.data["E_MIN"] # energy bin lower edges for channels (channels are just incident energy bins)
-        channel_high = ebounds_ext.data["E_MAX"] # energy bin higher edges for channels (channels are just incident energy bins)
+        channel_low = ebounds_ext.data["E_MIN"]   # energy bin lower edges for channels (channels are just incident energy bins)
+        channel_high = ebounds_ext.data["E_MAX"]  # energy bin higher edges for channels (channels are just incident energy bins)
 
         # Read the MATRIX extension
         matrix_ext = self.rmf['MATRIX']
         #logger.info(repr(matrix_hdu.header[:60]))
-        energy_low = matrix_ext.data["ENERG_LO"] # energy bin lower edges for measured energies
-        energy_high = matrix_ext.data["ENERG_HI"] # energy bin higher edges for measured energies
+        energy_low = matrix_ext.data["ENERG_LO"]   # energy bin lower edges for measured energies
+        energy_high = matrix_ext.data["ENERG_HI"]  # energy bin higher edges for measured energies
         data = matrix_ext.data
 
         # Create a 2-d numpy array and store probability data into the redistribution matrix
-        rmf_matrix = np.zeros((len(energy_low), len(channel_low))) # create an empty matrix
-        for i in np.arange(data.shape[0]): # i is the measured energy index, examine the matrix_ext.data rows by rows
-            if data[i][5].sum() == 0: # if the sum of probabilities is zero, then skip since there is no data at all
+        rmf_matrix = np.zeros((len(energy_low), len(channel_low)))  # create an empty matrix
+        for i in np.arange(data.shape[0]):  # i is the measured energy index, examine the matrix_ext.data rows by rows
+            if data[i][5].sum() == 0:  # if the sum of probabilities is zero, then skip since there is no data at all
                 pass
             else:
-                #measured_energy_index = np.argwhere(energy_low == data[157][0])[0][0]
-                f_chan = data[i][3] # get the starting channel of each subsets
-                n_chann = data[i][4] # get the number of channels in each subsets
-                matrix = data[i][5] # get the probabilities of this row (incident energy)
+                # measured_energy_index = np.argwhere(energy_low == data[157][0])[0][0]
+                f_chan = data[i][3]   # get the starting channel of each subsets
+                n_chann = data[i][4]  # get the number of channels in each subsets
+                matrix = data[i][5]   # get the probabilities of this row (incident energy)
                 indices = []
                 for k in f_chan:
                     channels = 0
-                    channels = np.arange(k, k + n_chann[np.argwhere(f_chan == k)]).tolist() # generate the cha
-                    indices += channels # fappend the channels togeter
+                    channels = np.arange(k, k + n_chann[np.argwhere(f_chan == k)]).tolist()  # generate the cha
+                    indices += channels  # fappend the channels togeter
                 indices = np.array(indices)
                 for m in indices:
-                    rmf_matrix[i][m] = matrix[np.argwhere(indices == m)[0][0]] # write the probabilities into the empty matrix
+                    rmf_matrix[i][m] = matrix[np.argwhere(indices == m)[0][0]]  # write the probabilities into the empty matrix
 
 
         # plot the redistribution matrix

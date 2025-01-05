@@ -186,12 +186,12 @@ class COSILike(PluginPrototype):
                 logger.info("... Calculating point source responses ...")
 
                 self._psr = {}
-                self._source_location = {} # Should the poition information be in the point source response? (HY)
+                self._source_location = {}  # Should the poition information be in the point source response? (HY)
 
                 for name, source in point_sources.items():
                     coord = source.position.sky_coord
                 
-                    self._source_location[name] = copy.deepcopy(coord) # to avoid same memory issue
+                    self._source_location[name] = copy.deepcopy(coord)  # to avoid same memory issue
 
                     if self._coordsys == 'spacecraftframe':
                         dwell_time_map = self._get_dwell_time_map(coord)
@@ -213,7 +213,7 @@ class COSILike(PluginPrototype):
                 logger.info(f"... Re-calculating the point source response of {name} ...")
                 coord = source.position.sky_coord
 
-                self._source_location[name] = copy.deepcopy(coord) # to avoid same memory issue
+                self._source_location[name] = copy.deepcopy(coord)  # to avoid same memory issue
                 
                 if self._coordsys == 'spacecraftframe':
                     dwell_time_map = self._get_dwell_time_map(coord)
@@ -287,7 +287,7 @@ class COSILike(PluginPrototype):
             else:
                 expectation = self._signal + self._bkg.contents
 
-        expectation += 1e-12 # to avoid -infinite log-likelihood (occurs when expected counts = 0 but data != 0)
+        expectation += 1e-12  # to avoid -infinite log-likelihood (occurs when expected counts = 0 but data != 0)
         if not self._printed_warning:
             logger.warning("Adding 1e-12 to each bin of the expectation to avoid log-likelihood = -inf.")
             self._printed_warning = True

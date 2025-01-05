@@ -9,7 +9,7 @@ from astropy.coordinates import SkyCoord
 data_path = test_data.path
 
 sc_orientation = SpacecraftFile.parse_from_file(data_path / "20280301_2s.ori")
-dr = str(data_path / "test_full_detector_response.h5") # path to detector response
+dr = str(data_path / "test_full_detector_response.h5")  # path to detector response
 
 data = BinnedData(data_path / "test_spectral_fit.yaml")
 background = BinnedData(data_path / "test_spectral_fit.yaml")

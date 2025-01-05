@@ -6,7 +6,7 @@ from cosipy.polarization import OrthographicConvention, StereographicConvention
 from scoords import SpacecraftFrame
 
 # Define common test data
-source_direction = SkyCoord(ra=-90*u.deg, dec=0*u.deg, frame='icrs') # -y
+source_direction = SkyCoord(ra=-90*u.deg, dec=0*u.deg, frame='icrs')  # -y
 
 def test_orthographic_projection_default():
 
