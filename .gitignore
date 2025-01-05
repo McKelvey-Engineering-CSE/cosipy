@@ -133,3 +133,15 @@ dmypy.json
 
 # OS
 .DS_store
+
+# Tests
+linting/*.txt
+tests/profiling/
+tests/response/test_point_source_response.ipynb
+tests/util/test.ipynb
+tests/*.txt
+
+# Images
+*.hdf5
+*.h5
+*.fits
