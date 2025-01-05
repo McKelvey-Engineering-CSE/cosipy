@@ -37,7 +37,22 @@ class DetectorResponse(Histogram):
 
         self._spec = None
         self._aeff = None
-    
+
+    def _write(self, file, group_name):
+        group = super()._write(file, group_name)
+
+        # do not write _spec and _aeff, as they
+        # can be recomputed after load later on
+
+    @classmethod
+    def _open(cls, hist_group):
+        new = super()._open(hist_group)
+
+        new._spec = None
+        new._aeff = None
+
+        return new
+
     def get_spectral_response(self, copy = True):
         """
         Reduced detector response, projected along the real and measured energy axes only.
@@ -47,7 +62,7 @@ class DetectorResponse(Histogram):
         ----------
         copy : bool
             If true, a copy of the cached spectral response will be returned.
-        
+
         Returns
         -------
         :py:class:`DetectorResponse`
@@ -64,7 +79,7 @@ class DetectorResponse(Histogram):
             return deepcopy(self._spec)
         else:
             return self._spec
-        
+
     def get_effective_area(self, energy = None, copy = True):
         """
         Compute the effective area at a given energy. If no energy is specified, the
@@ -76,12 +91,12 @@ class DetectorResponse(Histogram):
             Energy/energies at which to interpolate the linearly effective area
         copy : bool
             If true, a copy of the cached effective will be returned.
-        
+
         Returns
         -------
         :py:class:`astropy.units.Quantity` or :py:class:`histpy.Histogram`
         """
-        
+
         if self._aeff is None:
             self._aeff = self.get_spectral_response(copy = False).project('Ei').to_dense()
 
@@ -103,7 +118,7 @@ class DetectorResponse(Histogram):
         -------
         :py:class:`histpy.Histogram`
         """
-        
+
         # Get spectral response and effective area normalization
         spec = self.get_spectral_response(copy = False)
         norm = self.get_effective_area().full_contents
@@ -117,10 +132,10 @@ class DetectorResponse(Histogram):
             norm[norm == 0] = 1*norm.unit
 
             logger.warn("Null effective area, cannot properly compute dispersion matrix.")
-        
+
         # "Broadcast" such that it has the compatible dimensions with the 2D matrix
         norm = spec.expand_dims(norm, 'Ei')
-        
+
         # Normalize column-by-column
         return (spec / norm)
 
@@ -133,10 +148,10 @@ class DetectorResponse(Histogram):
         -------
         :py:class:`histpy.Axes`
         """
-        
+
         return self.axes['Ei']
 
-    
+
     @property
     def measured_energy_axis(self):
         """
@@ -144,11 +159,7 @@ class DetectorResponse(Histogram):
 
         Returns
         -------
-        :py:class:`histpy.Axes`        
+        :py:class:`histpy.Axes`
         """
-        
-        return self.axes['Em']
-        
 
-        
-    
+        return self.axes['Em']
