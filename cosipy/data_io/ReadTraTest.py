@@ -69,7 +69,6 @@ class ReadTraTest(UnBinnedData):
         # Log message:
         logger.info("Read tra test...")
         
-         
         # Check if file exists:
         Reader = M.MFileEventsTra()
         if Reader.Open(M.MString(tra_file)) == False:
@@ -77,7 +76,6 @@ class ReadTraTest(UnBinnedData):
             sys.exit()
 
         # Initialise empty lists:
-            
         # Total photon energy
         erg = []
         # Time tag in UNIX time

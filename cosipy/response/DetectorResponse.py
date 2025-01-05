@@ -137,7 +137,6 @@ class DetectorResponse(Histogram):
         
         return self.axes['Ei']
 
-    
     @property
     def measured_energy_axis(self):
         """

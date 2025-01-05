@@ -23,7 +23,6 @@ def test_solve():
     ei_path = test_data.path / "ei_cds_array.npy"
     ei_cds_array = np.load(ei_path)
 
-
     # calculate the ts value
     fit = fnf(max_iter=1000)
     result = fit.solve(src_bkg_cds_array, bkg_cds_array, ei_cds_array)

@@ -298,7 +298,6 @@ class SpacecraftFile():
             new_earth_altitude = self._altitude[start_idx + 1: stop_idx + 1]  
             new_earth_altitude = np.insert(new_earth_altitude, 0, starting_alt)
 
-
         if (stop.value % 1 != 0):
             stop_idx = self._load_time.searchsorted(stop.value) - 1
 
@@ -436,7 +435,6 @@ class SpacecraftFile():
         self.src_path_skycoord = SkyCoord(self.src_path_lb[:, 0], self.src_path_lb[:, 1], unit="deg", frame=SpacecraftFrame())
 
         return self.src_path_skycoord
-
 
     def get_dwell_map(self, response, src_path=None, save=False):
 
@@ -588,7 +586,6 @@ class SpacecraftFile():
 
         return h_ori
 
-
     def get_psr_rsp(self, response=None, dwell_map=None, dts=None):
 
         """
@@ -665,7 +662,6 @@ class SpacecraftFile():
         self.matrix = self.matrix.T
 
         return self.Ei_edges, self.Ei_lo, self.Ei_hi, self.Em_edges, self.Em_lo, self.Em_hi, self.areas, self.matrix
-
 
     def get_arf(self, out_name=None):
 
@@ -943,7 +939,7 @@ class SpacecraftFile():
         bintablehdu.header.comments["TFORM2"] = "data format of field: 32-bit integer"
         bintablehdu.header.comments["TUNIT2"] = "physical unit of field 2"
 
-
+        # headers
         bintablehdu.header["EXTNAME"] = ("SPECTRUM", "name of this binary table extension")
         bintablehdu.header["TELESCOP"] = (self.telescope, "telescope/mission name")
         bintablehdu.header["INSTRUME"] = (self.instrument, "instrument/detector name")
@@ -972,7 +968,6 @@ class SpacecraftFile():
         new_phahdus.writeto(f'{self.out_name}.pha', overwrite=True)
 
         return
-
 
     def plot_arf(self, file_name=None, save_name=None, dpi=300):
 
@@ -1024,7 +1019,6 @@ class SpacecraftFile():
         # fig.show()
 
         return
-
 
     def plot_rmf(self, file_name=None, save_name=None, dpi=300):
 
@@ -1086,7 +1080,6 @@ class SpacecraftFile():
                 indices = np.array(indices)
                 for m in indices:
                     rmf_matrix[i][m] = matrix[np.argwhere(indices == m)[0][0]]  # write the probabilities into the empty matrix
-
 
         # plot the redistribution matrix
         xcenter = np.divide(energy_low+energy_high, 2)

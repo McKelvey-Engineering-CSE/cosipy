@@ -174,7 +174,6 @@ class UnBinnedData(DataIO):
             logger.error("ERROR: Input data file must have '.tra' or '.gz' extenstion.")
             sys.exit()
         
-        
         # Read tra file line by line:
         logger.info("Reading file...")
         N_events = 0  # number of events

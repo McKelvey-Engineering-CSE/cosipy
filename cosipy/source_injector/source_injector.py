@@ -32,7 +32,6 @@ class SourceInjector():
         else:
             raise ValueError("The response frame can only be `local` or `galactic`!")
 
-
     @staticmethod
     def get_psr_in_galactic(coordinate, response_path, spectrum):
         
@@ -83,7 +82,6 @@ class SourceInjector():
                 
         return psr
 
-
     def inject_point_source(self, spectrum, coordinate, orientation=None, source_name="point_source",
                             make_spectrum_plot=False, data_save_path=None, project_axes=None):
 
@@ -112,7 +110,6 @@ class SourceInjector():
         histpy.Histogram
             The `Histogram object of the injected spectrum.`
         """
-        
         
         # get the point source response in local frame
         if self.response_frame == "local":

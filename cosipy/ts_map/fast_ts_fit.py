@@ -107,7 +107,6 @@ class FastTSMap():
             
         return hypothesis_coords
     
-    
     @staticmethod
     def get_cds_array(hist, energy_channel):
         
@@ -195,7 +194,6 @@ class FastTSMap():
             psr = PointSourceResponse(axes[1:], f['hist/contents'][pix+1], unit=f['hist'].attrs['unit'])
                 
         return psr
-    
     
     @staticmethod
     def get_ei_cds_array(hypothesis_coord, energy_channel, response_path, spectrum, cds_frame, orientation=None):
@@ -342,7 +340,6 @@ class FastTSMap():
         time_fast_ts_fit = end_fast_ts_fit - start_fast_ts_fit
         
         return [pix, result[0], result[1], result[2], result[3], result[4], time_ei_cds_array, time_fit, time_fast_ts_fit]
-
         
     def parallel_ts_fit(self, hypothesis_coords, energy_channel, spectrum, ts_scheme="RING", start_method="fork", cpu_cores=None, ts_nside=None):
         
@@ -388,7 +385,6 @@ class FastTSMap():
             # But it also happened to Crab while the PsiChi binning are both galactic for Crab and the Albedo, why???? ?_?
             data_cds_array[bkg_model_cds_array == 0] = 0
             
-        
         # set up the number of cores to use for the parallel computation
         total_cores = multiprocessing.cpu_count()
         if cpu_cores == None or cpu_cores >= total_cores:
@@ -452,11 +448,9 @@ class FastTSMap():
             The dpi for plotting and saving.
         """
 
-
         if skycoord != None:
             lon = skycoord.l.deg
             lat = skycoord.b.deg
-
 
         # get the ts value
         m_ts = ts_array

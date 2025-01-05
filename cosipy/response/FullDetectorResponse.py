@@ -81,7 +81,6 @@ class FullDetectorResponse(HealpixBase):
         
         filename = Path(filename)
 
-
         if filename.suffix == ".h5":
             return cls._open_h5(filename)
         elif "".join(filename.suffixes[-2:]) == ".rsp.gz":
@@ -120,11 +119,9 @@ class FullDetectorResponse(HealpixBase):
         for axis_label in new._drm["AXES"]:
 
             axis = new._drm['AXES'][axis_label]
-
             axis_type = axis.attrs['TYPE']
 
             if axis_type == 'healpix':
-
                 axes += [
                     HealpixAxis(
                         edges=np.array(axis), \
@@ -232,23 +229,18 @@ class FullDetectorResponse(HealpixBase):
                     axes_names += [" ".join(line[1:])]
 
                 elif key == 'AD':
-
                     if axes_types[-1] == "FISBEL":
-
-                        raise RuntimeError("FISBEL binning not currently supported")
-                        
+                        raise RuntimeError("FISBEL binning not currently supported")  
                     elif axes_types[-1] == "HEALPix":
-
                         if line[2] != "RING":
                             raise RuntimeError(f"Scheme {line[2]} not supported")
-
+                        
                         if line[1] == '-1':
                             # Single bin axis --i.e. all-sky
                             axes_edges.append(-1)
                         else:
                             nside = int(2**int(line[1]))
                             axes_edges.append(int(12*nside**2))
-                        
                     else:
                         axes_edges.append(np.array(line[1:], dtype='float'))
 
@@ -274,10 +266,8 @@ class FullDetectorResponse(HealpixBase):
         
         # check if the type of spectrum is known
         assert norm == "powerlaw" or norm == "Mono" or norm == "Linear" or norm == "Gaussian", f"unknown normalisation ! {norm}" 
-         
         # check the number of simulated events is not 0
         assert nevents_sim != 0, "number of simulated events is 0 !" 
-        
         
         logger.info("normalisation is {0}".format(norm))
         if sparse == None:
@@ -288,28 +278,22 @@ class FullDetectorResponse(HealpixBase):
         edges = ()
 
         for axis_edges, axis_type in zip(axes_edges, axes_types):
-
             if axis_type == 'HEALPix':
-
                 if axis_edges == -1:
                     # Single bin axis --i.e. all-sky
                     edges += ([0, 1],)
                 else:
                     edges += (np.arange(axis_edges+1),)
-
             elif axis_type == "FISBEL":
                 raise RuntimeError("FISBEL binning not currently supported")
             else:
                 edges += (axis_edges,)
 
         # print(edges)
-        
         if sparse:
             axes = Axes(edges, labels=labels)
-        
         else:
             axes = Axes(edges[:-2], labels=labels[:-2])            
-
 
         if sparse:
             # Need to get number of lines for progress bar.
@@ -319,7 +303,6 @@ class FullDetectorResponse(HealpixBase):
                     'gunzip -c %s | wc -l' % filename, \
                     shell=True, stdout=subprocess.PIPE)
                 nlines = int(proc.communicate()[0])
-
 
             # If fast method fails, use long method, which should work in all cases.
             except:
@@ -344,7 +327,6 @@ class FullDetectorResponse(HealpixBase):
             # Calculate the memory usage in Gigabytes
             memory_size = (nlines * data.itemsize)/(1024*1024*1024)
             logger.info(f"Estimated RAM you need to read the file : {memory_size} GB")
-
 
         # Loop
         sbin = 0
@@ -415,14 +397,12 @@ class FullDetectorResponse(HealpixBase):
             "get the effective area")
         # create histpy histogram
 
-        
         if sparse:
             dr = Histogram(axes, contents=COO(coords=coords[:, :nbins_sparse], data=data[:nbins_sparse], shape=tuple(axes.nbins)))
         else:
             dr = Histogram(axes, contents=data)
 
         # Weight to get effective area
-
         ewidth = dr.axes['Ei'].widths
         ecenters = dr.axes['Ei'].centers
         
@@ -599,7 +579,6 @@ class FullDetectorResponse(HealpixBase):
         
                 pix_slice = dr_area[{'NuLambda': b}]
                 
-        
                 coords[b] = pix_slice.coords.flatten()
                 data[b] = pix_slice.data
                 progress_bar.update(1)
@@ -624,7 +603,6 @@ class FullDetectorResponse(HealpixBase):
         new._unit = u.Unit(new._drm.attrs['UNIT'])
         new._sparse = new._drm.attrs['SPARSE']
         
-
         # Axes
         axes = []
 
@@ -946,7 +924,6 @@ class FullDetectorResponse(HealpixBase):
 
             h_new._contents[new_indices] += exposure * h._contents[old_indices]  # * norm_corr
                         
-
     def __str__(self):
         return f"{self.__class__.__name__}(filename = '{self.filename.resolve()}')"
 
