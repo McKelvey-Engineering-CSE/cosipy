@@ -71,15 +71,28 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         new._event = event_binned_data.to_dense()
 
+        # we don't need overflow tracking of binned data for RL
+        new._event.track_overflow(False)
+
         new._bkg_models = dict_bkg_binned_data
 
         for key in new._bkg_models:
             if new._bkg_models[key].is_sparse:
                 new._bkg_models[key] = new._bkg_models[key].to_dense()
 
+            # we don't need overflow tracking of bkg binned data for RL
+            new._bkg_models[key].track_overflow(False)
+
             new._summed_bkg_models[key] = np.sum(new._bkg_models[key])
 
         new._coordsys_conv_matrix = coordsys_conv_matrix
+
+        # Enable sparse reshape caching to accelerate tensordot calls.
+        # CoordSysConvMatrix disables overflow tracking, so
+        # .contents is a view of the entire matrix.
+        if new._coordsys_conv_matrix is not None and \
+           new._coordsys_conv_matrix.is_sparse:
+            new._coordsys_conv_matrix.contents.enable_caching()
 
         new.is_miniDC2_format = is_miniDC2_format
 
@@ -89,6 +102,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             logger.info('Finished')
         elif isinstance(rsp, Histogram):
             new._image_response = rsp
+            new._image_response.track_overflow(False) # not needed for RL
 
         # We modify the axes in event, bkg_models, response. This is only for DC2.
         new._modify_axes()
