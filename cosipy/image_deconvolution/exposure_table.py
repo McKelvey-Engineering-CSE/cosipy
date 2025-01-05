@@ -1,6 +1,3 @@
-import logging
-logger = logging.getLogger(__name__)
-
 import pandas as pd
 from tqdm.autonotebook import tqdm
 import numpy as np
@@ -9,6 +6,9 @@ from astropy.io import fits
 import astropy.units as u
 
 from cosipy.spacecraftfile import SpacecraftAttitudeMap
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class SpacecraftAttitudeExposureTable(pd.DataFrame):

@@ -23,8 +23,6 @@ import h5py as h5
 import os
 import textwrap
 import argparse
-import logging
-logger = logging.getLogger(__name__)
 
 from copy import copy, deepcopy
 import gzip
@@ -33,6 +31,8 @@ import subprocess
 import sys
 import pathlib
 import gc
+import logging
+logger = logging.getLogger(__name__)
 
 
 class FullDetectorResponse(HealpixBase):

@@ -31,10 +31,10 @@ import collections
 
 import copy
 
+import inspect
+
 import logging
 logger = logging.getLogger(__name__)
-
-import inspect
 
 
 class COSILike(PluginPrototype):

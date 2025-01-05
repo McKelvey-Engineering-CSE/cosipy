@@ -1,14 +1,14 @@
 from tqdm.autonotebook import tqdm
 
-import logging
-logger = logging.getLogger(__name__)
-
 from yayc import Configurator
 
 from .allskyimage import AllSkyImageModel
 
 from .RichardsonLucy import RichardsonLucy
 from .RichardsonLucySimple import RichardsonLucySimple
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ImageDeconvolution:

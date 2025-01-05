@@ -1,7 +1,8 @@
 # Imports:
 from cosipy import BinnedData
 from cosipy import test_data
-import os, sys
+import os
+import sys
 import numpy as np
 import pytest
 from pathlib import Path

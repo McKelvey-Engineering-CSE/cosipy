@@ -1,13 +1,9 @@
+import numpy as np
+from copy import deepcopy
+from histpy import Histogram, Axes, Axis
+import astropy.units as u
 import logging
 logger = logging.getLogger(__name__)
-
-import numpy as np
-
-from copy import deepcopy
-
-from histpy import Histogram, Axes, Axis
-
-import astropy.units as u
 
 
 class DetectorResponse(Histogram):

@@ -4,8 +4,14 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
+# -- Mocking -----------------------------------------------------------------
+# There seems to be a conflict between unittest.mock (used by sphinx) and metaclasses
+# The cosipy.threeml.custom_functions.Band_Eflux includes a metaclass from
+# astromodels.functions.function, so we mock that one manually with the mock package
+import mock
 
+# -- Path setup --------------------------------------------------------------
+# 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -70,11 +76,7 @@ autodoc_mock_imports = ["histpy",
                         'yayc'
                         ]
 
-# There seems to be a conflict between unittest.mock (used by sphinx) and metaclasses
-# The cosipy.threeml.custom_functions.Band_Eflux includes a metaclass from
-# astromodels.functions.function, so we mock that one manually with the mock package
-import mock
-
+# Mocking
 MOCK_MODULES = ['astromodels.functions.function']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()

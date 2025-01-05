@@ -2,11 +2,11 @@ import os
 import copy
 import numpy as np
 import logging
-logger = logging.getLogger(__name__)
 
 from histpy import Histogram
-
 from .deconvolution_algorithm_base import DeconvolutionAlgorithmBase
+
+logger = logging.getLogger(__name__)
 
 
 class RichardsonLucySimple(DeconvolutionAlgorithmBase):

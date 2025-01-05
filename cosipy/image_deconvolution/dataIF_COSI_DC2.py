@@ -1,17 +1,14 @@
 import numpy as np
 from tqdm.autonotebook import tqdm
 import astropy.units as u
-
-import logging
-logger = logging.getLogger(__name__)
-
 import warnings
-
 from histpy import Histogram, Axes
 
 from cosipy.response import FullDetectorResponse
-
 from .image_deconvolution_data_interface_base import ImageDeconvolutionDataInterfaceBase
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):

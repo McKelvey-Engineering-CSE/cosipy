@@ -1,6 +1,3 @@
-import logging
-logger = logging.getLogger(__name__)
-
 from histpy import Histogram, Axis, Axes
 import astropy.units as u
 import numpy as np
@@ -8,6 +5,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy import integrate
 from iminuit import Minuit
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class LineBackgroundEstimation:

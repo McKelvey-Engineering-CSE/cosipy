@@ -4,12 +4,11 @@ import numpy as np
 import astropy.units as u
 import astropy.io.fits as fits
 import logging
-logger = logging.getLogger(__name__)
 
 from histpy import Histogram
-
 from .deconvolution_algorithm_base import DeconvolutionAlgorithmBase
 
+logger = logging.getLogger(__name__)
 
 class RichardsonLucy(DeconvolutionAlgorithmBase):
     """

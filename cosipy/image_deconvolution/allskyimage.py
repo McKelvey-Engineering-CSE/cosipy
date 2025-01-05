@@ -2,16 +2,13 @@ import astropy.units as u
 import numpy as np
 import healpy as hp
 import copy
-
-import logging
-logger = logging.getLogger(__name__)
-
 from histpy import Histogram, Axes, Axis, HealpixAxis
 
 from cosipy.response.functions import get_integrated_spectral_model
-
 from .model_base import ModelBase
 
+import logging
+logger = logging.getLogger(__name__)
 
 class AllSkyImageModel(ModelBase):
     """
