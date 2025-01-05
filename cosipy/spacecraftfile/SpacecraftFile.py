@@ -935,7 +935,7 @@ class SpacecraftFile():
         cols = fits.ColDefs([col1, col2, col3])  # create a ColDefs (column-definitions) object for all columns
         bintablehdu = fits.BinTableHDU.from_columns(cols)  # create a binary table HDU object
 
-        #add other BinTableHDU hear keywords,their values, and comments
+        # add other BinTableHDU hear keywords,their values, and comments
         bintablehdu.header.comments["TTYPE1"] = "label for field 1"
         bintablehdu.header.comments["TFORM1"] = "data format of field: 32-bit integer"
         bintablehdu.header.comments["TTYPE2"] = "label for field 2"
@@ -1020,7 +1020,7 @@ class SpacecraftFile():
         ax.set_ylabel(r"Effective area [$cm^2$]")
         ax.set_xscale("log")
         fig.savefig(f"Effective_area_for_{self.save_name}.png", bbox_inches="tight", pad_inches=0.1, dpi=self.dpi)
-        #fig.show()
+        # fig.show()
 
         return
 
@@ -1062,7 +1062,7 @@ class SpacecraftFile():
 
         # Read the MATRIX extension
         matrix_ext = self.rmf['MATRIX']
-        #logger.info(repr(matrix_hdu.header[:60]))
+        # logger.info(repr(matrix_hdu.header[:60]))
         energy_low = matrix_ext.data["ENERG_LO"]   # energy bin lower edges for measured energies
         energy_high = matrix_ext.data["ENERG_HI"]  # energy bin higher edges for measured energies
         data = matrix_ext.data
@@ -1092,15 +1092,15 @@ class SpacecraftFile():
         x_center_coords = np.repeat(xcenter, 10)
         y_center_coords = np.tile(xcenter, 10)
         energy_all_edges = np.append(energy_low, energy_high[-1])
-        #bin_edges = np.array([incident_energy_bins,incident_energy_bins]) # doesn't work
+        # bin_edges = np.array([incident_energy_bins,incident_energy_bins])  # doesn't work
         bin_edges = np.vstack((energy_all_edges, energy_all_edges))
-        #logger.info(bin_edges)
+        # logger.info(bin_edges)
 
         self.probability = []
         for i in np.arange(10):
             for j in np.arange(10):
                 self.probability.append(rmf_matrix[i][j])
-        #logger.info(type(probability))
+        # logger.info(type(probability))
 
         plt.hist2d(x=x_center_coords, y=y_center_coords, weights=self.probability, bins=bin_edges, norm=LogNorm())
         plt.xscale('log')
@@ -1108,10 +1108,10 @@ class SpacecraftFile():
         plt.xlabel("Incident energy [$keV$]")
         plt.ylabel("Measured energy [$keV$]")
         plt.title("Redistribution matrix")
-        #plt.xlim([70,10000])
-        #plt.ylim([70,10000])
+        # plt.xlim([70,10000])
+        # plt.ylim([70,10000])
         plt.colorbar(norm=LogNorm())
         plt.savefig(f"Redistribution_matrix_for_{self.save_name}.png", bbox_inches="tight", pad_inches=0.1, dpi=300)
-        #plt.show()
+        # plt.show()
 
         return

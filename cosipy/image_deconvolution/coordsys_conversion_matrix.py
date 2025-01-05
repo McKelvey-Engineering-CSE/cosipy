@@ -141,7 +141,7 @@ class CoordsysConversionMatrix(Histogram):
         
             scatt_binning_index = row['scatt_binning_index']
             num_pointings = row['num_pointings']
-            #healpix_index = row['healpix_index']
+            # healpix_index = row['healpix_index']
             zpointing = row['zpointing']
             xpointing = row['xpointing']
             zpointing_averaged = row['zpointing_averaged']

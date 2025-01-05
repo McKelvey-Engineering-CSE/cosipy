@@ -136,7 +136,7 @@ class OrthographicConvention(PolarizationConvention):
         return px, py
 
 
-#https://github.com/zoglauer/megalib/blob/1eaad14c51ec52ad1cb2399a7357fe2ca1074f79/src/cosima/src/MCSource.cc#L3452
+# https://github.com/zoglauer/megalib/blob/1eaad14c51ec52ad1cb2399a7357fe2ca1074f79/src/cosima/src/MCSource.cc#L3452
 class MEGAlibRelative(OrthographicConvention):
 
     def __init__(self, axis, attitude=None):

@@ -236,7 +236,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
                 this_result["delta_model"].write(f"{self.save_results_directory}/delta_model_itr{iteration_count}.hdf5", overwrite=True)
                 this_result["processed_delta_model"].write(f"{self.save_results_directory}/processed_delta_model_itr{iteration_count}.hdf5", overwrite=True)
 
-            #fits
+            # fits
             primary_hdu = fits.PrimaryHDU()
 
             col_iteration = fits.Column(name='iteration', array=[float(result['iteration']) for result in self.results], format='K')

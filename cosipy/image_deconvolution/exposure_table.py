@@ -357,7 +357,7 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
         table_hdu.header['nside'] = self.nside
         table_hdu.header['scheme'] = self.scheme
         
-        #save file    
+        # save file    
         hdul = fits.HDUList([primary_hdu, table_hdu])    
         hdul.writeto(filename, overwrite=overwrite)
 

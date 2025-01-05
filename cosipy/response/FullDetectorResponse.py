@@ -271,10 +271,10 @@ class FullDetectorResponse(HealpixBase):
         else:
             raise InputError("Unknown response format")
         
-        #check if the type of spectrum is known
+        # check if the type of spectrum is known
         assert norm == "powerlaw" or norm == "Mono" or norm == "Linear" or norm == "Gaussian", f"unknown normalisation ! {norm}" 
          
-        #check the number of simulated events is not 0
+        # check the number of simulated events is not 0
         assert nevents_sim != 0, "number of simulated events is 0 !" 
         
         
@@ -301,7 +301,7 @@ class FullDetectorResponse(HealpixBase):
             else:
                 edges += (axis_edges,)
 
-        #print(edges)
+        # print(edges)
         
         if sparse:
             axes = Axes(edges, labels=labels)
@@ -350,7 +350,7 @@ class FullDetectorResponse(HealpixBase):
 
         # read the rsp file and get the bin number and counts
         with gzip.open(filename, "rt") as file:
-            #sparse case
+            # sparse case
             if sparse:
             
                 progress_bar = tqdm(file, total=nlines, desc="Progress", unit="line")
@@ -380,7 +380,7 @@ class FullDetectorResponse(HealpixBase):
                 progress_bar.close()
                 nbins_sparse = sbin
 
-            #non sparse case
+            # non sparse case
             else:
                 binLine = False 
                          
@@ -395,7 +395,7 @@ class FullDetectorResponse(HealpixBase):
                         continue
                         
                     if binLine:
-                        #check we have same number of bin than values read
+                        # check we have same number of bin than values read
                         if len(line) != nbins:
                             logger.info("nb of bin content read ({0}) != nb of bins {1}".format(len(line), nbins))
                             sys.exit()
@@ -425,11 +425,11 @@ class FullDetectorResponse(HealpixBase):
         ewidth = dr.axes['Ei'].widths
         ecenters = dr.axes['Ei'].centers
         
-        #print(ewidth)
-        #print(ecenters)
+        # print(ewidth)
+        # print(ecenters)
 
-        #if we have one single bin, treat the gaussian norm like the mono one
-        #also check that the gaussian spectrum is fully contained in that bin 
+        # if we have one single bin, treat the gaussian norm like the mono one
+        # also check that the gaussian spectrum is fully contained in that bin 
         if len(ewidth) == 1 and norm == "Gaussian":
             edges = dr.axes['Ei'].edges
             gauss_int = 0.5 * (1 + erf((edges[0]-Gauss_mean)/(4*np.sqrt(2)))) + 0.5 * (1 + erf((edges[1]-Gauss_mean)/(4*np.sqrt(2))))
@@ -493,7 +493,7 @@ class FullDetectorResponse(HealpixBase):
         counts2area = area_sim / nperchannel
         dr_area = dr * dr.expand_dims(counts2area, 'Ei')
 
-        #delete the array of data in order to release some memory
+        # delete the array of data in order to release some memory
         del data 
 
         # end of weight now we create the .h5 structure
@@ -523,7 +523,7 @@ class FullDetectorResponse(HealpixBase):
                             'Dist': "Distance from first interaction"
                             }
 
-        #keep the same dimension order of the data
+        # keep the same dimension order of the data
         axes_to_write = ['NuLambda', 'Ei']
         
         if has_polarization:
@@ -575,7 +575,7 @@ class FullDetectorResponse(HealpixBase):
 
             axis_dataset.attrs['DESCRIPTION'] = axis_description[axis.label]
 
-        #sparse matrice
+        # sparse matrice
         if sparse:
         
             progress_bar = tqdm(total=npix, desc="Progress", unit="nbpixel")
@@ -594,7 +594,7 @@ class FullDetectorResponse(HealpixBase):
         
             for b in range(npix):
         
-                #print(f"{b}/{npix}")
+                # print(f"{b}/{npix}")
         
                 pix_slice = dr_area[{'NuLambda': b}]
                 
@@ -605,14 +605,14 @@ class FullDetectorResponse(HealpixBase):
             
             progress_bar.close()
 
-        #non sparse
+        # non sparse
         else:
             data = drm.create_dataset(
                 'CONTENTS',
                 data=np.transpose(dr_area.contents, axes=[1, 0, 2, 3, 4]),
                 compression="gzip")
         
-        #close the .h5 file in write mode in order to reopen it in read mode after
+        # close the .h5 file in write mode in order to reopen it in read mode after
         f.close()
         
         new = cls(filename)
@@ -632,8 +632,6 @@ class FullDetectorResponse(HealpixBase):
             axis = new._drm['AXES'][axis_label]
 
             axis_type = axis.attrs['TYPE']
-
-
 
             if axis_type == 'healpix':
 
@@ -710,8 +708,7 @@ class FullDetectorResponse(HealpixBase):
         if not isinstance(pix, (int, np.integer)) or pix < 0 or not pix < self.npix:
             raise IndexError("Pixel number out of range, or not an integer")
 
-        #check if we have sparse matrice or not
-
+        # check if we have sparse matrice or not
         if self._sparse:
             coords = np.reshape(
                 self._file['DRM']['BIN_NUMBERS'][pix], (self.ndim-1, -1))
@@ -871,7 +868,7 @@ class FullDetectorResponse(HealpixBase):
                 enumerate(zip(scatt_map.contents.coords.transpose(),
                               scatt_map.contents.data)):
 
-                #gc.collect() # HDF5 cache issues
+                # gc.collect() # HDF5 cache issues
                 
                 att = Attitude.from_axes(
                     x=scatt_map.axes['x'].pix2skycoord(pixels[0]),
@@ -879,7 +876,7 @@ class FullDetectorResponse(HealpixBase):
 
                 coord.attitude = att
 
-                #TODO: Change this to interpolation
+                # TODO: Change this to interpolation
                 loc_nulambda_pixels = np.array(self.axes['NuLambda'].find_bin(coord),
                                                ndmin=1)
                 

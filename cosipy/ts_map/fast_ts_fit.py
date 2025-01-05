@@ -226,35 +226,35 @@ class FastTSMap():
         # check inputs, will complete later
         
         # the local and galactic frame works very differently, so we need to compuate the point source response (psr) accordingly
-        #time_cds_start = time.time()
+        # time_cds_start = time.time()
         if cds_frame == "local":
             
             if orientation == None:
                 raise TypeError("The when the data are binned in local frame, orientation must be provided to compute the expected counts.")
 
-            #time_coord_convert_start = time.time()
+            # time_coord_convert_start = time.time()
             # convert the hypothesis coord to the local frame (Spacecraft frame)
             hypothesis_in_sc_frame = orientation.get_target_in_sc_frame(target_name="Hypothesis", 
                                                                         target_coord=hypothesis_coord, 
                                                                         quiet=True)
-            #time_coord_convert_end = time.time()
-            #time_coord_convert_used = time_coord_convert_end - time_coord_convert_start
-            #logger.info(f"The time used for coordinate conversion is {time_coord_convert_used}s.")
+            # time_coord_convert_end = time.time()
+            # time_coord_convert_used = time_coord_convert_end - time_coord_convert_start
+            # logger.info(f"The time used for coordinate conversion is {time_coord_convert_used}s.")
 
-            #time_dwell_start = time.time()
+            # time_dwell_start = time.time()
             # get the dwell time map: the map of the time spent on each pixel in the local frame
             dwell_time_map = orientation.get_dwell_map(response=response_path)
-            #time_dwell_end = time.time()
-            #time_dwell_used = time_dwell_end - time_dwell_start
-            #logger.info(f"The time used for dwell time map is {time_dwell_used}s.")
+            # time_dwell_end = time.time()
+            # time_dwell_used = time_dwell_end - time_dwell_start
+            # logger.info(f"The time used for dwell time map is {time_dwell_used}s.")
             
-            #time_psr_start = time.time()
+            # time_psr_start = time.time()
             # convolve the response with the dwell_time_map to get the point source response
             with FullDetectorResponse.open(response_path) as response:
                 psr = response.get_point_source_response(dwell_time_map)
-            #time_psr_end = time.time()
-            #time_psr_used = time_psr_end - time_psr_start
-            #logger.info(f"The time used for psr is {time_psr_used}s.")
+            # time_psr_end = time.time()
+            # time_psr_used = time_psr_end - time_psr_start
+            # logger.info(f"The time used for psr is {time_psr_used}s.")
 
         elif cds_frame == "galactic":
             
@@ -273,9 +273,9 @@ class FastTSMap():
         del expectation
         gc.collect()
 
-        #time_cds_end = time.time()
-        #time_cds_used = time_cds_end - time_cds_start
-        #logger.info(f"The time used for cds is {time_cds_used}s.")
+        # time_cds_end = time.time()
+        # time_cds_used = time_cds_end - time_cds_start
+        # logger.info(f"The time used for cds is {time_cds_used}s.")
         
         return ei_cds_array
     
@@ -380,7 +380,7 @@ class FastTSMap():
         bkg_model_cds_array = FastTSMap.get_cds_array(self._bkg_model, energy_channel).flatten()
         
         if (data_cds_array[bkg_model_cds_array == 0] != 0).sum() != 0:
-            #raise ValueError("You have data!=0 but bkg=0, check your inputs!")
+            # raise ValueError("You have data!=0 but bkg=0, check your inputs!")
             # let's try to set the data bin to zero when the corresponding bkg bin isn't zero.
             # Need further investigate, why bkg = 0 but data!=0 happens? ==> it's more like an issue related to simulated data instead of code
             # This first happened in GRB fitting, but got fixed somehow <== I now understand it's caused by using different PsiChi binning in the same fit
@@ -544,5 +544,3 @@ class FastTSMap():
         info = p.memory_full_info()
         memory = info.uss / 1024. / 1024
         logger.info('{} memory used: {} MB'.format(hint, memory))
-        
-    

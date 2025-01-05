@@ -195,7 +195,7 @@ class FastNormFit:
 
                     norm_err = -(sqrt(dts0*dts0 - 2*ddts0) + dts0) / ddts0
 
-            #Never failed, results where analytical
+            # Never failed, results where analytical
             failed = False
             
             return (ts, norm, norm_err, failed)
@@ -237,7 +237,7 @@ class FastNormFit:
         if ts < -self.zero_ts_tol:
             failed = True
         elif ts < 0:
-            #Assumed to be a numerical error
+            # Assumed to be a numerical error
             ts = 0
 
         return (ts, norm, norm_err, failed, iteration)
