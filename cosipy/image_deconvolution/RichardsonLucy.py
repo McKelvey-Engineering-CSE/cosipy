@@ -196,11 +196,11 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
 
         this_result = {"iteration": self.iteration_count,
                        "model": self.model.copy(),
-                       "delta_model": self.delta_model.copy(),
-                       "processed_delta_model": self.processed_delta_model.copy(),
+                       "delta_model": self.delta_model,
+                       "processed_delta_model": self.processed_delta_model,
                        "background_normalization": self.dict_bkg_norm.copy(),
                        "alpha": self.alpha,
-                       "loglikelihood": self.loglikelihood_list.copy()}
+                       "loglikelihood": self.loglikelihood_list}
 
         # show intermediate results
         logger.info(f'  alpha: {this_result["alpha"]}')

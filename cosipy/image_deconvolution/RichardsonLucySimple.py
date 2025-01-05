@@ -108,7 +108,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
 
         this_result = {"iteration": self.iteration_count,
                        "model": self.model.copy(),
-                       "delta_model": self.delta_model.copy(),
+                       "delta_model": self.delta_model,
                        "background_normalization": self.dict_bkg_norm.copy()}
 
         # show intermediate results
