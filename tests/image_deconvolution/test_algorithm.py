@@ -9,10 +9,10 @@ def test_RicharsonLucySimple(dataset, model, mask):
                               "minimum_flux": {"value": 0.0, "unit": "cm-2 s-1 sr-1"},
                               "background_normalization_optimization": True})
 
-    algorithm = RichardsonLucySimple(initial_model = model, 
-                                     dataset = dataset, 
-                                     mask = mask, 
-                                     parameter = parameter)
+    algorithm = RichardsonLucySimple(initial_model=model, 
+                                     dataset=dataset, 
+                                     mask=mask, 
+                                     parameter=parameter)
 
     algorithm.initialization()
 
@@ -37,10 +37,10 @@ def test_RicharsonLucy(dataset, model, mask, tmp_path):
                               "save_results_directory": f"{str(tmp_path)}/results"})
 
     # w/ acceleration
-    algorithm = RichardsonLucy(initial_model = model, 
-                               dataset = dataset, 
-                               mask = mask, 
-                               parameter = parameter)
+    algorithm = RichardsonLucy(initial_model=model, 
+                               dataset=dataset, 
+                               mask=mask, 
+                               parameter=parameter)
 
     algorithm.initialization()
 
@@ -52,10 +52,10 @@ def test_RicharsonLucy(dataset, model, mask, tmp_path):
     # wo/ acceleration and overwrite the directory
     parameter["acceleration"] = False
 
-    algorithm = RichardsonLucy(initial_model = model, 
-                               dataset = dataset, 
-                               mask = mask, 
-                               parameter = parameter)
+    algorithm = RichardsonLucy(initial_model=model, 
+                               dataset=dataset, 
+                               mask=mask, 
+                               parameter=parameter)
 
     algorithm.initialization()
 

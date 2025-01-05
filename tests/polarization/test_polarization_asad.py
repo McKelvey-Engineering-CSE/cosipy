@@ -22,12 +22,12 @@ alpha = -1.
 beta = -2.
 ebreak = 350. * u.keV
 K = 50. / u.cm / u.cm / u.s
-spectrum = Band_Eflux(a = a.value,
-                      b = b.value,
-                      alpha = alpha,
-                      beta = beta,
-                      E0 = ebreak.value,
-                      K = K.value)
+spectrum = Band_Eflux(a=a.value,
+                      b=b.value,
+                      alpha=alpha,
+                      beta=beta,
+                      E0=ebreak.value,
+                      K=K.value)
 spectrum.a.unit = a.unit
 spectrum.b.unit = b.unit
 spectrum.E0.unit = ebreak.unit
@@ -219,11 +219,11 @@ def test_polarization_fit():
         ], 
         [0.05463841596540586, 0.04112013917034527, 0.04142682980425702, 0.04204822825061025])
     
-    polarization_fit = polarization.fit(mu_100, asad_corrected['counts'], bounds = ([0, 0, 0], [np.inf,np.inf,np.pi]), sigma = asad_corrected['uncertainties'])
+    polarization_fit = polarization.fit(mu_100, asad_corrected['counts'], bounds=([0, 0, 0], [np.inf, np.inf, np.pi]), sigma=asad_corrected['uncertainties'])
 
     assert np.allclose(
         [
             polarization_fit['fraction'], polarization_fit['fraction uncertainty'], 
             polarization_fit['angle'].angle.rad, polarization_fit['angle uncertainty'].rad
         ], 
-        [15.270059610935844, 2.3931615504423474, 1.53994098472832, 0.07217196641713962], atol = [1.0, 0.5, 1.0, 0.1])
+        [15.270059610935844, 2.3931615504423474, 1.53994098472832, 0.07217196641713962], atol=[1.0, 0.5, 1.0, 0.1])
