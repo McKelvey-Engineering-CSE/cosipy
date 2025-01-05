@@ -169,7 +169,7 @@ class TSMap:
         self.dec_range = (-np.pi/2, np.pi/2) # rad
         
         self.log_like = Histogram(
-            [Axis(np.linspace(*self.ra_range , 50), label = "ra"), 
+            [Axis(np.linspace(*self.ra_range, 50), label = "ra"), 
              Axis(np.linspace(*self.dec_range, 25), label = "dec"),]
         )
         

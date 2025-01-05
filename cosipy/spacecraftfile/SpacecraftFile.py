@@ -229,12 +229,12 @@ class SpacecraftFile():
             The interpolated positions.
         """
 
-        new_direction_lat = np.interp(trigger.value, self._load_time[idx : idx + 2], direction[idx : idx + 2, 1])
+        new_direction_lat = np.interp(trigger.value, self._load_time[idx: idx + 2], direction[idx: idx + 2, 1])
         if (direction[idx, 0] > direction[idx + 1, 0]):
-            new_direction_long = np.interp(trigger.value, self._load_time[idx : idx + 2], [direction[idx, 0], 360 + direction[idx + 1, 0]])
+            new_direction_long = np.interp(trigger.value, self._load_time[idx: idx + 2], [direction[idx, 0], 360 + direction[idx + 1, 0]])
             new_direction_long = new_direction_long - 360
         else:
-            new_direction_long = np.interp(trigger.value, self._load_time[idx : idx + 2], direction[idx : idx + 2, 0])
+            new_direction_long = np.interp(trigger.value, self._load_time[idx: idx + 2], direction[idx: idx + 2, 0])
 
         return np.array([new_direction_long, new_direction_lat])
 
@@ -266,11 +266,11 @@ class SpacecraftFile():
 
         if (start.value % 1 == 0):
             start_idx = self._load_time.searchsorted(start.value)
-            new_times = self._load_time[start_idx : stop_idx + 1]
-            new_x_direction = self._x_direction[start_idx : stop_idx + 1]
-            new_z_direction = self._z_direction[start_idx : stop_idx + 1]
-            new_earth_direction = self._earth_direction[start_idx : stop_idx + 1]
-            new_earth_altitude = self._altitude[start_idx : stop_idx + 1]
+            new_times = self._load_time[start_idx: stop_idx + 1]
+            new_x_direction = self._x_direction[start_idx: stop_idx + 1]
+            new_z_direction = self._z_direction[start_idx: stop_idx + 1]
+            new_earth_direction = self._earth_direction[start_idx: stop_idx + 1]
+            new_earth_altitude = self._altitude[start_idx: stop_idx + 1]
 
         else:
             start_idx = self._load_time.searchsorted(start.value) - 1
@@ -279,22 +279,22 @@ class SpacecraftFile():
             z_direction_start = self.interpolate_direction(start, start_idx, self._z_direction)
             earth_direction_start = self.interpolate_direction(start, start_idx, self._earth_direction)
 
-            new_times = self._load_time[start_idx + 1 : stop_idx + 1]
+            new_times = self._load_time[start_idx + 1: stop_idx + 1]
             new_times = np.insert(new_times, 0, start.value)
 
-            new_x_direction = self._x_direction[start_idx + 1 : stop_idx + 1]
+            new_x_direction = self._x_direction[start_idx + 1: stop_idx + 1]
             new_x_direction = np.insert(new_x_direction, 0, x_direction_start, axis = 0)
 
-            new_z_direction = self._z_direction[start_idx + 1 : stop_idx + 1]
+            new_z_direction = self._z_direction[start_idx + 1: stop_idx + 1]
             new_z_direction = np.insert(new_z_direction, 0, z_direction_start, axis = 0)
         
-            new_earth_direction = self._earth_direction[start_idx + 1 : stop_idx + 1]
+            new_earth_direction = self._earth_direction[start_idx + 1: stop_idx + 1]
             new_earth_direction = np.insert(new_earth_direction, 0, earth_direction_start, axis = 0)
 
             # Use linear interpolation to get starting altitude at desired time. 
             f = interpolate.interp1d(self._time.value, self._altitude, kind="linear")
             starting_alt = f(start.value)
-            new_earth_altitude = self._altitude[start_idx + 1 : stop_idx + 1]  
+            new_earth_altitude = self._altitude[start_idx + 1: stop_idx + 1]  
             new_earth_altitude = np.insert(new_earth_altitude, 0, starting_alt)
 
 

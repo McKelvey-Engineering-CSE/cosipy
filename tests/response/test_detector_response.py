@@ -54,17 +54,14 @@ def test_spectral_response():
         spec = drm.get_spectral_response().to_dense()
 
         assert np.allclose(spec[0].to_value('cm2'),
-                            [0.05987875, 0.00118664, 0.        , 0.        , 0.        ,
-                            0.        , 0.        , 0.        , 0.        , 0.
-                            ])
+                            [0.05987875, 0.00118664, 0., 0., 0.,
+                            0., 0., 0., 0., 0.])
         assert np.allclose(spec[5].to_value('cm2'),
                            [0.00760535, 0.04997702, 0.16718662, 0.06108004, 0.58040561,
-                            1.37079256, 0.00308426, 0.        , 0.        , 0.
-                            ])
+                            1.37079256, 0.00308426, 0., 0., 0.])
         assert np.allclose(spec[9].to_value('cm2'),
                            [0.00543126, 0.03039386, 0.07430311, 0.05662412, 0.12452137,
-                            0.12412425, 0.1377126 , 0.11414493, 0.10317496, 0.03675906
-                            ])
+                            0.12412425, 0.1377126, 0.11414493, 0.10317496, 0.03675906])
         
 def test_get_dispersion_matrix():
 
@@ -97,7 +94,7 @@ def test_cosi_response(tmp_path):
                    '-c', str(test_data.path/'cosi-response-config-example.yaml'),
                    '-o', str(tmp_path/'test_plot_expectation.png')])
 
-    cosi_response(['plot', 'dispersion' ,str(response_path),
+    cosi_response(['plot', 'dispersion', str(response_path),
                    '--lat', '90deg', '--lon', '0deg',
                    '-o', str(tmp_path/'test_plot_dispersion.png')])
 

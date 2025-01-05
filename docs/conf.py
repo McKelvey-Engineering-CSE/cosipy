@@ -86,13 +86,13 @@ intersphinx_mapping = {
     'threeML': ('https://threeml.readthedocs.io/en/latest/', None),
     'astromodels': ('https://astromodels.readthedocs.io/en/latest/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
-    'h5py' : ('https://docs.h5py.org/en/stable/', None),
-    'astropy' : ('https://docs.astropy.org/en/stable', None),
-    'python' : ('https://docs.python.org/3', None),
-    'mhealpy' : ('https://mhealpy.readthedocs.io/en/latest/', None),
-    'sparse' : ('https://sparse.pydata.org/en/stable/', None),
-    'matplotlib' : ('https://matplotlib.org/stable/', None),
-    'scipy' : ('https://scipy.github.io/devdocs', None),
+    'h5py': ('https://docs.h5py.org/en/stable/', None),
+    'astropy': ('https://docs.astropy.org/en/stable', None),
+    'python': ('https://docs.python.org/3', None),
+    'mhealpy': ('https://mhealpy.readthedocs.io/en/latest/', None),
+    'sparse': ('https://sparse.pydata.org/en/stable/', None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
+    'scipy': ('https://scipy.github.io/devdocs', None),
   }
 
 # -- Options for HTML output -------------------------------------------------

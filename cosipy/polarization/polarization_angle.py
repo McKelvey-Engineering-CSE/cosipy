@@ -6,9 +6,10 @@ from .conventions import PolarizationConvention
 
 class PolarizationAngle:
 
-    def __init__(self, angle, skycoord ,
-                 convention = 'iau',
-                 *args, **kwargs):
+    def __init__(
+            self, angle, skycoord,
+            convention = 'iau',
+            *args, **kwargs):
         """
         Defines a polarization angle in the context of a source direction and
         polarization angle convention.
