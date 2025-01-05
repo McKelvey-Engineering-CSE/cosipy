@@ -121,7 +121,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
         M-step in RL algorithm.
         """
 
-        ratio_list = [ data.event / expectation for data, expectation in zip(self.dataset, self.expectation_list) ]
+        ratio_list = [data.event / expectation for data, expectation in zip(self.dataset, self.expectation_list)]
         
         # delta model
         sum_T_product = self.calc_summed_T_product(ratio_list)

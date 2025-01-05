@@ -54,7 +54,7 @@ class CoordsysConversionMatrix(Histogram):
         axis_model_map = HealpixAxis(nside = nside_model, coordsys = "galactic", label = "lb")
         axis_local_map = full_detector_response.axes["NuLambda"]
 
-        axis_coordsys_conv_matrix = [ axis_time, axis_model_map, axis_local_map ] #Time, lb, NuLambda
+        axis_coordsys_conv_matrix = [axis_time, axis_model_map, axis_local_map] #Time, lb, NuLambda
 
         contents = []
 
@@ -82,7 +82,7 @@ class CoordsysConversionMatrix(Histogram):
                 ccm_thispix[ipix] = dwell_time_map.data 
                 # (HealpixMap).data returns the numpy array without its unit. dwell_time_map.unit is u.s.
 
-            ccm_thispix_sparse = sparse.COO.from_numpy( ccm_thispix.reshape((1, axis_model_map.nbins, axis_local_map.nbins)) )
+            ccm_thispix_sparse = sparse.COO.from_numpy(ccm_thispix.reshape((1, axis_model_map.nbins, axis_local_map.nbins)))
 
             contents.append(ccm_thispix_sparse)
 
@@ -130,7 +130,7 @@ class CoordsysConversionMatrix(Histogram):
         axis_model_map = HealpixAxis(nside = nside_model, coordsys = "galactic", scheme = exposure_table.scheme, label = "lb")
         axis_local_map = full_detector_response.axes["NuLambda"]
 
-        axis_coordsys_conv_matrix = [ axis_scatt, axis_model_map, axis_local_map ] #lb, ScAtt, NuLambda
+        axis_coordsys_conv_matrix = [axis_scatt, axis_model_map, axis_local_map] #lb, ScAtt, NuLambda
         
         contents = []
 
@@ -183,7 +183,7 @@ class CoordsysConversionMatrix(Histogram):
                 
                 ccm_thispix[ipix] = hist
 
-            ccm_thispix_sparse = sparse.COO.from_numpy( ccm_thispix.reshape((1, axis_model_map.nbins, axis_local_map.nbins)) )
+            ccm_thispix_sparse = sparse.COO.from_numpy(ccm_thispix.reshape((1, axis_model_map.nbins, axis_local_map.nbins)))
 
             contents.append(ccm_thispix_sparse)
 

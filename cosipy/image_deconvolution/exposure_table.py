@@ -183,15 +183,15 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
         indices_scatt_binning = [i for i in range(len(indices_healpix))] 
         
         # to numpy
-        zpointings = [ np.array(_) for _ in zpointings]
-        xpointings = [ np.array(_) for _ in xpointings]
+        zpointings = [np.array(_) for _ in zpointings]
+        xpointings = [np.array(_) for _ in xpointings]
 
-        zpointings_averaged = [ cls._get_averaged_pointing(z, dt) for (z, dt) in zip(zpointings, delta_times) ]
-        xpointings_averaged = [ cls._get_averaged_pointing(x, dt) for (x, dt) in zip(xpointings, delta_times) ]
+        zpointings_averaged = [cls._get_averaged_pointing(z, dt) for (z, dt) in zip(zpointings, delta_times)]
+        xpointings_averaged = [cls._get_averaged_pointing(x, dt) for (x, dt) in zip(xpointings, delta_times)]
 
-        exposures = [ np.sum(np.array(_)) for _ in delta_times]
-        num_pointings = [ len(_) for _ in delta_times]
-        bkg_groups = [ 0 for i in delta_times]
+        exposures = [np.sum(np.array(_)) for _ in delta_times]
+        num_pointings = [len(_) for _ in delta_times]
+        bkg_groups = [0 for i in delta_times]
         
         df = pd.DataFrame(data = {'scatt_binning_index': indices_scatt_binning, 'healpix_index': indices_healpix, 
                                   'zpointing': zpointings,
@@ -237,17 +237,17 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
             return
     
         indices_scatt_binning = hdu.data['scatt_binning_index']
-        indices_healpix = [ (z, x) for (z, x) in zip(hdu.data['healpix_index_z_pointing'], hdu.data['healpix_index_x_pointing']) ]
+        indices_healpix = [(z, x) for (z, x) in zip(hdu.data['healpix_index_z_pointing'], hdu.data['healpix_index_x_pointing'])]
 
-        zpointings = [ [ [l, b] for (l, b) in zip(z_l, z_b) ] for (z_l, z_b) in zip(hdu.data['zpointing_l'], hdu.data['zpointing_b']) ]
-        zpointings = [ np.array(_) for _ in zpointings]
+        zpointings = [[[l, b] for (l, b) in zip(z_l, z_b)] for (z_l, z_b) in zip(hdu.data['zpointing_l'], hdu.data['zpointing_b'])]
+        zpointings = [np.array(_) for _ in zpointings]
 
-        xpointings = [ [ [l, b] for (l, b) in zip(x_l, x_b) ] for (x_l, x_b) in zip(hdu.data['xpointing_l'], hdu.data['xpointing_b']) ]
-        xpointings = [ np.array(_) for _ in xpointings]
+        xpointings = [[[l, b] for (l, b) in zip(x_l, x_b)] for (x_l, x_b) in zip(hdu.data['xpointing_l'], hdu.data['xpointing_b'])]
+        xpointings = [np.array(_) for _ in xpointings]
 
-        zpointings_averaged = [ np.array([z_ave_l, z_ave_b]) for (z_ave_l, z_ave_b)  in zip(hdu.data['zpointing_averaged_l'], hdu.data['zpointing_averaged_b']) ]
+        zpointings_averaged = [np.array([z_ave_l, z_ave_b]) for (z_ave_l, z_ave_b) in zip(hdu.data['zpointing_averaged_l'], hdu.data['zpointing_averaged_b'])]
 
-        xpointings_averaged = [ np.array([x_ave_l, x_ave_b]) for (x_ave_l, x_ave_b)  in zip(hdu.data['xpointing_averaged_l'], hdu.data['xpointing_averaged_b']) ]
+        xpointings_averaged = [np.array([x_ave_l, x_ave_b]) for (x_ave_l, x_ave_b) in zip(hdu.data['xpointing_averaged_l'], hdu.data['xpointing_averaged_b'])]
 
         delta_times = np.array(hdu.data['delta_time'])
 

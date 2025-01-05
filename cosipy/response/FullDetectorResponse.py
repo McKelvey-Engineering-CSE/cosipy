@@ -445,7 +445,7 @@ class FullDetectorResponse(HealpixBase):
         #also check that the gaussian spectrum is fully contained in that bin 
         if len(ewidth) == 1 and norm == "Gaussian":
             edges = dr.axes['Ei'].edges
-            gauss_int = 0.5 * (1 + erf( (edges[0]-Gauss_mean)/(4*np.sqrt(2)) ) ) + 0.5 * (1 + erf( (edges[1]-Gauss_mean)/(4*np.sqrt(2)) ) )
+            gauss_int = 0.5 * (1 + erf((edges[0]-Gauss_mean)/(4*np.sqrt(2)))) + 0.5 * (1 + erf((edges[1]-Gauss_mean)/(4*np.sqrt(2))))
             
             assert gauss_int == 1, "The gaussian spectrum is not fully contained in this single bin !"
             logger.info("Only one bin so we will use the Mono normalisation")

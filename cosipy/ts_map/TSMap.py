@@ -165,11 +165,11 @@ class TSMap:
         """
         
         # using rad due to mollweide projection
-        self.ra_range  = (-np.pi  , np.pi  ) # rad
+        self.ra_range  = (-np.pi, np.pi) # rad
         self.dec_range = (-np.pi/2, np.pi/2) # rad
         
         self.log_like = Histogram(
-            [Axis(np.linspace(*self.ra_range , 50), label = "ra" ), 
+            [Axis(np.linspace(*self.ra_range , 50), label = "ra"), 
              Axis(np.linspace(*self.dec_range, 25), label = "dec"),]
         )
         

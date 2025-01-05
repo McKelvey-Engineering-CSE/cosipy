@@ -210,7 +210,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             self._exposure_map = Histogram(self._model_axes, unit = self._image_response.unit * self._coordsys_conv_matrix.unit * u.sr)
             self._exposure_map[:] = np.tensordot(np.sum(self._coordsys_conv_matrix, axis = (0)), 
                                                  np.sum(self._image_response, axis = (2,3,4)),
-                                                 axes = ([1], [0]) ) * self._image_response.unit * self._coordsys_conv_matrix.unit * self.model_axes['lb'].pixarea()
+                                                 axes = ([1], [0])) * self._image_response.unit * self._coordsys_conv_matrix.unit * self.model_axes['lb'].pixarea()
             # [Time/ScAtt, lb, NuLambda] -> [lb, NuLambda]
             # [NuLambda, Ei, Em, Phi, PsiChi] -> [NuLambda, Ei]
             # [lb, NuLambda] x [NuLambda, Ei] -> [lb, Ei]
@@ -248,7 +248,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         expectation = Histogram(self.data_axes)
         
         if self._coordsys_conv_matrix is None:
-            expectation[:] = np.tensordot( model.contents, self._image_response.contents, axes = ([0,1],[0,1])) * model.axes['lb'].pixarea()
+            expectation[:] = np.tensordot(model.contents, self._image_response.contents, axes = ([0,1],[0,1])) * model.axes['lb'].pixarea()
             # ['lb', 'Ei'] x [NuLambda(lb), Ei, Em, Phi, PsiChi] -> [Em, Phi, PsiChi]
         else:
             map_rotated = np.tensordot(self._coordsys_conv_matrix.contents, model.contents, axes = ([1], [0])) 
@@ -257,7 +257,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             map_rotated *= model.axes['lb'].pixarea()
             # data.coordsys_conv_matrix.contents is sparse, so the unit should be restored.
             # the unit of map_rotated is 1/cm2 ( = s * 1/cm2/s/sr * sr)
-            expectation[:] = np.tensordot( map_rotated, self._image_response.contents, axes = ([1,2], [0,1]))
+            expectation[:] = np.tensordot(map_rotated, self._image_response.contents, axes = ([1,2], [0,1]))
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
         if dict_bkg_norm is not None: 
@@ -345,6 +345,6 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         float
             Log-likelood
         """
-        loglikelood = np.sum( self.event * np.log(expectation) ) - np.sum(expectation)
+        loglikelood = np.sum(self.event * np.log(expectation)) - np.sum(expectation)
 
         return loglikelood
