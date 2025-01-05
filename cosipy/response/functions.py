@@ -65,12 +65,12 @@ def get_integrated_spectral_model(spectrum, energy_axis):
                 
     if isinstance(spectrum, DiracDelta):
         flux = Quantity([spectrum.value.value * spectrum_unit * lo_lim.unit if spectrum.zero_point.value >= lo_lim/lo_lim.unit and spectrum.zero_point.value <= hi_lim/hi_lim.unit else 0 * spectrum_unit * lo_lim.unit
-                         for lo_lim,hi_lim
-                         in zip(energy_axis.lower_bounds, energy_axis.upper_bounds)])
+                        for lo_lim, hi_lim
+                        in zip(energy_axis.lower_bounds, energy_axis.upper_bounds)])
     else:
         flux = Quantity([integrate.quad(spectrum, lo_lim/lo_lim.unit, hi_lim/hi_lim.unit)[0] * spectrum_unit * lo_lim.unit
-                         for lo_lim,hi_lim
-                         in zip(energy_axis.lower_bounds, energy_axis.upper_bounds)])
+                        for lo_lim, hi_lim
+                        in zip(energy_axis.lower_bounds, energy_axis.upper_bounds)])
     
     flux = Histogram(energy_axis, contents = flux)
 

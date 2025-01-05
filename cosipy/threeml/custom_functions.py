@@ -1,4 +1,4 @@
-from astromodels.functions.function import Function1D, FunctionMeta, ModelAssertionViolation,Function2D
+from astromodels.functions.function import Function1D, FunctionMeta, ModelAssertionViolation, Function2D
 import astromodels.functions.numba_functions as nb_func
 from astromodels.utils.angular_distance import angular_distance
 from threeML import Band, DiracDelta, Constant, Line, Quadratic, Cubic, Quartic, StepFunction, StepFunctionUpper, Cosine_Prior, Uniform_prior, PhAbs, Gaussian
@@ -124,8 +124,8 @@ class SpecFromDat(Function1D, metaclass=FunctionMeta):
             self.K.unit = y_unit
 
         def evaluate(self, x, K):
-            dataFlux = np.genfromtxt(self.dat.value,comments = "#",usecols = (2),skip_footer=1,skip_header=5)
-            dataEn = np.genfromtxt(self.dat.value,comments = "#",usecols = (1),skip_footer=1,skip_header=5)
+            dataFlux = np.genfromtxt(self.dat.value, comments="#", usecols = (2), skip_footer=1, skip_header=5)
+            dataEn = np.genfromtxt(self.dat.value, comments="#", usecols = (1), skip_footer=1, skip_header=5)
             
             # Calculate the widths of the energy bins
             ewidths = np.diff(dataEn, append=dataEn[-1])
@@ -133,7 +133,7 @@ class SpecFromDat(Function1D, metaclass=FunctionMeta):
             # Normalize dataFlux using the energy bin widths
             dataFlux = dataFlux / np.sum(dataFlux * ewidths)
             
-            fun = interp1d(dataEn,dataFlux,fill_value=0,bounds_error=False)
+            fun = interp1d(dataEn, dataFlux, fill_value=0, bounds_error=False)
             
             if self._x_unit != None:
                 dataEn *= self._x_unit

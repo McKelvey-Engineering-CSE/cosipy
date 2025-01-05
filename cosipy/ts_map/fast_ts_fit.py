@@ -72,7 +72,7 @@ class FastTSMap():
             The sliced histogram.
         """
         
-        sliced_hist = hist.slice[channel_start:channel_stop,:]
+        sliced_hist = hist.slice[channel_start:channel_stop, :]
         
         return sliced_hist
     
@@ -423,7 +423,7 @@ class FastTSMap():
         results = np.array(results)  # turn to a numpy array
         results = results[results[:, 0].argsort()]  # arrange the order by the pixel numbering
         self.result_array = results  # the full result array
-        self.ts_array = results[:,1]  # the ts array
+        self.ts_array = results[:, 1]  # the ts array
         
         return results
 
@@ -465,7 +465,7 @@ class FastTSMap():
         
         # plot the ts map with containment region
         if containment != None:
-            critical = FastTSMap.get_chi_critical_value(containment = containment)
+            critical = FastTSMap.get_chi_critical_value(containment=containment)
             percentage = containment*100
             max_ts = np.max(m_ts[:])
             min_ts = np.min(m_ts[:])        

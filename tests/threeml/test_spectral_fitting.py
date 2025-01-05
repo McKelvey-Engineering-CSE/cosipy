@@ -73,5 +73,5 @@ def test_point_source_spectral_fit():
     assert np.allclose([cosi.get_log_like()], [337.17196587486285], atol=[1.0])
     
     # Test scatt map method:
-    coord = SkyCoord(l=184.56*u.deg,b=-5.78*u.deg,frame="galactic")
+    coord = SkyCoord(l=184.56*u.deg, b=-5.78*u.deg, frame="galactic")
     cosi._get_scatt_map(coord)

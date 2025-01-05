@@ -278,7 +278,7 @@ class FullDetectorResponse(HealpixBase):
         assert norm == "powerlaw" or norm == "Mono" or norm == "Linear" or norm == "Gaussian", f"unknown normalisation ! {norm}" 
          
         #check the number of simulated events is not 0
-        assert nevents_sim != 0,"number of simulated events is 0 !" 
+        assert nevents_sim != 0, "number of simulated events is 0 !" 
         
         
         logger.info("normalisation is {0}".format(norm))
@@ -295,7 +295,7 @@ class FullDetectorResponse(HealpixBase):
 
                 if axis_edges == -1:
                     # Single bin axis --i.e. all-sky
-                    edges += ([0,1],)
+                    edges += ([0, 1],)
                 else:
                     edges += (np.arange(axis_edges+1),)
 
@@ -400,7 +400,7 @@ class FullDetectorResponse(HealpixBase):
                     if binLine:
                         #check we have same number of bin than values read
                         if len(line) != nbins:
-                            logger.info("nb of bin content read ({0}) != nb of bins {1}".format(len(line),nbins))
+                            logger.info("nb of bin content read ({0}) != nb of bins {1}".format(len(line), nbins))
                             sys.exit()
                         
                         for i in tqdm(range(nbins), desc = "Processing", unit="bin"):
@@ -458,7 +458,7 @@ class FullDetectorResponse(HealpixBase):
             nperchannel_norm = hspec[:]
 
         elif norm == "powerlaw":
-            logger.info("normalisation : powerlaw with index {0} with energy range [{1}-{2}]keV".format(alpha,emin,emax))
+            logger.info("normalisation : powerlaw with index {0} with energy range [{1}-{2}]keV".format(alpha, emin, emax))
             # From powerlaw
 
             e_lo = dr.axes['Ei'].lower_bounds
@@ -478,7 +478,7 @@ class FullDetectorResponse(HealpixBase):
                 nperchannel_norm = (e_hi**a - e_lo**a) / (emax**a - emin**a)            
 
         elif norm == "Linear":
-            logger.info("normalisation : linear with energy range [{0}-{1}]".format(emin,emax))
+            logger.info("normalisation : linear with energy range [{0}-{1}]".format(emin, emax))
             nperchannel_norm = ewidth / (emax-emin)
         elif norm == "Mono":
             logger.info("normalisation : mono")
@@ -509,7 +509,7 @@ class FullDetectorResponse(HealpixBase):
             pass
 
         # create a .h5 file with the good structure
-        filename = Path(str(filename).replace(".rsp.gz","_nside{0}.area.h5".format(nside)))
+        filename = Path(str(filename).replace(".rsp.gz", "_nside{0}.area.h5".format(nside)))
         f = h5.File(filename, mode='w')
         drm = f.create_group('DRM')
 
@@ -550,7 +550,7 @@ class FullDetectorResponse(HealpixBase):
                 axis.label,
                 data=axis.edges)
 
-            if axis.label in ['NuLambda', 'PsiChi','SigmaTau']:
+            if axis.label in ['NuLambda', 'PsiChi', 'SigmaTau']:
 
                 # HEALPix
                 axis_dataset.attrs['TYPE'] = 'healpix'
@@ -599,7 +599,7 @@ class FullDetectorResponse(HealpixBase):
         
                 #print(f"{b}/{npix}")
         
-                pix_slice = dr_area[{'NuLambda':b}]
+                pix_slice = dr_area[{'NuLambda': b}]
                 
         
                 coords[b] = pix_slice.coords.flatten()
@@ -612,14 +612,8 @@ class FullDetectorResponse(HealpixBase):
         else:
             data = drm.create_dataset(
                 'CONTENTS',
-                data=np.transpose(dr_area.contents, axes = [1,0,2,3,4]),
+                data=np.transpose(dr_area.contents, axes = [1, 0, 2, 3, 4]),
                 compression="gzip")
-        
-            
-                
-                
-        
-
         
         #close the .h5 file in write mode in order to reopen it in read mode after
         f.close()
@@ -943,7 +937,7 @@ class FullDetectorResponse(HealpixBase):
         # old_norm = np.sum(h, axis = tuple(np.arange(1, h.ndim)))
         # norm_corr = h.expand_dims(norm / norm_rot, "NuLambda")
 
-        for old_pix,new_pix in zip(old_pixels,range(new_axis.npix)):
+        for old_pix, new_pix in zip(old_pixels, range(new_axis.npix)):
 
             #h_new[{axis:new_pix}] += exposure * h[{axis: old_pix}] # * norm_corr
             # The following code does the same than the code above, but is faster

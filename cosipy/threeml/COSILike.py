@@ -150,7 +150,7 @@ class COSILike(PluginPrototype):
         if self._expected_counts == None:
             self._expected_counts = {}
 
-        for name,source in extended_sources.items():
+        for name, source in extended_sources.items():
 
             # Set spectrum:
             # Note: the spectral parameters are updated internally by 3ML
@@ -227,7 +227,7 @@ class COSILike(PluginPrototype):
                 logger.info(f"--> done (source name : {name})")
 
         # Get expectation for point sources:
-        for name,source in point_sources.items():
+        for name, source in point_sources.items():
 
             # Convolve with spectrum
             # See also the Detector Response and Source Injector tutorials

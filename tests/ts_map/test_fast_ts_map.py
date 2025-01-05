@@ -35,9 +35,9 @@ def test_parallel_ts_fit():
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
 
-    ts_results = ts.parallel_ts_fit(hypothesis_coords = hypothesis_coords, energy_channel = [2,3], spectrum = spectrum, ts_scheme = "RING", cpu_cores = 2)
+    ts_results = ts.parallel_ts_fit(hypothesis_coords = hypothesis_coords, energy_channel = [2, 3], spectrum = spectrum, ts_scheme = "RING", cpu_cores = 2)
 
-    assert np.allclose(ts_results[:,1],
+    assert np.allclose(ts_results[:, 1],
                        [51.30709447, 51.16302889, 51.11429069, 
                         51.19306142, 51.27823575, 51.30579709, 
                         51.09094512, 51.10914182, 51.30271261, 

@@ -152,7 +152,7 @@ class AllSkyImageModel(ModelBase):
         if algorithm_name == "flat":
             unit = u.Unit(algorithm_parameter['unit'])
             for idx, value in enumerate(algorithm_parameter['value']):
-                self[:,idx] = value * unit
+                self[:, idx] = value * unit
     #    elif algorithm_name == ... 
     #       ...
 
@@ -197,6 +197,6 @@ class AllSkyImageModel(ModelBase):
         allskyimage_new = copy.deepcopy(self)
         
         for i in range(self.axes['Ei'].nbins):
-            allskyimage_new[:,i] = hp.smoothing(self[:,i].value, fwhm = fwhm.to('rad').value) * self.unit
+            allskyimage_new[:, i] = hp.smoothing(self[:, i].value, fwhm = fwhm.to('rad').value) * self.unit
 
         return allskyimage_new

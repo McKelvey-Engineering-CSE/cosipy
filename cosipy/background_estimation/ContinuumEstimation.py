@@ -185,7 +185,7 @@ class ContinuumEstimation:
         # Get interpolation values:
         interp_list_low = []
         interp_list_high = []
-        for i in range(0,len(sorted_indices[arm_mask])):
+        for i in range(0, len(sorted_indices[arm_mask])):
             
             this_index = sorted_indices[arm_mask][i]
             
@@ -233,7 +233,7 @@ class ContinuumEstimation:
 
     def continuum_bg_estimation(
             self, data_file, data_yaml, psr, \
-            containment=0.4, make_plots=False,\
+            containment=0.4, make_plots=False, \
             e_loop="default", s_loop="default"):
 
         """Estimates continuum background.
@@ -272,14 +272,14 @@ class ContinuumEstimation:
         self.psr = psr
 
         # Load data to be used for BG estimation:
-        self.load_full_data(data_file,data_yaml)
+        self.load_full_data(data_file, data_yaml)
         estimated_bg = self.full_data.binned_data.project('Em', 'Phi', 'PsiChi')
 
         # Defaults for energy and scattering angle loops:
         if e_loop == "default":
-            e_loop = (0,len(self.psr.axes['Em'].centers))
+            e_loop = (0, len(self.psr.axes['Em'].centers))
         if s_loop == "default":
-            s_loop = (0,len(self.psr.axes['Phi'].centers))
+            s_loop = (0, len(self.psr.axes['Phi'].centers))
 
         # Progress bar:
         e_tot = e_loop[1] - e_loop[0]
@@ -288,21 +288,21 @@ class ContinuumEstimation:
         pbar = tqdm(total=num_lines)
 
         # Loop through all bins of energy and phi:
-        for E in range(e_loop[0],e_loop[1]):
-            for s in range(s_loop[0],s_loop[1]):
+        for E in range(e_loop[0], e_loop[1]):
+            for s in range(s_loop[0], s_loop[1]):
                 
                 pbar.update(1) # update progress bar
                 logger.info("Bin %s %s" % (str(E), str(s)))
 
                 # Get PSR slice:
-                h = self.psr.slice[{'Em':E, 'Phi':s}].project('PsiChi')
+                h = self.psr.slice[{'Em': E, 'Phi': s}].project('PsiChi')
 
                 # Get mask:
                 sorted_indices, arm_mask = self.mask_from_cumdist(h, containment, make_plots=make_plots)       
 
                 # Mask data:
-                h_data = self.full_data.binned_data.project('Em', 'Phi', 'PsiChi').slice[{'Em':E, 'Phi':s}].project('PsiChi')
-                m_data = HealpixMap(base = HealpixBase(npix = h_data.nbins), data = h_data.contents.todense())
+                h_data = self.full_data.binned_data.project('Em', 'Phi', 'PsiChi').slice[{'Em': E, 'Phi': s}].project('PsiChi')
+                m_data = HealpixMap(base=HealpixBase(npix = h_data.nbins), data=h_data.contents.todense())
                 m_data[sorted_indices[arm_mask]] = 0
 
                 # Skip this iteration if map is all zeros:
@@ -315,41 +315,41 @@ class ContinuumEstimation:
 
                 # Update estimated BG:
                 for p in range(len(sorted_indices[arm_mask])):
-                    estimated_bg[E,s,sorted_indices[arm_mask][p]] = interp_list[p]
+                    estimated_bg[E, s, sorted_indices[arm_mask][p]] = interp_list[p]
 
                 # Option to make some plots:
                 if make_plots == True:
                     
                     # Plot true response:
-                    m_dummy = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.contents)
-                    plot,ax = m_dummy.plot('mollview')
+                    m_dummy = HealpixMap(base=HealpixBase(npix=h.nbins), data=h.contents)
+                    plot, ax = m_dummy.plot('mollview')
                     plt.title("True Response")
                     plt.show()
                     plt.close()
 
                     # Plot masked response:
                     m_dummy[sorted_indices[arm_mask]] = 0
-                    plot,ax = m_dummy.plot('mollview')
+                    plot, ax = m_dummy.plot('mollview')
                     plt.title("Masked Response")
                     plt.show()
                     plt.close()
 
                     # Plot true data:
-                    m_data_dummy = HealpixMap(base = HealpixBase(npix = h_data.nbins), data = h_data.contents.todense())
-                    plot,ax = m_data_dummy.plot('mollview')
+                    m_data_dummy = HealpixMap(base=HealpixBase(npix=h_data.nbins), data=h_data.contents.todense())
+                    plot, ax = m_data_dummy.plot('mollview')
                     plt.title("True Data")
                     plt.show()
                     plt.close()
 
                     # Plot masked data:
-                    plot,ax = m_data.plot('mollview')
+                    plot, ax = m_data.plot('mollview')
                     plt.title("Masked Data")
                     plt.show()
                     plt.close()
 
                     # Plot masked data with interpolated values:
                     m_data[sorted_indices[arm_mask]] = interp_list
-                    plot,ax = m_data.plot('mollview')
+                    plot, ax = m_data.plot('mollview')
                     plt.title("Interpolated Data (Estimated BG)")
                     plt.show()
                     plt.close()

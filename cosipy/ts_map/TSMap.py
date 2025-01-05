@@ -307,18 +307,18 @@ class TSMap:
         
         fig, ax = plt.subplots(figsize=(16, 8), subplot_kw={'projection': 'mollweide'}, dpi=120)
         
-        _,plot = self.ts.plot(ax, vmin = 0, colorbar = False, zorder=0)
+        _, plot = self.ts.plot(ax, vmin=0, colorbar=False, zorder=0)
         
-        ax.scatter([self.ts.axes['ra'].centers[self.argmax[0]]],[self.ts.axes['dec'].centers[self.argmax[1]]], label = "Max TS", zorder=3)
+        ax.scatter([self.ts.axes['ra'].centers[self.argmax[0]]], [self.ts.axes['dec'].centers[self.argmax[1]]], label = "Max TS", zorder=3)
         
-        ax.scatter([20/180*np.pi],[40/180*np.pi], marker = "x", label = "Injected", zorder=2)
+        ax.scatter([20/180*np.pi], [40/180*np.pi], marker="x", label="Injected", zorder=2)
         
         # here we also use Wilk's theorem to find the DeltaTS that corresponse to a 90% containment confidence
         ts_thresh = self.ts_max - stats.chi2.isf(1-.9, df = 2)
         contours = ax.contour(self.ts.axes['ra'].centers, 
                               self.ts.axes['dec'].centers, 
                               self.ts.contents.transpose(), 
-                              [ts_thresh], colors = 'red', zorder=1)
+                              [ts_thresh], colors='red', zorder=1)
         contours.collections[0].set_label("90% cont.")
         
         cbar = fig.colorbar(plot)
@@ -328,5 +328,3 @@ class TSMap:
         ax.set_ylabel('Dec.', fontsize=15);
         ax.tick_params(axis='x', colors='White')
         ax.legend(fontsize=10)
-        
-    

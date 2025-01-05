@@ -286,7 +286,7 @@ class PolarizationASAD():
                 counts = 0
                 for j in range(self._expectation.project(['PsiChi']).nbins):
                     if self._azimuthal_angle_bins[j] >= bin_edges[i] and self._azimuthal_angle_bins[j] < bin_edges[i+1]:
-                        counts += self._expectation.slice[{'Pol':slice(k,k+1)}].project(['PsiChi'])[j]
+                        counts += self._expectation.slice[{'Pol': slice(k, k+1)}].project(['PsiChi'])[j]
                 polarized_asads[k].append(counts)
             polarized_asad_uncertainties[k] = calculate_uncertainties(polarized_asads[k])
 
@@ -496,10 +496,16 @@ class PolarizationASAD():
             print('Polarization angle bin: ' + str(self._expectation.axes['Pol'].edges[i]) + ' to ' + str(self._expectation.axes['Pol'].edges[i+1]))
             asad_polarized = {'counts': polarized_asads['counts'][i], 'uncertainties': polarized_asads['uncertainties'][i]}
             asad_polarized_corrected = self.correct_asad(asad_polarized, unpolarized_asad)
-            mu_100 = self.calculate_mu(asad_polarized_corrected['counts'], bounds=([0, 0, 0], [np.inf,np.inf,np.pi]), sigma=asad_polarized_corrected['uncertainties'])
+            mu_100 = self.calculate_mu(asad_polarized_corrected['counts'], bounds=([0, 0, 0], [np.inf, np.inf, np.pi]), sigma=asad_polarized_corrected['uncertainties'])
             mu_100_list.append(mu_100['mu'])
             mu_100_uncertainties.append(mu_100['uncertainty'])
-            self.plot_asad(asad_polarized_corrected['counts'], asad_polarized_corrected['uncertainties'], 'Corrected 100% Polarized ASAD', coefficients=self.fit(mu_100, asad_polarized_corrected['counts'], bounds=([0, 0, 0], [np.inf,np.inf,np.pi]), sigma=asad_polarized_corrected['uncertainties'])['best fit parameter values'])
+            self.plot_asad(
+                asad_polarized_corrected['counts'], 
+                asad_polarized_corrected['uncertainties'], 
+                'Corrected 100% Polarized ASAD', 
+                coefficients=self.fit(mu_100, asad_polarized_corrected['counts'], 
+                bounds=([0, 0, 0], [np.inf, np.inf, np.pi]), 
+                sigma=asad_polarized_corrected['uncertainties'])['best fit parameter values'])
 
         popt, pcov = curve_fit(self.constant, self._expectation.axes['Pol'].centers, mu_100_list, sigma=mu_100_uncertainties)
         mu_100 = {'mu': popt[0], 'uncertainty': pcov[0][0]}
@@ -560,7 +566,13 @@ class PolarizationASAD():
         polarization_angle = PolarizationAngle(polarization_angle, self._source_vector, convention=self._convention).transform_to(IAUPolarizationConvention())
         polarization_angle_uncertainty = Angle(uncertainties[2], unit=u.rad)
 
-        polarization = {'fraction': polarization_fraction, 'angle': polarization_angle, 'fraction uncertainty': polarization_fraction_uncertainty, 'angle uncertainty': polarization_angle_uncertainty, 'best fit parameter values': parameter_values, 'best fit parameter uncertainties': uncertainties}
+        polarization = {
+            'fraction': polarization_fraction, 
+            'angle': polarization_angle, 
+            'fraction uncertainty': polarization_fraction_uncertainty, 
+            'angle uncertainty': polarization_angle_uncertainty, 
+            'best fit parameter values': parameter_values, 
+            'best fit parameter uncertainties': uncertainties}
     
         print('Best fit polarization fraction:', round(polarization_fraction, 3), '+/-', round(polarization_fraction_uncertainty, 3))
         print('Best fit polarization angle:', round(polarization_angle.angle.degree, 3), '+/-', round(polarization_angle_uncertainty.degree, 3))

@@ -22,7 +22,7 @@ class SpacecraftFile():
 
     def __init__(
             self, time, x_pointings = None, y_pointings = None, \
-            z_pointings = None, earth_zenith = None, altitude = None,\
+            z_pointings = None, earth_zenith = None, altitude = None, \
             attitude = None, instrument = "COSI", frame = "galactic"):
 
         """
@@ -132,7 +132,7 @@ class SpacecraftFile():
             The SpacecraftFile object.
         """
 
-        orientation_file = np.loadtxt(file, usecols=(1, 2, 3, 4, 5, 6, 7, 8),delimiter=' ', skiprows=1, comments=("#", "EN"))
+        orientation_file = np.loadtxt(file, usecols=(1, 2, 3, 4, 5, 6, 7, 8), delimiter=' ', skiprows=1, comments=("#", "EN"))
         time_stamps = orientation_file[:, 0]
         axis_1 = orientation_file[:, [2, 1]]
         axis_2 = orientation_file[:, [4, 3]]
@@ -140,9 +140,9 @@ class SpacecraftFile():
         altitude = np.array(orientation_file[:, 5]) 
         
         time = Time(time_stamps, format = "unix")
-        xpointings = SkyCoord(l = axis_1[:,0]*u.deg, b = axis_1[:,1]*u.deg, frame = "galactic")
-        zpointings = SkyCoord(l = axis_2[:,0]*u.deg, b = axis_2[:,1]*u.deg, frame = "galactic")
-        earthpointings = SkyCoord(l = axis_3[:,0]*u.deg, b = axis_3[:,1]*u.deg, frame = "galactic")
+        xpointings = SkyCoord(l=axis_1[:, 0]*u.deg, b=axis_1[:, 1]*u.deg, frame="galactic")
+        zpointings = SkyCoord(l=axis_2[:, 0]*u.deg, b=axis_2[:, 1]*u.deg, frame="galactic")
+        earthpointings = SkyCoord(l=axis_3[:, 0]*u.deg, b=axis_3[:, 1]*u.deg, frame="galactic")
         
         return cls(time, x_pointings = xpointings, z_pointings = zpointings, earth_zenith = earthpointings, altitude = altitude)
 
@@ -324,9 +324,9 @@ class SpacecraftFile():
             new_earth_altitude = np.append(new_earth_altitude, [stop_alt])
 
         time = Time(new_times, format = "unix")
-        xpointings = SkyCoord(l = new_x_direction[:,0]*u.deg, b = new_x_direction[:,1]*u.deg, frame = "galactic")
-        zpointings = SkyCoord(l = new_z_direction[:,0]*u.deg, b = new_z_direction[:,1]*u.deg, frame = "galactic")
-        earthpointings = SkyCoord(l = new_earth_direction[:,0]*u.deg, b = new_earth_direction[:,1]*u.deg, frame = "galactic")
+        xpointings = SkyCoord(l=new_x_direction[:, 0]*u.deg, b=new_x_direction[:, 1]*u.deg, frame="galactic")
+        zpointings = SkyCoord(l=new_z_direction[:, 0]*u.deg, b=new_z_direction[:, 1]*u.deg, frame="galactic")
+        earthpointings = SkyCoord(l=new_earth_direction[:, 0]*u.deg, b=new_earth_direction[:, 1]*u.deg, frame="galactic")
         altitude = new_earth_altitude
 
         return self.__class__(time, x_pointings = xpointings, z_pointings = zpointings, earth_zenith = earthpointings, altitude =altitude)
@@ -426,13 +426,13 @@ class SpacecraftFile():
         # generate the numpy array of l and b to save to a npy file
         l = np.array(self.src_path_spherical[2].deg)  # note that 0 is Quanty, 1 is latitude and 2 is longitude and they are in rad not deg
         b = np.array(self.src_path_spherical[1].deg)
-        self.src_path_lb = np.stack((l,b), axis=-1)
+        self.src_path_lb = np.stack((l, b), axis=-1)
 
         if save == True:
             np.save(self.target_name+"_source_path_in_SC_frame", self.src_path_lb)
 
         # convert to SkyCoord objects to get the output object of this method
-        self.src_path_skycoord = SkyCoord(self.src_path_lb[:,0], self.src_path_lb[:,1], unit = "deg", frame = SpacecraftFrame())
+        self.src_path_skycoord = SkyCoord(self.src_path_lb[:, 0], self.src_path_lb[:, 1], unit="deg", frame=SpacecraftFrame())
 
         return self.src_path_skycoord
 
@@ -501,7 +501,7 @@ class SpacecraftFile():
         pixel_unique = pixels[first_unique]
 
         splits = np.nonzero(first_unique)[0][1:]
-        pixel_durations = [np.sum(weighted_duration[start:stop]) for start,stop in zip(np.append(0,splits), np.append(splits, pixels.size))]
+        pixel_durations = [np.sum(weighted_duration[start:stop]) for start, stop in zip(np.append(0, splits), np.append(splits, pixels.size))]
         
         for pix, dur in zip(pixel_unique, pixel_durations):
             self.dwell_map[pix] += dur
@@ -564,7 +564,7 @@ class SpacecraftFile():
                                       scheme = scheme,
                                       coordsys = coordsys)
         
-        x,y,z = attitudes[:-1].as_axes()
+        x, y, z = attitudes[:-1].as_axes()
        
         # Get max angle based on altitude:
         max_angle = np.pi - np.arcsin(r_earth/(r_earth + altitude))
@@ -654,13 +654,13 @@ class SpacecraftFile():
         # get the effective area and matrix
         logger.info("Getting the effective area ...")
         self.areas = np.float32(np.array(self.psr.project('Ei').to_dense().contents))/self.dts.to_value(u.second).sum()
-        spectral_response = np.float32(np.array(self.psr.project(['Ei','Em']).to_dense().contents))
-        self.matrix = np.float32(np.zeros((self.Ei_lo.size,self.Em_lo.size))) # initate the matrix
+        spectral_response = np.float32(np.array(self.psr.project(['Ei', 'Em']).to_dense().contents))
+        self.matrix = np.float32(np.zeros((self.Ei_lo.size, self.Em_lo.size))) # initate the matrix
 
         logger.info("Getting the energy redistribution matrix ...")
         for i in np.arange(self.Ei_lo.size):
-            new_raw = spectral_response[i,:]/spectral_response[i,:].sum()
-            self.matrix[i,:] = new_raw
+            new_raw = spectral_response[i, :]/spectral_response[i, :].sum()
+            self.matrix[i, :] = new_raw
         self.matrix = self.matrix.T
 
         return self.Ei_edges, self.Ei_lo, self.Ei_hi, self.Em_edges, self.Em_lo, self.Em_hi, self.areas, self.matrix
@@ -691,9 +691,9 @@ class SpacecraftFile():
         primaryhdu.header["COMMENT"] = copyright_string # add comments
         primaryhdu.header # print headers and their values
 
-        col1_energ_lo = fits.Column(name="ENERG_LO", format="E",unit = "keV", array=self.Em_lo)
-        col2_energ_hi = fits.Column(name="ENERG_HI", format="E",unit = "keV", array=self.Em_hi)
-        col3_specresp = fits.Column(name="SPECRESP", format="E",unit = "cm**2", array=self.areas)
+        col1_energ_lo = fits.Column(name="ENERG_LO", format="E", unit = "keV", array=self.Em_lo)
+        col2_energ_hi = fits.Column(name="ENERG_HI", format="E", unit = "keV", array=self.Em_hi)
+        col3_specresp = fits.Column(name="SPECRESP", format="E", unit = "cm**2", array=self.areas)
         cols = fits.ColDefs([col1_energ_lo, col2_energ_hi, col3_specresp]) # create a ColDefs (column-definitions) object for all columns
         specresp_bintablehdu = fits.BinTableHDU.from_columns(cols) # create a binary table HDU object
 
@@ -707,13 +707,13 @@ class SpacecraftFile():
         specresp_bintablehdu.header.comments["TFORM3"] = "data format of field: 4-byte REAL"
         specresp_bintablehdu.header.comments["TUNIT3"] = "physical unit of field"
 
-        specresp_bintablehdu.header["EXTNAME"] = ("SPECRESP","name of this binary table extension")
-        specresp_bintablehdu.header["TELESCOP"] = ("COSI","mission/satellite name")
-        specresp_bintablehdu.header["INSTRUME"] = ("COSI","instrument/detector name")
-        specresp_bintablehdu.header["FILTER"] = ("NONE","filter in use")
-        specresp_bintablehdu.header["HDUCLAS1"] = ("RESPONSE","dataset relates to spectral response")
-        specresp_bintablehdu.header["HDUCLAS2"] = ("SPECRESP","extension contains an ARF")
-        specresp_bintablehdu.header["HDUVERS"] = ("1.1.0","version of format")
+        specresp_bintablehdu.header["EXTNAME"] = ("SPECRESP", "name of this binary table extension")
+        specresp_bintablehdu.header["TELESCOP"] = ("COSI", "mission/satellite name")
+        specresp_bintablehdu.header["INSTRUME"] = ("COSI", "instrument/detector name")
+        specresp_bintablehdu.header["FILTER"] = ("NONE", "filter in use")
+        specresp_bintablehdu.header["HDUCLAS1"] = ("RESPONSE", "dataset relates to spectral response")
+        specresp_bintablehdu.header["HDUCLAS2"] = ("SPECRESP", "extension contains an ARF")
+        specresp_bintablehdu.header["HDUVERS"] = ("1.1.0", "version of format")
 
         new_arfhdus = fits.HDUList([primaryhdu, specresp_bintablehdu])
         new_arfhdus.writeto(f'{self.out_name}.arf', overwrite=True)
@@ -757,8 +757,8 @@ class SpacecraftFile():
             energ_lo_temp = np.float32(self.Em_lo[i])
             energ_hi_temp = np.float32(self.Ei_hi[i])
 
-            if self.matrix[:,i].sum() != 0:
-                nz_matrix_idx = np.nonzero(self.matrix[:,i])[0] # non-zero index for the matrix
+            if self.matrix[:, i].sum() != 0:
+                nz_matrix_idx = np.nonzero(self.matrix[:, i])[0] # non-zero index for the matrix
                 subsets = np.split(nz_matrix_idx, np.where(np.diff(nz_matrix_idx) != 1)[0]+1)
                 n_grp_temp = np.int16(len(subsets))
                 f_chan_temp = []
@@ -768,7 +768,7 @@ class SpacecraftFile():
                     f_chan_temp += [subsets[m][0]]
                     n_chan_temp += [len(subsets[m])]
                 for m in nz_matrix_idx:
-                    matrix_temp += [self.matrix[:,i][m]]
+                    matrix_temp += [self.matrix[:, i][m]]
                 f_chan_temp = np.int16(np.array(f_chan_temp))
                 n_chan_temp = np.int16(np.array(n_chan_temp))
                 matrix_temp = np.float32(np.array(matrix_temp))
@@ -785,8 +785,8 @@ class SpacecraftFile():
             n_chan.append(n_chan_temp)
             matrix.append(matrix_temp)
 
-        col1_energ_lo = fits.Column(name="ENERG_LO", format="E",unit = "keV", array=energ_lo)
-        col2_energ_hi = fits.Column(name="ENERG_HI", format="E",unit = "keV", array=energ_hi)
+        col1_energ_lo = fits.Column(name="ENERG_LO", format="E", unit = "keV", array=energ_lo)
+        col2_energ_hi = fits.Column(name="ENERG_HI", format="E", unit = "keV", array=energ_hi)
         col3_n_grp = fits.Column(name="N_GRP", format="I", array=n_grp)
         col4_f_chan = fits.Column(name="F_CHAN", format="PI(54)", array=f_chan)
         col5_n_chan = fits.Column(name="N_CHAN", format="PI(54)", array=n_chan)
@@ -809,17 +809,17 @@ class SpacecraftFile():
         matrix_bintablehdu.header.comments["TTYPE6"] = "label for field   6"
         matrix_bintablehdu.header.comments["TFORM6"] = "data format of field: variable length array"
 
-        matrix_bintablehdu.header["EXTNAME"] = ("MATRIX","name of this binary table extension")
-        matrix_bintablehdu.header["TELESCOP"] = ("COSI","mission/satellite name")
-        matrix_bintablehdu.header["INSTRUME"] = ("COSI","instrument/detector name")
-        matrix_bintablehdu.header["FILTER"] = ("NONE","filter in use")
-        matrix_bintablehdu.header["CHANTYPE"] = ("PI","total number of detector channels")
-        matrix_bintablehdu.header["DETCHANS"] = (len(self.Em_lo),"total number of detector channels")
-        matrix_bintablehdu.header["HDUCLASS"] = ("OGIP","format conforms to OGIP standard")
-        matrix_bintablehdu.header["HDUCLAS1"] = ("RESPONSE","dataset relates to spectral response")
-        matrix_bintablehdu.header["HDUCLAS2"] = ("RSP_MATRIX","dataset is a spectral response matrix")
-        matrix_bintablehdu.header["HDUVERS"] = ("1.3.0","version of format")
-        matrix_bintablehdu.header["TLMIN4"] = (0,"minimum value legally allowed in column 4")
+        matrix_bintablehdu.header["EXTNAME"] = ("MATRIX", "name of this binary table extension")
+        matrix_bintablehdu.header["TELESCOP"] = ("COSI", "mission/satellite name")
+        matrix_bintablehdu.header["INSTRUME"] = ("COSI", "instrument/detector name")
+        matrix_bintablehdu.header["FILTER"] = ("NONE", "filter in use")
+        matrix_bintablehdu.header["CHANTYPE"] = ("PI", "total number of detector channels")
+        matrix_bintablehdu.header["DETCHANS"] = (len(self.Em_lo), "total number of detector channels")
+        matrix_bintablehdu.header["HDUCLASS"] = ("OGIP", "format conforms to OGIP standard")
+        matrix_bintablehdu.header["HDUCLAS1"] = ("RESPONSE", "dataset relates to spectral response")
+        matrix_bintablehdu.header["HDUCLAS2"] = ("RSP_MATRIX", "dataset is a spectral response matrix")
+        matrix_bintablehdu.header["HDUVERS"] = ("1.3.0", "version of format")
+        matrix_bintablehdu.header["TLMIN4"] = (0, "minimum value legally allowed in column 4")
 
         ## Create binary table HDU for EBOUNDS
         channels = np.int16(np.arange(len(self.Em_lo)))
@@ -827,8 +827,8 @@ class SpacecraftFile():
         e_max = np.float32(self.Em_hi)
 
         col1_channels = fits.Column(name="CHANNEL", format="I", array=channels)
-        col2_e_min = fits.Column(name="E_MIN", format="E",unit="keV", array=e_min)
-        col3_e_max = fits.Column(name="E_MAX", format="E",unit="keV", array=e_max)
+        col2_e_min = fits.Column(name="E_MIN", format="E", unit="keV", array=e_min)
+        col3_e_max = fits.Column(name="E_MAX", format="E", unit="keV", array=e_max)
         cols = fits.ColDefs([col1_channels, col2_e_min, col3_e_max])
         ebounds_bintablehdu = fits.BinTableHDU.from_columns(cols)
 
@@ -841,18 +841,18 @@ class SpacecraftFile():
         ebounds_bintablehdu.header.comments["TFORM3"] = "data format of field: 4-byte REAL"
         ebounds_bintablehdu.header.comments["TUNIT3"] = "physical unit of field"
 
-        ebounds_bintablehdu.header["EXTNAME"] = ("EBOUNDS","name of this binary table extension")
-        ebounds_bintablehdu.header["TELESCOP"] = ("COSI","mission/satellite")
-        ebounds_bintablehdu.header["INSTRUME"] = ("COSI","nstrument/detector name")
-        ebounds_bintablehdu.header["FILTER"] = ("NONE","filter in use")
-        ebounds_bintablehdu.header["CHANTYPE"] = ("PI","channel type (PHA or PI)")
-        ebounds_bintablehdu.header["DETCHANS"] = (len(self.Em_lo),"total number of detector channels")
-        ebounds_bintablehdu.header["HDUCLASS"] = ("OGIP","format conforms to OGIP standard")
-        ebounds_bintablehdu.header["HDUCLAS1"] = ("RESPONSE","dataset relates to spectral response")
-        ebounds_bintablehdu.header["HDUCLAS2"] = ("EBOUNDS","dataset is a spectral response matrix")
-        ebounds_bintablehdu.header["HDUVERS"] = ("1.2.0","version of format")
+        ebounds_bintablehdu.header["EXTNAME"] = ("EBOUNDS", "name of this binary table extension")
+        ebounds_bintablehdu.header["TELESCOP"] = ("COSI", "mission/satellite")
+        ebounds_bintablehdu.header["INSTRUME"] = ("COSI", "nstrument/detector name")
+        ebounds_bintablehdu.header["FILTER"] = ("NONE", "filter in use")
+        ebounds_bintablehdu.header["CHANTYPE"] = ("PI", "channel type (PHA or PI)")
+        ebounds_bintablehdu.header["DETCHANS"] = (len(self.Em_lo), "total number of detector channels")
+        ebounds_bintablehdu.header["HDUCLASS"] = ("OGIP", "format conforms to OGIP standard")
+        ebounds_bintablehdu.header["HDUCLAS1"] = ("RESPONSE", "dataset relates to spectral response")
+        ebounds_bintablehdu.header["HDUCLAS2"] = ("EBOUNDS", "dataset is a spectral response matrix")
+        ebounds_bintablehdu.header["HDUVERS"] = ("1.2.0", "version of format")
 
-        new_rmfhdus = fits.HDUList([primaryhdu, matrix_bintablehdu,ebounds_bintablehdu])
+        new_rmfhdus = fits.HDUList([primaryhdu, matrix_bintablehdu, ebounds_bintablehdu])
         new_rmfhdus.writeto(f'{self.out_name}.rmf', overwrite=True)
 
         return
@@ -926,12 +926,12 @@ class SpacecraftFile():
         primaryhdu.header # print headers and their values
 
         # Create binary table HDU
-        a1 = np.array(channels,dtype="int32") # I guess I need to convert the dtype to match the format J
-        a2 = np.array(self.src_counts,dtype="int64")  # int32 is not enough for counts
-        a3 = np.array(self.errors,dtype="int64") # int32 is not enough for errors
+        a1 = np.array(channels, dtype="int32") # I guess I need to convert the dtype to match the format J
+        a2 = np.array(self.src_counts, dtype="int64")  # int32 is not enough for counts
+        a3 = np.array(self.errors, dtype="int64") # int32 is not enough for errors
         col1 = fits.Column(name="CHANNEL", format="J", array=a1)
-        col2 = fits.Column(name="COUNTS", format="K", array=a2,unit="count")
-        col3 = fits.Column(name="STAT_ERR", format="K", array=a3,unit="count")
+        col2 = fits.Column(name="COUNTS", format="K", array=a2, unit="count")
+        col3 = fits.Column(name="STAT_ERR", format="K", array=a3, unit="count")
         cols = fits.ColDefs([col1, col2, col3]) # create a ColDefs (column-definitions) object for all columns
         bintablehdu = fits.BinTableHDU.from_columns(cols) # create a binary table HDU object
 
@@ -943,29 +943,29 @@ class SpacecraftFile():
         bintablehdu.header.comments["TUNIT2"] = "physical unit of field 2"
 
 
-        bintablehdu.header["EXTNAME"] = ("SPECTRUM","name of this binary table extension")
-        bintablehdu.header["TELESCOP"] = (self.telescope,"telescope/mission name")
-        bintablehdu.header["INSTRUME"] = (self.instrument,"instrument/detector name")
-        bintablehdu.header["FILTER"] = ("NONE","filter type if any")
-        bintablehdu.header["EXPOSURE"] = (self.exposure_time,"integration time in seconds")
-        bintablehdu.header["BACKFILE"] = (self.bkg_file,"background filename")
-        bintablehdu.header["BACKSCAL"] = (1,"background scaling factor")
-        bintablehdu.header["CORRFILE"] = ("NONE","associated correction filename")
-        bintablehdu.header["CORRSCAL"] = (1,"correction file scaling factor")
-        bintablehdu.header["CORRSCAL"] = (1,"correction file scaling factor")
-        bintablehdu.header["RESPFILE"] = (self.rmf_file,"associated rmf filename")
-        bintablehdu.header["ANCRFILE"] = (self.arf_file,"associated arf filename")
-        bintablehdu.header["AREASCAL"] = (1,"area scaling factor")
-        bintablehdu.header["STAT_ERR"] = (0,"statistical error specified if any")
-        bintablehdu.header["SYS_ERR"] = (0,"systematic error specified if any")
-        bintablehdu.header["GROUPING"] = (0,"grouping of the data has been defined if any")
-        bintablehdu.header["QUALITY"] = (0,"data quality information specified")
-        bintablehdu.header["HDUCLASS"] = ("OGIP","format conforms to OGIP standard")
-        bintablehdu.header["HDUCLAS1"] = ("SPECTRUM","PHA dataset")
-        bintablehdu.header["HDUVERS"] = ("1.2.1","version of format")
-        bintablehdu.header["POISSERR"] = (False,"Poissonian errors to be assumed, T as True")
-        bintablehdu.header["CHANTYPE"] = ("PI","channel type (PHA or PI)")
-        bintablehdu.header["DETCHANS"] = (self.channel_number,"total number of detector channels")
+        bintablehdu.header["EXTNAME"] = ("SPECTRUM", "name of this binary table extension")
+        bintablehdu.header["TELESCOP"] = (self.telescope, "telescope/mission name")
+        bintablehdu.header["INSTRUME"] = (self.instrument, "instrument/detector name")
+        bintablehdu.header["FILTER"] = ("NONE", "filter type if any")
+        bintablehdu.header["EXPOSURE"] = (self.exposure_time, "integration time in seconds")
+        bintablehdu.header["BACKFILE"] = (self.bkg_file, "background filename")
+        bintablehdu.header["BACKSCAL"] = (1, "background scaling factor")
+        bintablehdu.header["CORRFILE"] = ("NONE", "associated correction filename")
+        bintablehdu.header["CORRSCAL"] = (1, "correction file scaling factor")
+        bintablehdu.header["CORRSCAL"] = (1, "correction file scaling factor")
+        bintablehdu.header["RESPFILE"] = (self.rmf_file, "associated rmf filename")
+        bintablehdu.header["ANCRFILE"] = (self.arf_file, "associated arf filename")
+        bintablehdu.header["AREASCAL"] = (1, "area scaling factor")
+        bintablehdu.header["STAT_ERR"] = (0, "statistical error specified if any")
+        bintablehdu.header["SYS_ERR"] = (0, "systematic error specified if any")
+        bintablehdu.header["GROUPING"] = (0, "grouping of the data has been defined if any")
+        bintablehdu.header["QUALITY"] = (0, "data quality information specified")
+        bintablehdu.header["HDUCLASS"] = ("OGIP", "format conforms to OGIP standard")
+        bintablehdu.header["HDUCLAS1"] = ("SPECTRUM", "PHA dataset")
+        bintablehdu.header["HDUVERS"] = ("1.2.1", "version of format")
+        bintablehdu.header["POISSERR"] = (False, "Poissonian errors to be assumed, T as True")
+        bintablehdu.header["CHANTYPE"] = ("PI", "channel type (PHA or PI)")
+        bintablehdu.header["DETCHANS"] = (self.channel_number, "total number of detector channels")
 
         new_phahdus = fits.HDUList([primaryhdu, bintablehdu])
         new_phahdus.writeto(f'{self.out_name}.pha', overwrite=True)
@@ -1009,17 +1009,17 @@ class SpacecraftFile():
         self.Em_lo = np.array(self.specresp_hdu.data["ENERG_LO"])
         self.Em_hi = np.array(self.specresp_hdu.data["ENERG_HI"])
 
-        E_center = (self.Em_lo+self.Em_hi)/2
-        E_edges = np.append(self.Em_lo,self.Em_hi[-1])
+        E_center = (self.Em_lo + self.Em_hi)/2
+        E_edges = np.append(self.Em_lo, self.Em_hi[-1])
 
         fig, ax = plt.subplots()
-        ax.hist(E_center,E_edges,weights=self.areas,histtype='step')
+        ax.hist(E_center, E_edges, weights=self.areas, histtype='step')
 
         ax.set_title("Effective area")
         ax.set_xlabel("Energy[$keV$]")
         ax.set_ylabel(r"Effective area [$cm^2$]")
         ax.set_xscale("log")
-        fig.savefig(f"Effective_area_for_{self.save_name}.png", bbox_inches = "tight", pad_inches=0.1, dpi=self.dpi)
+        fig.savefig(f"Effective_area_for_{self.save_name}.png", bbox_inches="tight", pad_inches=0.1, dpi=self.dpi)
         #fig.show()
 
         return
@@ -1068,7 +1068,7 @@ class SpacecraftFile():
         data = matrix_ext.data
 
         # Create a 2-d numpy array and store probability data into the redistribution matrix
-        rmf_matrix = np.zeros((len(energy_low),len(channel_low))) # create an empty matrix
+        rmf_matrix = np.zeros((len(energy_low), len(channel_low))) # create an empty matrix
         for i in np.arange(data.shape[0]): # i is the measured energy index, examine the matrix_ext.data rows by rows
             if data[i][5].sum() == 0: # if the sum of probabilities is zero, then skip since there is no data at all
                 pass
@@ -1080,7 +1080,7 @@ class SpacecraftFile():
                 indices = []
                 for k in f_chan:
                     channels = 0
-                    channels = np.arange(k,k + n_chann[np.argwhere(f_chan == k)]).tolist() # generate the cha
+                    channels = np.arange(k, k + n_chann[np.argwhere(f_chan == k)]).tolist() # generate the cha
                     indices += channels # fappend the channels togeter
                 indices = np.array(indices)
                 for m in indices:
@@ -1088,10 +1088,10 @@ class SpacecraftFile():
 
 
         # plot the redistribution matrix
-        xcenter = np.divide(energy_low+energy_high,2)
+        xcenter = np.divide(energy_low+energy_high, 2)
         x_center_coords = np.repeat(xcenter, 10)
         y_center_coords = np.tile(xcenter, 10)
-        energy_all_edges = np.append(energy_low,energy_high[-1])
+        energy_all_edges = np.append(energy_low, energy_high[-1])
         #bin_edges = np.array([incident_energy_bins,incident_energy_bins]) # doesn't work
         bin_edges = np.vstack((energy_all_edges, energy_all_edges))
         #logger.info(bin_edges)
@@ -1102,7 +1102,7 @@ class SpacecraftFile():
                 self.probability.append(rmf_matrix[i][j])
         #logger.info(type(probability))
 
-        plt.hist2d(x=x_center_coords,y=y_center_coords,weights=self.probability,bins=bin_edges, norm=LogNorm())
+        plt.hist2d(x=x_center_coords, y=y_center_coords, weights=self.probability, bins=bin_edges, norm=LogNorm())
         plt.xscale('log')
         plt.yscale('log')
         plt.xlabel("Incident energy [$keV$]")

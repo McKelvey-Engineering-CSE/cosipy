@@ -99,7 +99,7 @@ class ExtendedSourceResponse(Histogram):
                 and np.all(self.axes[1].edges == allsky_image_model.axes[1].edges) \
                 and allsky_image_model.unit == u.Unit('1/(s*cm*cm*sr)'):
             
-            contents = np.tensordot(allsky_image_model.contents, self.contents, axes=([0,1], [0,1]))
+            contents = np.tensordot(allsky_image_model.contents, self.contents, axes=([0, 1], [0, 1]))
             contents *= self.axes[0].pixarea()
 
             return Histogram(edges=self.axes[2:], contents=contents)

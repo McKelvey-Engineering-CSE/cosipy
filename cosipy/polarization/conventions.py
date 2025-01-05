@@ -120,7 +120,7 @@ class OrthographicConvention(PolarizationConvention):
 
         # Broadcast reference vector
         ref = np.expand_dims(self.ref_vector.cartesian.xyz,
-                             axis = tuple(np.arange(1,pz.ndim, dtype = int)))
+                             axis = tuple(np.arange(1, pz.ndim, dtype=int)))
 
         # Get py. Normalize because pz and ref dot not make 90deg angle
         py = np.cross(pz, ref, axisa = 0, axisb = 0, axisc = 0)
@@ -190,14 +190,14 @@ class MEGAlibRelative(OrthographicConvention):
         # MEGAlib's PA is counter-clockwise when looking at the sourse
 
         # Flip px <-> py
-        py,px = super().get_basis(source_direction)
+        py, px = super().get_basis(source_direction)
 
         # Sign of px
         py = SkyCoord(-py.cartesian,
                       representation_type = 'cartesian',
                       frame = py.frame)
         
-        return px,py
+        return px, py
 
 @PolarizationConvention.register("RelativeX")    
 class MEGAlibRelativeX(MEGAlibRelative):
@@ -231,17 +231,20 @@ class IAUPolarizationConvention(OrthographicConvention):
         angle of electric-vector maximum, e, starting from North and 
         increasing through East.
         """
-        super().__init__(ref_vector = SkyCoord(ra=0 * u.deg, dec=90 * u.deg,
-                                               frame="icrs"),
-                         clockwise = False)
+        super().__init__(
+            ref_vector=SkyCoord(
+                ra=0 * u.deg, dec=90 * u.deg,
+                frame="icrs"),
+            clockwise=False)
     
     
 # Stereographic projection convention
 class StereographicConvention(PolarizationConvention):
 
-    def __init__(self,
-                 clockwise: bool = False,
-                 attitude: Attitude = None):
+    def __init__(
+            self,
+            clockwise: bool = False,
+            attitude: Attitude = None):
         """
         Basis vector follow the steregraphic projection lines. Meant to describe
         polarization in spacecraft coordinate by minimizing the number of undefined location withing the field of view.
@@ -268,7 +271,7 @@ class StereographicConvention(PolarizationConvention):
 
     @property 
     def frame(self):
-        return SpacecraftFrame(attitude = self._attitude)
+        return SpacecraftFrame(attitude=self._attitude)
         
     def get_basis(self, source_direction: SkyCoord):
         # Extract Cartesian coordinates for the source direction
@@ -290,7 +293,7 @@ class StereographicConvention(PolarizationConvention):
         py = self._sign*np.cross([x, y, z], px, axis=0)
 
         # To SkyCoord
-        px = SkyCoord(*px, representation_type='cartesian', frame = self.frame)
-        py = SkyCoord(*py, representation_type='cartesian', frame = self.frame)
+        px = SkyCoord(*px, representation_type='cartesian', frame=self.frame)
+        py = SkyCoord(*py, representation_type='cartesian', frame=self.frame)
         
         return px, py

@@ -13,4 +13,4 @@ def test_continuum_background_estimation():
     psr_file = test_data.path / "test_precomputed_response.h5"
     psr = instance.load_psr_from_file(psr_file)
     
-    instance.continuum_bg_estimation(data_file, data_yaml, psr, e_loop=(1,2), s_loop=(1,2))
+    instance.continuum_bg_estimation(data_file, data_yaml, psr, e_loop=(1, 2), s_loop=(1, 2))

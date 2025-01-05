@@ -37,6 +37,6 @@ def mask(dataset):
 
     mask = Histogram(axes, contents = np.ones(axes.nbins, dtype = bool))
 
-    mask[0,0] = False
+    mask[0, 0] = False
 
     return mask

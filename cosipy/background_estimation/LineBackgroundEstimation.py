@@ -246,7 +246,7 @@ class LineBackgroundEstimation:
         for energy_indices in energy_indices_list:
             for energy_index in energy_indices:
                 if new_axes[0].label != "Em":
-                    bkg_model_histogram[:] += self.event_histogram[:,energy_index].todense()
+                    bkg_model_histogram[:] += self.event_histogram[:, energy_index].todense()
                 else:
                     bkg_model_histogram[:] += self.event_histogram[energy_index].todense()
 

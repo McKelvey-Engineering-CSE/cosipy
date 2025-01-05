@@ -183,8 +183,8 @@ class ReadTraTest(UnBinnedData):
          
         # Construct Y direction from X and Z direction
         lonlatY = self.construct_scy(
-            np.rad2deg(lonX),np.rad2deg(latX),
-            np.rad2deg(lonZ),np.rad2deg(latZ))
+            np.rad2deg(lonX), np.rad2deg(latX),
+            np.rad2deg(lonZ), np.rad2deg(latZ))
         lonY = np.deg2rad(lonlatY[0])
         latY = np.deg2rad(lonlatY[1])
 
@@ -192,17 +192,17 @@ class ReadTraTest(UnBinnedData):
         chi_loc[np.where(chi_loc == 0.0)] = np.abs(chi_loc[np.where(chi_loc == 0.0)])
        
         # Make observation dictionary
-        cosi_dataset = {'Energies':erg,
-                        'TimeTags':tt,
-                        'Xpointings':np.array([lonX,latX]).T,
-                        'Ypointings':np.array([lonY,latY]).T,
-                        'Zpointings':np.array([lonZ,latZ]).T,
-                        'Phi':phi,
-                        'Chi local':self.chi_loc_old,
-                        'Psi local':self.psi_loc_old,
-                        'Distance':dist,
-                        'Chi galactic':self.chi_gal_old,
-                        'Psi galactic':self.psi_gal_old} 
+        cosi_dataset = {'Energies': erg,
+                        'TimeTags': tt,
+                        'Xpointings': np.array([lonX, latX]).T,
+                        'Ypointings': np.array([lonY, latY]).T,
+                        'Zpointings': np.array([lonZ, latZ]).T,
+                        'Phi': phi,
+                        'Chi local': self.chi_loc_old,
+                        'Psi local': self.psi_loc_old,
+                        'Distance': dist,
+                        'Chi galactic': self.chi_gal_old,
+                        'Psi galactic': self.psi_gal_old} 
         self.cosi_dataset = cosi_dataset
 
         # Write unbinned data to file (either fits or hdf5):

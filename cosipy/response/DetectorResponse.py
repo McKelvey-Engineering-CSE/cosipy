@@ -55,7 +55,7 @@ class DetectorResponse(Histogram):
 
         # Cache the spectral response
         if self._spec is None:
-            spec = self.project(['Ei','Em'])
+            spec = self.project(['Ei', 'Em'])
             self._spec = DetectorResponse(spec.axes,
                                           contents = spec.contents,
                                           unit = spec.unit)

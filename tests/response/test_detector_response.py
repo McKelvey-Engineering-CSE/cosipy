@@ -77,7 +77,7 @@ def test_cosi_response(tmp_path):
 
     # Just check if it runs without errors
     
-    cosi_response(['dump','header', str(response_path)])
+    cosi_response(['dump', 'header', str(response_path)])
 
     cosi_response(['dump', 'aeff', str(response_path),
                    '--lat', '90deg', '--lon', '0deg'])

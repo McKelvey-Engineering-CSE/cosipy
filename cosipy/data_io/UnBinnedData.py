@@ -135,7 +135,7 @@ class UnBinnedData(DataIO):
 
         # Open .tra.gz file:
         if self.data_file.endswith(".gz"):
-            f = gzip.open(self.data_file,"rt")
+            f = gzip.open(self.data_file, "rt")
             
             # Need to get number of lines for progress bar.
             # First try fast method for unix-based systems:
@@ -149,13 +149,13 @@ class UnBinnedData(DataIO):
             except:
                 logger.info("Initial attempt failed.")
                 logger.info("Using long method...")
-                g = gzip.open(self.data_file,"rt")
+                g = gzip.open(self.data_file, "rt")
                 num_lines = sum(1 for line in g)
                 g.close()
     
         # Open .tra file:
         elif self.data_file.endswith(".tra"):
-            f = open(self.data_file,"r")
+            f = open(self.data_file, "r")
 
             try:
                 proc = subprocess.Popen(
@@ -166,7 +166,7 @@ class UnBinnedData(DataIO):
             except:
                 logger.info("Initial attempt failed.")
                 logger.info("Using long method...")
-                g = open(self.data_file,"rt")
+                g = open(self.data_file, "rt")
                 num_lines = sum(1 for line in g)
                 g.close()
 
@@ -373,17 +373,17 @@ class UnBinnedData(DataIO):
         # Make observation dictionary
         logger.info("Making dictionary...")
         cosi_dataset = {
-            'Energies':erg,
-            'TimeTags':tt,
-            'Xpointings (glon,glat)':np.array([lonX,latX]).T,
-            'Ypointings (glon,glat)':np.array([lonY,latY]).T,
-            'Zpointings (glon,glat)':np.array([lonZ,latZ]).T,
-            'Phi':phi,
-            'Chi local':chi_loc,
-            'Psi local':psi_loc,
-            'Distance':dist,
-            'Chi galactic':chi_gal,
-            'Psi galactic':psi_gal} 
+            'Energies': erg,
+            'TimeTags': tt,
+            'Xpointings (glon,glat)': np.array([lonX, latX]).T,
+            'Ypointings (glon,glat)': np.array([lonY, latY]).T,
+            'Zpointings (glon,glat)': np.array([lonZ, latZ]).T,
+            'Phi': phi,
+            'Chi local': chi_loc,
+            'Psi local': psi_loc,
+            'Distance': dist,
+            'Chi galactic': chi_gal,
+            'Psi galactic': psi_gal} 
         self.cosi_dataset = cosi_dataset
 
         # Option to write unbinned data to file (either fits or hdf5):
@@ -462,7 +462,7 @@ class UnBinnedData(DataIO):
         x = self.polar2cart(scx_l, scx_b)
         z = self.polar2cart(scz_l, scz_b)
     
-        return self.cart2polar(np.cross(z,x,axis=0))
+        return self.cart2polar(np.cross(z, x, axis=0))
 
     def polar2cart(self, ra, dec):
     
@@ -486,7 +486,7 @@ class UnBinnedData(DataIO):
         y = np.sin(np.deg2rad(ra)) * np.cos(np.deg2rad(dec))
         z = np.sin(np.deg2rad(dec))
     
-        return np.array([x,y,z])
+        return np.array([x, y, z])
 
     def cart2polar(self, vector):
     
@@ -506,7 +506,7 @@ class UnBinnedData(DataIO):
             Declination in degrees. 
         """
         
-        ra = np.arctan2(vector[1],vector[0]) 
+        ra = np.arctan2(vector[1], vector[0]) 
         dec = np.arcsin(vector[2])
     
         return np.rad2deg(ra), np.rad2deg(dec)
@@ -523,16 +523,16 @@ class UnBinnedData(DataIO):
 
         # Data units:
         units = [
-            'keV','s','rad','rad',
-            'rad','rad','rad','rad','cm','deg','deg']
+            'keV', 's', 'rad', 'rad',
+            'rad', 'rad', 'rad', 'rad', 'cm', 'deg', 'deg']
             
         # For fits output: 
         if self.unbinned_output == 'fits':
             table = Table(
-                list(self.cosi_dataset.values()),\
+                list(self.cosi_dataset.values()), \
                 names=list(self.cosi_dataset.keys()), \
                 units=units, \
-                meta={'version':cosipy.__version__})
+                meta={'version': cosipy.__version__})
             table.write("%s.fits" % output_name, overwrite=True)
             os.system('gzip -f %s.fits' % output_name)
 
@@ -563,10 +563,10 @@ class UnBinnedData(DataIO):
         this_dict = {}
         
         # Fill dictionary from input fits file:
-        hdu = fits.open(input_fits,memmap=True)
+        hdu = fits.open(input_fits, memmap=True)
         cols = hdu[1].columns
         data = hdu[1].data
-        for i in range(0,len(cols)):
+        for i in range(0, len(cols)):
             
             this_key = cols[i].name
             this_dict[this_key] = data[this_key]
@@ -595,7 +595,7 @@ class UnBinnedData(DataIO):
         this_dict = {}
 
         # Fill dictionary from input h5fy file:
-        hf = h5py.File(input_hdf5,"r")
+        hf = h5py.File(input_hdf5, "r")
         keys = list(hf.keys())
         for each in keys:
             this_dict[each] = hf[each][:]
@@ -691,7 +691,7 @@ class UnBinnedData(DataIO):
             
             if counter > 0:
                 for key in this_dict:
-                    self.cosi_dataset[key] = np.concatenate((self.cosi_dataset[key],this_dict[key]))
+                    self.cosi_dataset[key] = np.concatenate((self.cosi_dataset[key], this_dict[key]))
                     
             counter += 1
             

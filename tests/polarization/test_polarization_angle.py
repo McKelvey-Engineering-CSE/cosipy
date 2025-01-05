@@ -22,11 +22,11 @@ def test_pa_transformation():
 
     assert np.isclose(pa2.angle, 110*u.deg)
 
-    pa2 = pa.transform_to('RelativeZ', attitude = Attitude.from_rotvec([0,0,10]*u.deg))
+    pa2 = pa.transform_to('RelativeZ', attitude = Attitude.from_rotvec([0, 0, 10]*u.deg))
 
     assert np.isclose(pa2.angle, 110*u.deg)
 
-    pa2 = pa.transform_to('RelativeZ', attitude = Attitude.from_rotvec([30,0,0]*u.deg))
+    pa2 = pa.transform_to('RelativeZ', attitude = Attitude.from_rotvec([30, 0, 0]*u.deg))
 
     assert np.isclose(pa2.angle, 143.852403963*u.deg)
 

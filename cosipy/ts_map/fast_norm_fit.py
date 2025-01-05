@@ -83,7 +83,7 @@ class FastNormFit:
         
         ts = 0 if np.isscalar(norm) else np.zeros(np.shape(norm))
 
-        for d,b,ue in zip(data, bkg, unit_excess): 
+        for d, b, ue in zip(data, bkg, unit_excess): 
 
             e = norm*ue
 
@@ -99,7 +99,7 @@ class FastNormFit:
     @staticmethod
     def dts(data, bkg, unit_excess, norm, order=1):
         """
-        Get the derivative of TS with respecto to the normalization,
+        Get the derivative of TS with respect to the normalization,
         at given normalization. 
 
         Args:
@@ -124,7 +124,7 @@ class FastNormFit:
 
         dts = 0 if np.isscalar(norm) else np.zeros(np.shape(norm))
 
-        for d,b,ue in zip(data, bkg, unit_excess): 
+        for d, b, ue in zip(data, bkg, unit_excess): 
 
             e = norm*ue
 
@@ -208,8 +208,8 @@ class FastNormFit:
         
         while (not conv and iteration < self.max_iter):
 
-            step = (-self.dts(data, bkg, unit_excess, norm, order = 1) /
-                    self.dts(data, bkg, unit_excess, norm, order = 2)
+            step = (-self.dts(data, bkg, unit_excess, norm, order=1) /
+                    self.dts(data, bkg, unit_excess, norm, order=2)
                     )
         
             norm += step
@@ -221,9 +221,9 @@ class FastNormFit:
 
         # One extra step using Halley's method to avoid being biased toward 
             
-        f = self.dts(data, bkg, unit_excess, norm,1)
-        fp = self.dts(data, bkg, unit_excess, norm,2)
-        fpp = self.dts(data, bkg, unit_excess, norm,3)
+        f = self.dts(data, bkg, unit_excess, norm, 1)
+        fp = self.dts(data, bkg, unit_excess, norm, 2)
+        fpp = self.dts(data, bkg, unit_excess, norm, 3)
         norm -= 2 * f * fp / (2 * fp * fp - f * fpp)
 
         # Compute ts, norm error and checks
@@ -232,7 +232,7 @@ class FastNormFit:
 
         norm_err = sqrt(-2/self.dts(data, bkg, unit_excess, norm, 2))
 
-        failed = (norm < 0  or iteration == self.max_iter)
+        failed = (norm < 0 or iteration == self.max_iter)
 
         if ts < -self.zero_ts_tol:
             failed = True
