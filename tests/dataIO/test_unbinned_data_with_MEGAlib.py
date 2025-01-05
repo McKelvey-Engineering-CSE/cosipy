@@ -17,7 +17,7 @@ def compare(original,new,title,make_plots=False):
         plt.xlabel("Event")
         plt.ylabel("original - new")
         plt.title(title)
-        plt.savefig("%s.pdf" %title)
+        plt.savefig("%s.pdf" % title)
         plt.show()
         plt.close()
 
@@ -97,7 +97,7 @@ def test_unbinned_data_with_MEGAlib(tmp_path):
                             f"Fraction with diff > {thresh}: {bad_frac}. "
                             f"Max difference: {np.amax(np.absolute(diff))}  {each['units']}")
         else:
-            print("Passed: %s" %each["name"])
+            print("Passed: %s" % each["name"])
 
     # Also test the old MEGAlib parser:
     # This will only run for users with MEGAlib,

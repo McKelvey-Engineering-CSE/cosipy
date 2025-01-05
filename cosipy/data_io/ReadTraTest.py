@@ -72,7 +72,7 @@ class ReadTraTest(UnBinnedData):
         # Check if file exists:
         Reader = M.MFileEventsTra()
         if Reader.Open(M.MString(tra_file)) == False:
-            logger.error("Unable to open file %s. Aborting!" %self.data_file)
+            logger.error("Unable to open file %s. Aborting!" % self.data_file)
             sys.exit()
 
         # Initialise empty lists:

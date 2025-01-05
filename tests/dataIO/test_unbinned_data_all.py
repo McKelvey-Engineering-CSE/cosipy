@@ -68,8 +68,8 @@ def test_unbinned_data_all(tmp_path):
    
     # Test reading in .tra file (instead of .tra.gz):
     gz_test_file = tmp_path/test_filename
-    os.system("scp %s %s" %(analysis.data_file, gz_test_file))
-    os.system("gzip -dk %s" %gz_test_file)
+    os.system("scp %s %s" % (analysis.data_file, gz_test_file))
+    os.system("gzip -dk %s" % gz_test_file)
     analysis.data_file = os.path.join(tmp_path,"GalacticScan.inc1.id1.crab10sec.extracted.testsample.tra")
     analysis.read_tra()
     analysis.data_file = os.path.join(test_data.path,test_filename)

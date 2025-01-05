@@ -292,7 +292,7 @@ class ContinuumEstimation:
             for s in range(s_loop[0],s_loop[1]):
                 
                 pbar.update(1) # update progress bar
-                logger.info("Bin %s %s" %(str(E),str(s)))
+                logger.info("Bin %s %s" % (str(E), str(s)))
 
                 # Get PSR slice:
                 h = self.psr.slice[{'Em':E, 'Phi':s}].project('PsiChi')

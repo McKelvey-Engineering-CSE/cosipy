@@ -360,7 +360,7 @@ class SpacecraftFile():
                 self.z_pointings = z_pointings
 
             list_ = [self.x_pointings, self.y_pointings, self.z_pointings]
-            coord_list_of_path = [x for x in list_ if x!=None]  # check how many pointings the user input
+            coord_list_of_path = [x for x in list_ if x != None]  # check how many pointings the user input
 
             # Check if the user input pointings from at least two axes
             if len(coord_list_of_path) <= 1:
@@ -683,7 +683,7 @@ class SpacecraftFile():
             self.out_name = out_name
 
         # blow write the arf file
-        copyright_string="  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
+        copyright_string = "  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
 
         ## Create PrimaryHDU
         primaryhdu = fits.PrimaryHDU() # create an empty primary HDU
@@ -737,7 +737,7 @@ class SpacecraftFile():
             self.out_name = out_name
 
         # blow write the arf file
-        copyright_string="  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
+        copyright_string = "  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
 
         ## Create PrimaryHDU
         primaryhdu = fits.PrimaryHDU() # create an empty primary HDU
@@ -914,7 +914,7 @@ class SpacecraftFile():
         self.channel_number = len(self.src_counts)
 
         # define other hardcoded inputs
-        copyright_string="  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
+        copyright_string = "  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
         channels = np.arange(self.channel_number)
 
         # Create PrimaryHDU

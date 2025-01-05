@@ -109,7 +109,7 @@ def test_get_target_in_sc_frame():
 
 def test_get_dwell_map():
 
-    response_path =test_data.path / "test_full_detector_response.h5"
+    response_path = test_data.path / "test_full_detector_response.h5"
     ori_path = test_data.path / "20280301_first_10sec.ori"
     ori = SpacecraftFile.parse_from_file(ori_path)
     

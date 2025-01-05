@@ -140,8 +140,8 @@ class UnBinnedData(DataIO):
             # Need to get number of lines for progress bar.
             # First try fast method for unix-based systems:
             try:
-                proc=subprocess.Popen(
-                    'gunzip -c %s | wc -l' %self.data_file, \
+                proc = subprocess.Popen(
+                    'gunzip -c %s | wc -l' % self.data_file, \
                     shell=True, stdout=subprocess.PIPE)
                 num_lines = float(proc.communicate()[0])
 
@@ -158,8 +158,8 @@ class UnBinnedData(DataIO):
             f = open(self.data_file,"r")
 
             try:
-                proc=subprocess.Popen(
-                    'wc -l < %s' %self.data_file, \
+                proc = subprocess.Popen(
+                    'wc -l < %s' % self.data_file, \
                     shell=True, stdout=subprocess.PIPE)
                 num_lines = float(proc.communicate()[0])
                 
@@ -533,12 +533,12 @@ class UnBinnedData(DataIO):
                 names=list(self.cosi_dataset.keys()), \
                 units=units, \
                 meta={'version':cosipy.__version__})
-            table.write("%s.fits" %output_name, overwrite=True)
-            os.system('gzip -f %s.fits' %output_name)
+            table.write("%s.fits" % output_name, overwrite=True)
+            os.system('gzip -f %s.fits' % output_name)
 
         # For hdf5 output:
         if self.unbinned_output == 'hdf5':
-            with h5py.File('%s.hdf5' %output_name, 'w') as hf:
+            with h5py.File('%s.hdf5' % output_name, 'w') as hf:
                 for each in list(self.cosi_dataset.keys()):
                     dset = hf.create_dataset(each, data=self.cosi_dataset[each], compression='gzip')        
     
@@ -693,7 +693,7 @@ class UnBinnedData(DataIO):
                 for key in this_dict:
                     self.cosi_dataset[key] = np.concatenate((self.cosi_dataset[key],this_dict[key]))
                     
-            counter =+ 1
+            counter += 1
             
             # Clear unused memory:
             gc.collect()

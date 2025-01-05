@@ -134,7 +134,7 @@ class BinnedData(UnBinnedData):
 
         # Save binned data to hdf5 file:
         if output_name != None:
-            self.binned_data.write('%s.hdf5' %output_name, overwrite=True)
+            self.binned_data.write('%s.hdf5' % output_name, overwrite=True)
 
         # Get binning information:
         self.get_binning_info()
@@ -330,7 +330,7 @@ class BinnedData(UnBinnedData):
         ax.coords.grid(True, color='grey', ls='dotted')
         ax.get_figure().set_figwidth(6)
         ax.get_figure().set_figheight(3)
-        plt.savefig("%s.pdf" %output,bbox_inches='tight')
+        plt.savefig("%s.pdf" % output, bbox_inches = 'tight')
         if show_plots == True:
             plt.show()
         plt.close()
@@ -338,11 +338,11 @@ class BinnedData(UnBinnedData):
         # Plot rotated view:
         if coords:
             plot,ax = m.plot('orthview', ax_kw = {'rot':[coords[0],coords[1],0]})
-            ax.scatter(coords[0], coords[1], s=9, transform=ax.get_transform('world'), color = 'red')
-            ax.coords.grid(True, color='grey', ls='dotted')
+            ax.scatter(coords[0], coords[1], s = 9, transform = ax.get_transform('world'), color = 'red')
+            ax.coords.grid(True, color = 'grey', ls = 'dotted')
             ax.get_figure().set_figwidth(6)
             ax.get_figure().set_figheight(3)
-            plt.savefig("%s_rotated.pdf" %output,bbox_inches='tight')
+            plt.savefig("%s_rotated.pdf" % output, bbox_inches = 'tight')
             if show_plots == True:
                 plt.show()
             plt.close()
@@ -404,7 +404,7 @@ class BinnedData(UnBinnedData):
         
         # Save and show:
         if output_name != None:
-            plt.savefig("%s.pdf" %output_name)
+            plt.savefig("%s.pdf" % output_name)
         if show_plots == True:
             plt.show()
         plt.close()
@@ -436,11 +436,11 @@ class BinnedData(UnBinnedData):
             self.get_binning_info() 
 
         # Option to normalize by total time:
-        if time_rate==False:
+        if time_rate == False:
             raw_rate = self.energy_hist/self.energy_bin_widths
             ylabel = "$\mathrm{ct \ keV^{-1}}$"
             data_label = "Rate[ct/keV]"
-        if time_rate==True:
+        if time_rate == True:
             raw_rate = self.energy_hist/self.energy_bin_widths/self.total_time
             ylabel = "$\mathrm{ct \ keV^{-1} \ s^{-1}}$"
             data_label = "Rate[ct/keV/s]"
@@ -457,7 +457,7 @@ class BinnedData(UnBinnedData):
         if output_name != None:
             d = {"Energy[keV]":self.energy_bin_centers,data_label:raw_rate}
             df = pd.DataFrame(data=d)
-            df.to_csv("%s.dat" %output_name,float_format='%10.5e',index=False,sep="\t",columns=["Energy[keV]",data_label])
+            df.to_csv("%s.dat" % output_name, float_format='%10.5e', index=False,sep="\t", columns=["Energy[keV]", data_label])
         
         return
 
@@ -498,6 +498,6 @@ class BinnedData(UnBinnedData):
         if output_name != None:
             d = {"Time[UTC]":self.time_bin_centers,"Rate[ct/s]":self.time_hist/self.time_bin_widths}
             df = pd.DataFrame(data=d)
-            df.to_csv("%s.dat" %output_name,index=False,sep="\t",columns=["Time[UTC]","Rate[ct/s]"])
+            df.to_csv("%s.dat" % output_name,index=False,sep="\t",columns=["Time[UTC]","Rate[ct/s]"])
 
         return

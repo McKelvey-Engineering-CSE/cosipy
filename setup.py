@@ -7,7 +7,7 @@ with open("README.md", "r") as f:
 
 # Get common version number (https://stackoverflow.com/a/7071358)
 import re
-VERSIONFILE="cosipy/_version.py"
+VERSIONFILE = "cosipy/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)
@@ -16,7 +16,7 @@ if mo:
 else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
-setup(name='cosipy',
+setup(name = 'cosipy',
       version = verstr,
       author='COSI Team',
       author_email='imc@umd.edu',

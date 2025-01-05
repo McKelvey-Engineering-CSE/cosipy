@@ -275,7 +275,7 @@ class FullDetectorResponse(HealpixBase):
             raise InputError("Unknown response format")
         
         #check if the type of spectrum is known
-        assert norm=="powerlaw" or norm=="Mono" or norm=="Linear" or norm=="Gaussian",f"unknown normalisation ! {norm}" 
+        assert norm == "powerlaw" or norm == "Mono" or norm == "Linear" or norm == "Gaussian", f"unknown normalisation ! {norm}" 
          
         #check the number of simulated events is not 0
         assert nevents_sim != 0,"number of simulated events is 0 !" 
@@ -317,8 +317,8 @@ class FullDetectorResponse(HealpixBase):
             # Need to get number of lines for progress bar.
             # First try fast method for unix-based systems:
             try:
-                proc=subprocess.Popen(
-                    'gunzip -c %s | wc -l' %filename, \
+                proc = subprocess.Popen(
+                    'gunzip -c %s | wc -l' % filename, \
                     shell=True, stdout=subprocess.PIPE)
                 nlines = int(proc.communicate()[0])
 
@@ -327,7 +327,7 @@ class FullDetectorResponse(HealpixBase):
             except:
                 logger.info("Initial attempt failed.")
                 logger.info("Using long method...")
-                nlines = sum(1 for _ in gzip.open(filename,"rt"))
+                nlines = sum(1 for _ in gzip.open(filename, "rt"))
                 
             # Preallocate arrays
             coords = np.empty([axes.ndim, nlines], dtype=np.int16)
@@ -336,9 +336,7 @@ class FullDetectorResponse(HealpixBase):
             # Calculate the memory usage in Gigabytes
             memory_size = ((nlines * data.itemsize)+(axes.ndim*nlines*coords.itemsize))/(1024*1024*1024)
             logger.info(f"Estimated RAM you need to read the file : {memory_size} GB")
-
-    
-                
+   
         else:
             nlines = nbins        
             
@@ -362,7 +360,6 @@ class FullDetectorResponse(HealpixBase):
                 
                 for line in progress_bar:
 
-                
                     line = line.split()
 
                     if len(line) == 0:
@@ -379,6 +376,7 @@ class FullDetectorResponse(HealpixBase):
                         data[sbin] = c
 
                         sbin += 1
+
                     if sbin%10e6 == 0: 
                         progress_bar.update(10e6)
             
@@ -441,7 +439,7 @@ class FullDetectorResponse(HealpixBase):
             
             assert gauss_int == 1, "The gaussian spectrum is not fully contained in this single bin !"
             logger.info("Only one bin so we will use the Mono normalisation")
-            norm ="Mono"
+            norm = "Mono"
 
         if Spectrumfile is not None and norm == "file":
             logger.info("normalisation : spectrum file")
@@ -459,7 +457,7 @@ class FullDetectorResponse(HealpixBase):
 
             nperchannel_norm = hspec[:]
 
-        elif norm=="powerlaw":
+        elif norm == "powerlaw":
             logger.info("normalisation : powerlaw with index {0} with energy range [{1}-{2}]keV".format(alpha,emin,emax))
             # From powerlaw
 

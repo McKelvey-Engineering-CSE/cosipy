@@ -23,7 +23,7 @@ def test_inject_point_source():
     spectrum = Powerlaw()
     spectrum.index.value = index
     spectrum.K.value = K.value
-    spectrum.piv.value= piv.value 
+    spectrum.piv.value = piv.value 
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
     
@@ -61,7 +61,7 @@ def test_inject_point_source_galactic():
     spectrum = Powerlaw()
     spectrum.index.value = index
     spectrum.K.value = K.value
-    spectrum.piv.value= piv.value 
+    spectrum.piv.value = piv.value 
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
     
@@ -98,7 +98,7 @@ def test_inject_point_source_saving():
     spectrum = Powerlaw()
     spectrum.index.value = index
     spectrum.K.value = K.value
-    spectrum.piv.value= piv.value 
+    spectrum.piv.value = piv.value 
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
     
@@ -114,7 +114,7 @@ def test_inject_point_source_saving():
                                                         make_spectrum_plot = False, data_save_path = Path("./galactic_rsp.h5"),
                                                         project_axes = "Em")
     
-    hist= Histogram.open(Path("./galactic_rsp.h5"))
+    hist = Histogram.open(Path("./galactic_rsp.h5"))
     
     os.remove(Path("./galactic_rsp.h5"))
     
@@ -144,7 +144,7 @@ def test_orientation_error():
     spectrum = Powerlaw()
     spectrum.index.value = index
     spectrum.K.value = K.value
-    spectrum.piv.value= piv.value 
+    spectrum.piv.value = piv.value 
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
     
@@ -161,8 +161,3 @@ def test_orientation_error():
                                                             source_name = "point_source",
                                                             make_spectrum_plot = False, data_save_path = None,
                                                             project_axes = None)
-
-
-
-
-

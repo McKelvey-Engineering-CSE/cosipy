@@ -379,13 +379,13 @@ class FastTSMap():
         data_cds_array = FastTSMap.get_cds_array(self._data, energy_channel).flatten()
         bkg_model_cds_array = FastTSMap.get_cds_array(self._bkg_model, energy_channel).flatten()
         
-        if (data_cds_array[bkg_model_cds_array ==0]!=0).sum() != 0:
+        if (data_cds_array[bkg_model_cds_array == 0] != 0).sum() != 0:
             #raise ValueError("You have data!=0 but bkg=0, check your inputs!")
             # let's try to set the data bin to zero when the corresponding bkg bin isn't zero.
             # Need further investigate, why bkg = 0 but data!=0 happens? ==> it's more like an issue related to simulated data instead of code
             # This first happened in GRB fitting, but got fixed somehow <== I now understand it's caused by using different PsiChi binning in the same fit
             # But it also happened to Crab while the PsiChi binning are both galactic for Crab and the Albedo, why???? ?_?
-            data_cds_array[bkg_model_cds_array == 0] =0
+            data_cds_array[bkg_model_cds_array == 0] = 0
             
         
         # set up the number of cores to use for the parallel computation
