@@ -255,11 +255,11 @@ class SpacecraftFile():
         cosipy.spacecraft.SpacecraftFile
         """
 
-        if(start.format != 'unix' or stop.format != 'unix'):
+        if (start.format != 'unix' or stop.format != 'unix'):
             start = Time(start.unix, format='unix')
             stop = Time(stop.unix, format='unix')
 
-        if(start > stop):
+        if (start > stop):
             raise ValueError("start time cannot be after stop time.")
 
         stop_idx = self._load_time.searchsorted(stop.value)
