@@ -15,11 +15,7 @@ class ModelBase(Histogram, ABC):
     - set_values_from_parameters(self, parameter)
     """
 
-    def __init__(self, edges, contents = None, sumw2 = None,
-                 labels=None, axis_scale = None, sparse = None, unit = None):
-
-        super().__init__(edges, contents = contents, sumw2 = sumw2, 
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit)
+    # constructor passes everything up to Histogram.__init__()
 
     @classmethod
     @abstractmethod
@@ -42,7 +38,7 @@ class ModelBase(Histogram, ABC):
     @abstractmethod
     def set_values_from_parameters(self, parameter):
         """
-        Set values accordinng to the give parameters. 
+        Set values accordinng to the give parameters.
 
         Parameters
         ----------

@@ -136,8 +136,8 @@ class FullDetectorResponse(HealpixBase):
 
         # Init HealpixMap (local coordinates, main axis)
         HealpixBase.__init__(new,
-                                 base=new.axes['NuLambda'],
-                                 coordsys=SpacecraftFrame())
+                             base=new.axes['NuLambda'],
+                             coordsys=SpacecraftFrame())
 
         return new
 
@@ -412,14 +412,13 @@ class FullDetectorResponse(HealpixBase):
 
 
         if sparse :
-            dr = Histogram(axes, contents=COO(coords=coords[:, :nbins_sparse], data= data[:nbins_sparse], shape = tuple(axes.nbins)))
+            dr = Histogram(axes,
+                           contents=COO(coords=coords[:, :nbins_sparse], data= data[:nbins_sparse], shape = tuple(axes.nbins)),
+                           copy_contents = False)
 
         else :
 
-            dr = Histogram(axes, contents=data)
-
-
-
+            dr = Histogram(axes, contents=data, copy_contents = False)
 
 
         # Weight to get effective area
@@ -734,15 +733,18 @@ class FullDetectorResponse(HealpixBase):
             data = np.array(self._file['DRM']['CONTENTS'][pix])
 
             return DetectorResponse(self.axes[1:],
-                                contents=COO(coords=coords,
-                                             data=data,
-                                             shape=tuple(self.axes.nbins[1:])),
-                                unit=self.unit)
+                                    contents=COO(coords=coords,
+                                                 data=data,
+                                                 shape=tuple(self.axes.nbins[1:])),
+                                    unit=self.unit,
+                                    copy_contents = False)
 
         else :
             data = self._file['DRM']['CONTENTS'][pix]
             return DetectorResponse(self.axes[1:],
-                                contents=data, unit=self.unit)
+                                    contents=data,
+                                    unit=self.unit,
+                                    copy_contents = False)
 
     def close(self):
         """
@@ -793,15 +795,12 @@ class FullDetectorResponse(HealpixBase):
 
         pixels, weights = self.get_interp_weights(coord)
 
-
-
         dr = DetectorResponse(self.axes[1:],
                               sparse=self._sparse,
-                              unit=self.unit)
-
+                              unit=self.unit,
+                              track_overflow = False)
 
         for p, w in zip(pixels, weights):
-
             dr += self[p]*w
 
         return dr
@@ -851,7 +850,8 @@ class FullDetectorResponse(HealpixBase):
 
             psr = PointSourceResponse(self.axes[1:],
                                       sparse=self._sparse,
-                                      unit=u.cm*u.cm*u.s)
+                                      unit=u.cm*u.cm*u.s,
+                                      track_overflow = False)
 
             for p in range(self.npix):
 
@@ -873,20 +873,15 @@ class FullDetectorResponse(HealpixBase):
             if self.is_sparse:
                 raise ValueError("Coord +  scatt_map currently only supported for dense responses")
 
-            axis = "PsiChi"
-
             coords_axis = Axis(np.arange(coord.size+1), label = 'coords')
+            axes = Axes([coords_axis] + self.axes[1:]) # makes copies
+            axes["PsiChi"].coordsys = coord.frame # not shared with any other Axes yet
 
-            psr = Histogram([coords_axis] + list(deepcopy(self.axes[1:])),
-                            unit = self.unit * scatt_map.unit)
+            psrs = Histogram(axes, unit = self.unit * scatt_map.unit, track_overflow = False)
 
-            psr.axes[axis].coordsys = coord.frame
-
-            for i,(pixels, exposure) in \
+            for i, (pixels, exposure) in \
                 enumerate(zip(scatt_map.contents.coords.transpose(),
                               scatt_map.contents.data)):
-
-                #gc.collect() # HDF5 cache issues
 
                 att = Attitude.from_axes(x = scatt_map.axes['x'].pix2skycoord(pixels[0]),
                                          y = scatt_map.axes['y'].pix2skycoord(pixels[1]))
@@ -901,14 +896,15 @@ class FullDetectorResponse(HealpixBase):
 
                 dr_pix.axes['PsiChi'].coordsys = SpacecraftFrame(attitude = att)
 
-                self._sum_rot_hist(dr_pix, psr, exposure)
+                self._sum_rot_hist(dr_pix, psrs, exposure)
 
-            # Convert to PSR
-            psr = tuple([PointSourceResponse(psr.axes[1:],
-                                             contents = data,
-                                             sparse = psr.is_sparse,
-                                             unit = psr.unit)
-                         for data in psr[:]])
+            # Convert to tuple of psrs for each bin of coords axis
+            psr = tuple(PointSourceResponse(psr.axes[1:],
+                                            contents = data,
+                                            sparse = psr.is_sparse,
+                                            unit = psr.unit,
+                                            copy_contents = False)
+                        for data in psrs[:])
 
             if coord.size == 1:
                 return psr[0]

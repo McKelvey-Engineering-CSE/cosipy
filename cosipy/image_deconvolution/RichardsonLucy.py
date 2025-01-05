@@ -84,7 +84,9 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
 
         # mask setting
         if self.mask is None and np.any(self.summed_exposure_map.contents == 0):
-            self.mask = Histogram(self.model.axes, contents = self.summed_exposure_map.contents > 0)
+            self.mask = Histogram(self.model.axes,
+                                  contents = (self.summed_exposure_map.contents > 0),
+                                  copy_contents = False)
             self.model = self.model.mask_pixels(self.mask)
             logger.info("There are zero-exposure pixels. A mask to ignore them was set.")
 

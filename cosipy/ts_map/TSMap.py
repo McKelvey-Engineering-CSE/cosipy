@@ -194,7 +194,7 @@ class TSMap:
                 # converting the min (- log likelihood) from 3ML to the max log likelihood for TS
                 contents[i, j] = -self.like._current_minimum
 
-        return Histogram(axes, contents = contents)
+        return Histogram(axes, contents = contents, copy_contents = False)
 
     # iterate ra and dec to find the best fit of bkg
     # only see it as constant for now

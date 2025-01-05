@@ -83,10 +83,10 @@ class ExtendedSourceResponse(Histogram):
             and np.all(self.axes[1].edges == allsky_image_model.axes[1].edges) \
             and allsky_image_model.unit == u.Unit('1/(s*cm*cm*sr)'):
 
-            contents = np.tensordot(allsky_image_model.contents, self.contents, axes=([0,1], [0,1]))
+            contents = np.tensordot(allsky_image_model.contents, self.contents, axes=((0,1), (0,1)))
             contents *= self.axes[0].pixarea()
 
-            return Histogram(edges=self.axes[2:], contents=contents)
+            return Histogram(edges=self.axes[2:], contents=contents, copy_contents = False)
 
         else:
             raise ValueError(f"The input allskymodel mismatches with the extended source response.")
@@ -95,7 +95,7 @@ class ExtendedSourceResponse(Histogram):
         """
         Calculate expectation from an astromodels extended source model.
 
-        This method creates an AllSkyImageModel based on the current axes configuration,
+        This method creates an all-sky image model based on the current axes configuration,
         sets its values from the provided astromodels extended source model, and then
         calculates the expectation using the get_expectation method.
 

@@ -56,7 +56,7 @@ class AllSkyImageModel(ModelBase):
 
         axes = Axes([image_axis, energy_axis])
 
-        super().__init__(axes, sparse = False, unit = unit)
+        super().__init__(axes, sparse = False, unit = unit, track_overflow = False)
 
     @classmethod
     def instantiate_from_parameters(cls, parameter):

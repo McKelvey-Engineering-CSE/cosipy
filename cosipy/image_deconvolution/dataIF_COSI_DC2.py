@@ -176,12 +176,17 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                              self._image_response.axes["Phi"], \
                              self._image_response.axes["PsiChi"]])
 
-        self._event = Histogram(axes_cds, unit = self._event.unit, contents = self._event.contents)
+        self._event = Histogram(axes_cds,
+                                contents = self._event.contents,
+                                unit = self._event.unit,
+                                copy_contents = False) # overwite axes of existing Histogram
 
         for key in self._bkg_models:
             bkg_model = self._bkg_models[key]
-            self._bkg_models[key] = Histogram(axes_cds, unit = bkg_model.unit, contents = bkg_model.contents)
-            del bkg_model
+            self._bkg_models[key] = Histogram(axes_cds,
+                                              contents = bkg_model.contents,
+                                              unit = bkg_model.unit,
+                                              copy_contents = False) # overwite axes of existing Histogram
 
         logger.info(f"The axes in the event and background files are redefined. Now they are consistent with those of the response file.")
 
@@ -192,19 +197,22 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         Load a response file on the computer memory.
         """
 
-        axes_image_response = [full_detector_response.axes["NuLambda"], full_detector_response.axes["Ei"],
-                               full_detector_response.axes["Em"], full_detector_response.axes["Phi"], full_detector_response.axes["PsiChi"]]
-
-        npix = full_detector_response.axes["NuLambda"].npix
+        axes_image_response = Axes((full_detector_response.axes["NuLambda"],
+                                    full_detector_response.axes["Ei"],
+                                    full_detector_response.axes["Em"],
+                                    full_detector_response.axes["Phi"],
+                                    full_detector_response.axes["PsiChi"]))
 
         if is_miniDC2_format:
+            npix = axes_image_response["NuLambda"].npix
             slices = [ np.sum(full_detector_response[ipix].to_dense(), axis = (4,5)) for ipix in tqdm(range(npix)) ] #Ei, Em, Phi, ChiPsi
             contents = np.stack(slices)
         else:
             contents = full_detector_response._file['DRM']['CONTENTS']
 
         self._image_response = Histogram(axes_image_response, contents=contents,
-                                         unit = full_detector_response.unit)
+                                         unit = full_detector_response.unit,
+                                         copy_contents = False)
 
     def _calc_exposure_map(self):
         """
@@ -226,7 +234,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         exposure_map *= self.model_axes['lb'].pixarea()
 
-        self._exposure_map = Histogram(self._model_axes, contents = exposure_map)
+        self._exposure_map = Histogram(self._model_axes, contents = exposure_map, copy_contents = False)
 
         logger.info("Finished...")
 
@@ -280,7 +288,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             for key in self.keys_bkg_models():
                 expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
 
-        return Histogram(self.data_axes, contents = expectation)
+        return Histogram(self.data_axes, contents = expectation, copy_contents = False)
 
     def calc_T_product(self, dataspace_histogram):
         """
@@ -316,7 +324,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         tprod *= self.model_axes['lb'].pixarea()
 
-        return Histogram(self.model_axes, contents = tprod)
+        return Histogram(self.model_axes, contents = tprod, copy_contents = False)
 
     def calc_bkg_model_product(self, key, dataspace_histogram):
         """

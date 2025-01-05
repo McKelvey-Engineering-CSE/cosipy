@@ -68,6 +68,7 @@ class PointSourceResponse(Histogram):
         # if self is sparse, expectation will be a SparseArray with
         # no units, so set the result's unit explicitly
         hist = Histogram(self.axes[1:], contents = expectation,
-                         unit = self.unit * flux.unit)
+                         unit = self.unit * flux.unit,
+                         copy_contents = False)
 
         return hist

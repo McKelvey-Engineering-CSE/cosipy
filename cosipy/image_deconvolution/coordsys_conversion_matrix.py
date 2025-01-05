@@ -16,10 +16,11 @@ class CoordsysConversionMatrix(Histogram):
 
     def __init__(self, edges, contents = None, sumw2 = None,
                  labels=None, axis_scale = None, sparse = None, unit = None,
-                 binning_method = None):
+                 binning_method = None, copy_contents = True):
 
         super().__init__(edges, contents = contents, sumw2 = sumw2,
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit)
+                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit,
+                         track_overflow = False, copy_contents = copy_contents)
 
         self.binning_method = binning_method #'Time' or 'ScAtt'
 
@@ -91,7 +92,10 @@ class CoordsysConversionMatrix(Histogram):
 
             contents.append(ccm_thispix_sparse)
 
-        coordsys_conv_matrix = cls(axis_coordsys_conv_matrix, contents = sparse.concatenate(contents), unit = u.s, sparse = True)
+        coordsys_conv_matrix = cls(axis_coordsys_conv_matrix,
+                                   contents = sparse.concatenate(contents),
+                                   unit = u.s,
+                                   copy_contents = False)
 
         coordsys_conv_matrix.binning_method = "Time"
 
@@ -192,7 +196,10 @@ class CoordsysConversionMatrix(Histogram):
 
             contents.append(ccm_thispix_sparse)
 
-        coordsys_conv_matrix = cls(axis_coordsys_conv_matrix, contents = sparse.concatenate(contents), unit = u.s, sparse = True)
+        coordsys_conv_matrix = cls(axis_coordsys_conv_matrix,
+                                   contents = sparse.concatenate(contents),
+                                   unit = u.s,
+                                   copy_contents = False)
 
         coordsys_conv_matrix.binning_method = 'ScAtt'
 

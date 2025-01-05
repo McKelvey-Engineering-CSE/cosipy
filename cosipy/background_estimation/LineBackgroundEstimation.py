@@ -256,4 +256,4 @@ class LineBackgroundEstimation:
         corr_factor = source_weight / np.sum(weights)
         bkg_model *= corr_factor
 
-        return Histogram(new_axes, contents=bkg_model)
+        return Histogram(new_axes, contents=bkg_model, copy_contents=False)
