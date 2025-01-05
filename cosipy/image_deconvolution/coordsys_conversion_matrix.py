@@ -23,6 +23,11 @@ class CoordsysConversionMatrix(Histogram):
 
         self.binning_method = binning_method #'Time' or 'ScAtt'
 
+    def copy(self):
+        new = super().copy()
+        new.binning_method = self.binning_method
+        return new
+
     @classmethod
     def time_binning_ccm(cls, full_detector_response, orientation, time_intervals, nside_model = None, is_nest_model = False):
         """
@@ -213,8 +218,8 @@ class CoordsysConversionMatrix(Histogram):
 
         new = super().open(filename, name)
 
-        contents = new.contents
-        new.set_sumw2(contents) # copy so as not to alias contents
+        #contents = new.contents
+        #new.set_sumw2(contents) # copy so as not to alias contents
 
         new.binning_method = new.axes.labels[0] # 'Time' or 'ScAtt'
 

@@ -157,7 +157,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
         self.processed_delta_model = copy.deepcopy(self.delta_model)
 
         if self.do_response_weighting:
-            self.processed_delta_model[:] *= self.response_weighting_filter
+            self.processed_delta_model *= self.response_weighting_filter
 
         if self.do_smoothing:
             self.processed_delta_model = self.processed_delta_model.smoothing(fwhm = self.smoothing_fwhm)

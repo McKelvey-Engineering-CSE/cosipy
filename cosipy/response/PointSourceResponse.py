@@ -65,10 +65,9 @@ class PointSourceResponse(Histogram):
 
         expectation = np.tensordot(self.contents, flux.contents, axes = (0, 0))
 
-        # Note: np.tensordot loses unit if we use a sparse matrix as it input.
-        if self.is_sparse:
-            expectation *= self.unit * flux.unit
-
-        hist = Histogram(self.axes[1:], contents = expectation)
+        # if self is sparse, expectation will be a SparseArray with
+        # no units, so set the result's unit explicitly
+        hist = Histogram(self.axes[1:], contents = expectation,
+                         unit = self.unit * flux.unit)
 
         return hist
