@@ -2,6 +2,7 @@ import pytest
 
 from cosipy.image_deconvolution import ModelBase
 
+
 def test_model_base():
     ModelBase.__abstractmethods__ = set()
 

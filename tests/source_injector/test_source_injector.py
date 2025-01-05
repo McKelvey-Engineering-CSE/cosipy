@@ -9,6 +9,7 @@ import astropy.units as u
 from histpy import Histogram
 import pytest
 
+
 def test_inject_point_source():
 
     # defind the response and orientation
@@ -46,7 +47,6 @@ def test_inject_point_source():
     assert np.allclose(results.value,
                        [2.18846305e-03, 9.45773119e-03, 1.34892237e-02, 2.78741695e-03, 1.08413769e-02, 
                         6.28299687e-03, 3.63716712e-03, 1.43443841e-03, 3.79135752e-04, 2.10058977e-05])
-
 
 
 def test_inject_point_source_galactic():

@@ -10,6 +10,7 @@ from cosipy.response import FullDetectorResponse
 
 response_path = test_data.path / "test_full_detector_response.h5"
 
+
 def test_open():
 
     with FullDetectorResponse.open(response_path) as response:
@@ -23,7 +24,7 @@ def test_open():
 
         assert response.unit.is_equivalent('m2')
 
-    
+  
 def test_get_item():
 
     with FullDetectorResponse.open(response_path) as response:
@@ -36,6 +37,7 @@ def test_get_item():
                       ['Ei', 'Em', 'Phi', 'PsiChi', 'SigmaTau', 'Dist'])
 
         assert drm.unit.is_equivalent('m2')
+
 
 def test_get_interp_response():
 

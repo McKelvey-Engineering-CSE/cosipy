@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import pytest
 
+
 def test_fetch_wasabi_file():
 
     with tempfile.TemporaryDirectory() as tmpdir:

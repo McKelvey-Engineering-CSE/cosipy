@@ -2,9 +2,9 @@ import pytest
 from cosipy.background_estimation import ContinuumEstimation
 from cosipy import test_data
 
+
 def test_continuum_background_estimation():
    
-    
     instance = ContinuumEstimation() 
      
     # Test main method:

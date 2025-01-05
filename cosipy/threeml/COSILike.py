@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 import inspect
 
+
 class COSILike(PluginPrototype):
     """
     COSI 3ML plugin.

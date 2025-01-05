@@ -3,10 +3,12 @@ import pytest
 from cosipy.image_deconvolution import ImageDeconvolution
 from cosipy import test_data
 
+
 @pytest.fixture
 def parameter_filepath():
 
     return test_data.path / "image_deconvolution" / "imagedeconvolution_parfile_test.yml"
+
 
 def test_image_deconvolution(dataset, model, mask, parameter_filepath):
 
@@ -33,6 +35,7 @@ def test_image_deconvolution(dataset, model, mask, parameter_filepath):
 
     # get results
     results = image_deconvolution.results
+
 
 def test_image_deconvolution_override_parameter(dataset, model, mask, parameter_filepath):
 

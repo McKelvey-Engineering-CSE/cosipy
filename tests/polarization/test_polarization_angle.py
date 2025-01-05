@@ -10,6 +10,7 @@ from scoords import SpacecraftFrame, Attitude
 # Define common test data
 source_direction = SkyCoord(ra=-36*u.deg, dec=30*u.deg, frame='icrs')
 
+
 def test_pa_transformation():
 
     pa = PolarizationAngle(20*u.deg, source_direction, convention='IAU')

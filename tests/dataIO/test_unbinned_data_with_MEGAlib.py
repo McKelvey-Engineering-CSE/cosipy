@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
+
 # For comparing dataIO calculation to MEGAlib:
 def compare(original, new, title, make_plots=False):
 
@@ -22,6 +23,7 @@ def compare(original, new, title, make_plots=False):
         plt.close()
 
     return diff
+
 
 def test_unbinned_data_with_MEGAlib(tmp_path):
 

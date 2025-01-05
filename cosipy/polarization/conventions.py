@@ -4,6 +4,7 @@ import astropy.units as u
 import inspect
 from scoords import Attitude, SpacecraftFrame
 
+
 # Base class for polarization conventions
 class PolarizationConvention:
 
@@ -199,17 +200,20 @@ class MEGAlibRelative(OrthographicConvention):
         
         return px, py
 
+
 @PolarizationConvention.register("RelativeX")    
 class MEGAlibRelativeX(MEGAlibRelative):
 
     def __init__(self, *args, **kwargs):
         super().__init__('x', *args, **kwargs)
-        
+
+   
 @PolarizationConvention.register("RelativeY")    
 class MEGAlibRelativeY(MEGAlibRelative):
 
     def __init__(self, *args, **kwargs):
         super().__init__('y', *args, **kwargs)
+
 
 @PolarizationConvention.register("RelativeZ")    
 class MEGAlibRelativeZ(MEGAlibRelative):
@@ -217,7 +221,7 @@ class MEGAlibRelativeZ(MEGAlibRelative):
     def __init__(self, *args, **kwargs):
         super().__init__('z', *args, **kwargs)
 
-    
+
 # https://lambda.gsfc.nasa.gov/product/about/pol_convention.html
 # https://www.iau.org/static/resolutions/IAU1973_French.pdf
 @PolarizationConvention.register("IAU")

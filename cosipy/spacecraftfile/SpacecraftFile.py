@@ -18,6 +18,7 @@ from .scatt_map import SpacecraftAttitudeMap
 import logging
 logger = logging.getLogger(__name__)
 
+
 class SpacecraftFile():
 
     def __init__(

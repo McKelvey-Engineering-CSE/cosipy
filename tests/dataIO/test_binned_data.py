@@ -11,6 +11,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use('Svg')
 
+
 def test_binned_data(tmp_path):
     
     # Load file with dataIO class.

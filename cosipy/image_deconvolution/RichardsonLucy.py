@@ -10,6 +10,7 @@ from histpy import Histogram
 
 from .deconvolution_algorithm_base import DeconvolutionAlgorithmBase
 
+
 class RichardsonLucy(DeconvolutionAlgorithmBase):
     """
     A class for the RichardsonLucy algorithm. 

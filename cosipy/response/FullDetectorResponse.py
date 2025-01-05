@@ -34,6 +34,7 @@ import sys
 import pathlib
 import gc
 
+
 class FullDetectorResponse(HealpixBase):
     """
     Handles the multi-dimensional matrix that describes the

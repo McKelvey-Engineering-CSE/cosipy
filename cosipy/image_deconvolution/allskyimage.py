@@ -12,6 +12,7 @@ from cosipy.response.functions import get_integrated_spectral_model
 
 from .model_base import ModelBase
 
+
 class AllSkyImageModel(ModelBase):
     """
     Photon flux maps in given energy bands. 2-dimensional histogram.

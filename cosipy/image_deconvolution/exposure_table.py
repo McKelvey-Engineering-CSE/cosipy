@@ -10,6 +10,7 @@ import astropy.units as u
 
 from cosipy.spacecraftfile import SpacecraftAttitudeMap
 
+
 class SpacecraftAttitudeExposureTable(pd.DataFrame):
     """
     A class to analyze exposure time per each spacecraft attitude

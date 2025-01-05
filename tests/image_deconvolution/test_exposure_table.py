@@ -4,6 +4,7 @@ from cosipy import test_data
 from cosipy.image_deconvolution import SpacecraftAttitudeExposureTable
 from cosipy.spacecraftfile import SpacecraftFile
 
+
 def test_exposure_table(tmp_path):
 
     nside = 1

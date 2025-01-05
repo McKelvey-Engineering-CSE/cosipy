@@ -9,6 +9,7 @@ from scipy.optimize import curve_fit
 from scipy import integrate
 from iminuit import Minuit
 
+
 class LineBackgroundEstimation:
     """
     A class for estimating and modeling background in line spectra.

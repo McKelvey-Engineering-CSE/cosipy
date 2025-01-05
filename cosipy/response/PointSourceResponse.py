@@ -9,6 +9,7 @@ from threeML import DiracDelta, Constant, Line, Quadratic, Cubic, Quartic, StepF
 
 from .functions import get_integrated_spectral_model
 
+
 class PointSourceResponse(Histogram):
     """
     Handles the multi-dimensional matrix that describes the expected

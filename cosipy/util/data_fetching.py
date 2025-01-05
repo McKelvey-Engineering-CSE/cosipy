@@ -2,6 +2,7 @@ import os
 from awscli.clidriver import create_clidriver
 from pathlib import Path
 
+
 def fetch_wasabi_file(file,
                       output=None,
                       override=False,

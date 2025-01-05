@@ -3,6 +3,7 @@ from yayc import Configurator
 
 from cosipy.image_deconvolution import RichardsonLucySimple, RichardsonLucy
 
+
 def test_RicharsonLucySimple(dataset, model, mask):
 
     parameter = Configurator({"iteration_max": 2,
@@ -20,6 +21,7 @@ def test_RicharsonLucySimple(dataset, model, mask):
     algorithm.iteration()
 
     algorithm.finalization()
+
 
 def test_RicharsonLucy(dataset, model, mask, tmp_path):
 

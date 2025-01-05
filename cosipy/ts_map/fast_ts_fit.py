@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import logging
 logger = logging.getLogger(__name__)
 
+
 class FastTSMap():
     
     def __init__(self, data, bkg_model, response_path, orientation=None, cds_frame="local", scheme="RING"):

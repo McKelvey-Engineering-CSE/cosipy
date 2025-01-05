@@ -13,6 +13,7 @@ from tqdm import tqdm
 import logging
 logger = logging.getLogger(__name__)
 
+
 class ContinuumEstimation:
     
     def calc_psr(self, sc_orientation, detector_response, coord, nside=16):

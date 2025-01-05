@@ -3,6 +3,7 @@ from yayc import Configurator
 
 from cosipy.image_deconvolution import DeconvolutionAlgorithmBase
 
+
 def test_deconvolution_algorithm_base(dataset, model, mask):
 
     DeconvolutionAlgorithmBase.__abstractmethods__ = set()

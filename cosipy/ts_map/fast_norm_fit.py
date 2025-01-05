@@ -4,6 +4,7 @@ import numpy as np
 from numpy import log, sqrt, sqrt
 from math import factorial
 
+
 class FastNormFit:
     """
     Perform a fast poisson maximum likelihood ratio fit of the normalization of a 

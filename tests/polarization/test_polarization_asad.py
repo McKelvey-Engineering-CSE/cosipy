@@ -39,13 +39,15 @@ polarization = PolarizationASAD(source_direction, spectrum, response_path, sc_or
 
 bin_edges = Angle(np.linspace(-np.pi, np.pi, 10), unit=u.rad)
 
+
 def test_calculate_uncertainties():
 
     assert np.allclose(
                         calculate_uncertainties([1, 2, 3, 5, 10, 50, 100, 1000, 1e4, 1e5]), 
                         np.array([[0.82724622, 1.29181456, 1.63270469, 2.15969114, 3.16227766, 7.07106781, 10., 31.6227766, 100., 316.22776602], 
                                   [2.29952656, 2.63785962, 2.91818583, 3.38247265, 3.16227766, 7.07106781, 10., 31.6227766, 100., 316.22776602]]))
-    
+
+
 def test_convolve_spectrum():
 
     assert 'Pol' in polarization._expectation.axes.labels
@@ -59,6 +61,7 @@ def test_convolve_spectrum():
         ], 
         [-3.083541411881164, -1.5707963267948966, 0.371190531909648, 0.9731904991340073])
 
+
 def test_calculate_azimuthal_scattering_angle():
 
     assert np.allclose(
@@ -67,12 +70,14 @@ def test_calculate_azimuthal_scattering_angle():
             polarization.calculate_azimuthal_scattering_angle(np.pi/2, -np.pi/7).rad, polarization.calculate_azimuthal_scattering_angle(np.pi/3, 3*np.pi/2).rad
         ],
         [1.5707963267948966, -1.5707963267948966, -1.097213841102146, 0.1949572818104049])
-    
+
+
 def test_polarization_asad_init():
 
     source_direction_galactic = SkyCoord(0, 0, representation_type='spherical', frame='galactic', attitude=attitude, unit=u.deg)
     polarization_iau = PolarizationASAD(source_direction_galactic, spectrum, response_path, sc_orientation, fit_convention=IAUPolarizationConvention())
-    
+
+
 def test_polarization_fit():
 
     azimuthal_angles = polarization.calculate_azimuthal_scattering_angles(data)

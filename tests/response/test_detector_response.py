@@ -13,6 +13,7 @@ from pytest import approx
 
 response_path = test_data.path/"test_full_detector_response.h5"
 
+
 def test_get_effective_area():
     
     with FullDetectorResponse.open(response_path) as response:
@@ -62,7 +63,8 @@ def test_spectral_response():
         assert np.allclose(spec[9].to_value('cm2'),
                            [0.00543126, 0.03039386, 0.07430311, 0.05662412, 0.12452137,
                             0.12412425, 0.1377126, 0.11414493, 0.10317496, 0.03675906])
-        
+
+
 def test_get_dispersion_matrix():
 
     with FullDetectorResponse.open(response_path) as response:
@@ -72,7 +74,8 @@ def test_get_dispersion_matrix():
         rmf = drm.get_dispersion_matrix()
 
         assert np.allclose(rmf.project('Ei').to_dense().contents, 1)
-    
+
+
 def test_cosi_response(tmp_path):
 
     # Just check if it runs without errors
@@ -97,4 +100,3 @@ def test_cosi_response(tmp_path):
     cosi_response(['plot', 'dispersion', str(response_path),
                    '--lat', '90deg', '--lon', '0deg',
                    '-o', str(tmp_path/'test_plot_dispersion.png')])
-

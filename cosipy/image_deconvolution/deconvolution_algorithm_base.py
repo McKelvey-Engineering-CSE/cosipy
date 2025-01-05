@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 import logging
 logger = logging.getLogger(__name__)
 
+
 class DeconvolutionAlgorithmBase(ABC):
     """
     A base class for image deconvolution algorithms.

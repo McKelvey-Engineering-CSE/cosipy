@@ -8,6 +8,7 @@ from histpy import Histogram, Axes, Axis, HealpixAxis
 
 from threeML import Band, DiracDelta, Constant, Line, Quadratic, Cubic, Quartic, StepFunction, StepFunctionUpper, Cosine_Prior, Uniform_prior, PhAbs, Gaussian
 
+
 def get_integrated_spectral_model(spectrum, energy_axis):
     """
     Get the photon fluxes integrated over given energy bins with an input astropy spectral model
@@ -76,6 +77,7 @@ def get_integrated_spectral_model(spectrum, energy_axis):
 
     return flux
 
+
 def get_integrated_extended_model(extendedmodel, image_axis, energy_axis):
     """
     Calculate the integrated flux map for an extended source model.
@@ -114,4 +116,3 @@ def get_integrated_extended_model(extendedmodel, image_axis, energy_axis):
     flux_map = Histogram([image_axis, energy_axis], contents=np.tensordot(normalized_map, integrated_flux.contents, axes=0))
 
     return flux_map
-    

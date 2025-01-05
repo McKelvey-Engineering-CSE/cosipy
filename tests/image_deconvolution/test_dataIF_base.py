@@ -2,6 +2,7 @@ import pytest
 
 from cosipy.image_deconvolution import ImageDeconvolutionDataInterfaceBase
 
+
 def test_ImageDeconvolutionDataInterfaceBase():
     ImageDeconvolutionDataInterfaceBase.__abstractmethods__ = set()
 

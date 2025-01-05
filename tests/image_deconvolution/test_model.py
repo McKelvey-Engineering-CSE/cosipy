@@ -7,6 +7,7 @@ from histpy import Histogram
 from cosipy.image_deconvolution import AllSkyImageModel
 from cosipy import test_data
 
+
 def test_allskyimage():
 
     model = AllSkyImageModel(nside=1, energy_edges=[100, 1000] * u.keV)

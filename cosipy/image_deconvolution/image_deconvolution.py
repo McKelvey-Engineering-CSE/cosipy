@@ -10,6 +10,7 @@ from .allskyimage import AllSkyImageModel
 from .RichardsonLucy import RichardsonLucy
 from .RichardsonLucySimple import RichardsonLucySimple
 
+
 class ImageDeconvolution:
     """
     A class to reconstruct all-sky images from COSI data based on image deconvolution methods.

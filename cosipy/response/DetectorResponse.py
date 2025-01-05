@@ -9,6 +9,7 @@ from histpy import Histogram, Axes, Axis
 
 import astropy.units as u
 
+
 class DetectorResponse(Histogram):
     """
     Handles the multi-dimensional matrix that describes the

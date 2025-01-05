@@ -5,6 +5,7 @@ import numpy as np
 
 from cosipy import LineBackgroundEstimation, test_data
 
+
 def test_line_background_estimation():
     
     # prepare data

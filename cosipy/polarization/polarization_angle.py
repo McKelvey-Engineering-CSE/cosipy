@@ -4,6 +4,7 @@ import astropy.units as u
 
 from .conventions import PolarizationConvention
 
+
 class PolarizationAngle:
 
     def __init__(

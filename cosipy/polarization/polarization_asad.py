@@ -9,6 +9,7 @@ from cosipy.polarization.conventions import MEGAlibRelativeX, IAUPolarizationCon
 from cosipy.response import FullDetectorResponse
 from scoords import SpacecraftFrame
 
+
 def calculate_uncertainties(counts):
     """
     Calculate the Poisson/Gaussian uncertainties for a list of binned counts.
@@ -39,6 +40,7 @@ def calculate_uncertainties(counts):
     uncertainties = np.array([uncertainties_low, uncertainties_high])
         
     return uncertainties
+
 
 class PolarizationASAD():
     """

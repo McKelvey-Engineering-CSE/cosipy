@@ -8,6 +8,7 @@ from cosipy.image_deconvolution import SpacecraftAttitudeExposureTable
 
 from cosipy.image_deconvolution import CoordsysConversionMatrix
 
+
 def test_coordsys_conversion_matrix_time(tmp_path):
 
     full_detector_response = FullDetectorResponse.open(test_data.path / "test_full_detector_response.h5")
@@ -23,6 +24,7 @@ def test_coordsys_conversion_matrix_time(tmp_path):
     assert ccm.axes == ccm_test.axes
     assert np.allclose(ccm.contents.todense(), ccm_test.contents.todense())
     assert ccm.unit == ccm_test.unit
+
 
 def test_coordsys_conversion_matrix_scatt(tmp_path):
 

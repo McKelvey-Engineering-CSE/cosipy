@@ -52,6 +52,7 @@ source = PointSource("source",                   # Name of source (arbitrary, bu
 
 model = Model(source)
 
+
 def test_point_source_spectral_fit():
     
     cosi = COSILike("cosi",                                                      # COSI 3ML plugin

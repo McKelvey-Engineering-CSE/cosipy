@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from astropy.time import Time 
 
+
 def test_get_time():
 
     ori_path = test_data.path / "20280301_first_10sec.ori"
@@ -31,7 +32,6 @@ def test_get_time_delta():
 
     assert np.allclose(time_delta.value, np.array([1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 
                                                    1.000000, 1.000000, 1.000000, 1.000000, 1.000000]))
-
 
 
 def test_get_attitude():
@@ -191,7 +191,8 @@ def test_get_psr_rsp():
                                 [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                                 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                                 1.80651987e-04, 4.51902114e-02]]))
-    
+
+
 def test_get_arf():
     
     response_path = test_data.path / "test_full_detector_response.h5"
@@ -228,6 +229,7 @@ def test_get_arf():
         )   
     
     os.remove("test.arf")
+
 
 def test_get_rmf():
     
@@ -377,6 +379,7 @@ def test_get_pha():
                         fits_file[1].data.field("STAT_ERR"), \
                         np.array([3, 6, 8, 3, 7, 5, 4, 2, 1, 0]))
 
+
 def test_plot_arf():
 
     response_path = test_data.path / "test_full_detector_response.h5"
@@ -398,6 +401,7 @@ def test_plot_arf():
     os.remove("test.arf")
     os.remove("Effective_area_for_test.png")
 
+
 def test_plot_rmf():
 
     response_path = test_data.path / "test_full_detector_response.h5"
@@ -418,6 +422,7 @@ def test_plot_rmf():
     
     os.remove("test.rmf")
     os.remove("Redistribution_matrix_for_test.png")
+
 
 def test_source_interval():
 

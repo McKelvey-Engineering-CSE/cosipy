@@ -15,6 +15,7 @@ import astropy.io.fits as fits
 import logging
 logger = logging.getLogger(__name__)
 
+
 class TSMap:
 
     """

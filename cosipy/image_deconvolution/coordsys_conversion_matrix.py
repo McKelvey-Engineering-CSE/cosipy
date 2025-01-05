@@ -9,6 +9,7 @@ from astropy.coordinates import SkyCoord, cartesian_to_spherical, Galactic
 from scoords import Attitude, SpacecraftFrame
 from histpy import Histogram, Axes, Axis, HealpixAxis
 
+
 class CoordsysConversionMatrix(Histogram):
     """
     A class for coordinate conversion matrix (ccm).

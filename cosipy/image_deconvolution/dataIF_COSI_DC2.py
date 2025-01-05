@@ -13,6 +13,7 @@ from cosipy.response import FullDetectorResponse
 
 from .image_deconvolution_data_interface_base import ImageDeconvolutionDataInterfaceBase
 
+
 class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
     """
     A subclass of ImageDeconvolutionDataInterfaceBase for the COSI data challenge 2.

@@ -14,6 +14,7 @@ import astropy.units as u
 
 from histpy import Histogram, Axes, Axis
 
+
 class Band_Eflux(Function1D, metaclass=FunctionMeta):
     r"""
     description :
@@ -95,6 +96,7 @@ class Band_Eflux(Function1D, metaclass=FunctionMeta):
         A_ = K_ / integrate.quad(spectrum_, a_, b_)[0]
 
         return nb_func.band_eval(x_, A_, alpha_, beta_, E0_, 1.0) * unit_
+
 
 class SpecFromDat(Function1D, metaclass=FunctionMeta):
         r"""

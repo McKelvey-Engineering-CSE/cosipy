@@ -5,6 +5,7 @@ import gc
 
 from .functions import get_integrated_extended_model
 
+
 class ExtendedSourceResponse(Histogram):
     """
     A class to represent and manipulate extended source response data.

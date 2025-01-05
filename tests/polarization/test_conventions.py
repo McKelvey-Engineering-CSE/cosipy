@@ -8,6 +8,7 @@ from scoords import SpacecraftFrame
 # Define common test data
 source_direction = SkyCoord(ra=-90*u.deg, dec=0*u.deg, frame='icrs')  # -y
 
+
 def test_orthographic_projection_default():
 
     ortho_convention = OrthographicConvention()
@@ -15,6 +16,7 @@ def test_orthographic_projection_default():
 
     assert np.isclose(px.separation(SkyCoord(ra=0*u.deg, dec=90*u.deg)), 0)
     assert np.isclose(py.separation(SkyCoord(ra=0*u.deg, dec=0*u.deg)), 0)
+
 
 def test_stereographic_projection_default():
     

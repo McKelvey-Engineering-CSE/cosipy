@@ -6,6 +6,7 @@ import argparse
 import cosipy.data_io
 from yayc import Configurator
 
+
 class DataIO:
 
     """Handles main inputs and outputs."""

@@ -6,6 +6,7 @@ from histpy import Histogram, Axis, Axes
 from cosipy import test_data
 from cosipy.image_deconvolution import DataIF_COSI_DC2, AllSkyImageModel
 
+
 @pytest.fixture
 def dataset():
 
@@ -22,6 +23,7 @@ def dataset():
 
     return [data]
 
+
 @pytest.fixture
 def model(dataset):
 
@@ -29,6 +31,7 @@ def model(dataset):
     model[:] = 1.0 * model.unit
 
     return model
+
 
 @pytest.fixture
 def mask(dataset):

@@ -5,6 +5,7 @@ import os
 import numpy as np
 import pytest
 
+
 def test_unbinned_data_all(tmp_path):
 
     # Load file with dataIO class.

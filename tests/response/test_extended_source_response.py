@@ -7,8 +7,10 @@ import astropy.units as u
 
 extended_response_path = test_data.path/"test_precomputed_response.h5"
 
+
 def test_open():
     resp = ExtendedSourceResponse.open(extended_response_path)
+
 
 def test_get_expectation():
 
@@ -24,6 +26,7 @@ def test_get_expectation():
     hist = resp.get_expectation(allsky_imagemodel)
 
     assert isinstance(hist[:], u.quantity.Quantity) == True
+
 
 def test_get_expectation_from_astromodel():
 

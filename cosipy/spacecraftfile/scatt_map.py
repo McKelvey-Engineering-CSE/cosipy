@@ -2,6 +2,7 @@ from histpy import Histogram, HealpixAxis
 
 import astropy.units as u
 
+
 class SpacecraftAttitudeMap(Histogram):
 
     def __init__(self,

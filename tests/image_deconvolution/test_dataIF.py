@@ -5,6 +5,7 @@ from cosipy.image_deconvolution import ImageDeconvolutionDataInterfaceBase, Data
 from cosipy.response import FullDetectorResponse
 from cosipy import test_data
 
+
 def test_dataIF_COSI_DC2_miniDC2_format():
 
     event_binned_data = Histogram.open(test_data.path / "test_event_histogram_localCDS.hdf5")
@@ -18,6 +19,7 @@ def test_dataIF_COSI_DC2_miniDC2_format():
                                 rsp=rsp, 
                                 coordsys_conv_matrix=ccm, 
                                 is_miniDC2_format=True)
+
 
 def test_dataIF_COSI_DC2_localCDS_scatt():
 
@@ -43,6 +45,7 @@ def test_dataIF_COSI_DC2_localCDS_scatt():
     data.calc_T_product(expectation)
 
     data.calc_bkg_model_product("bkg", expectation)
+
 
 def test_dataIF_COSI_DC2_galacticCDS():
 

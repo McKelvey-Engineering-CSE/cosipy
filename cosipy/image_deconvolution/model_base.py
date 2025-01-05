@@ -4,6 +4,7 @@ import numpy as np
 import copy
 from histpy import Histogram
 
+
 class ModelBase(Histogram, ABC):
     """
     A base class of the model, i.e., a gamma-ray flux sky, and a gamma-ray distributions in a 3D space.

@@ -8,6 +8,7 @@ from histpy import Histogram
 
 from .deconvolution_algorithm_base import DeconvolutionAlgorithmBase
 
+
 class RichardsonLucySimple(DeconvolutionAlgorithmBase):
     """
     A class for the original RichardsonLucy algorithm. 

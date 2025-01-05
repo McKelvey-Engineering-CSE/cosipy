@@ -7,6 +7,7 @@ from cosipy.response import PointSourceResponse
 import sys
 from mhealpy import HealpixMap
 
+
 class SourceInjector():
     
     def __init__(self, response_path, response_frame="local"):
