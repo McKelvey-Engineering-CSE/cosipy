@@ -20,9 +20,9 @@ def test_coordsys_conversion_matrix_time(tmp_path):
 
     ccm_test = CoordsysConversionMatrix.open(test_data.path / "image_deconvolution/ccm_time_test.hdf5")
 
-    assert ccm.axes     == ccm_test.axes
+    assert ccm.axes == ccm_test.axes
     assert np.allclose(ccm.contents.todense(), ccm_test.contents.todense())
-    assert ccm.unit     == ccm_test.unit
+    assert ccm.unit == ccm_test.unit
 
 def test_coordsys_conversion_matrix_scatt(tmp_path):
 
@@ -36,9 +36,9 @@ def test_coordsys_conversion_matrix_scatt(tmp_path):
 
     ccm_test = CoordsysConversionMatrix.open(test_data.path / "image_deconvolution/ccm_scatt_use_averaged_pointing_False_test.hdf5")
 
-    assert ccm.axes     == ccm_test.axes
+    assert ccm.axes == ccm_test.axes
     assert np.allclose(ccm.contents.todense(), ccm_test.contents.todense())
-    assert ccm.unit     == ccm_test.unit
+    assert ccm.unit == ccm_test.unit
 
     ccm = CoordsysConversionMatrix.spacecraft_attitude_binning_ccm(full_detector_response, exposure_table, use_averaged_pointing = True)
 
@@ -46,6 +46,6 @@ def test_coordsys_conversion_matrix_scatt(tmp_path):
 
     ccm_test = CoordsysConversionMatrix.open(test_data.path / "image_deconvolution/ccm_scatt_use_averaged_pointing_True_test.hdf5")
 
-    assert ccm.axes     == ccm_test.axes
+    assert ccm.axes == ccm_test.axes
     assert np.allclose(ccm.contents.todense(), ccm_test.contents.todense())
-    assert ccm.unit     == ccm_test.unit
+    assert ccm.unit == ccm_test.unit

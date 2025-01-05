@@ -131,7 +131,7 @@ class SpecFromDat(Function1D, metaclass=FunctionMeta):
             ewidths = np.diff(dataEn, append=dataEn[-1])
 
             # Normalize dataFlux using the energy bin widths
-            dataFlux = dataFlux  / np.sum(dataFlux * ewidths)
+            dataFlux = dataFlux / np.sum(dataFlux * ewidths)
             
             fun = interp1d(dataEn,dataFlux,fill_value=0,bounds_error=False)
             

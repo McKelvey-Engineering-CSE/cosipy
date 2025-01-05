@@ -148,10 +148,10 @@ class SpacecraftAttitudeExposureTable(pd.DataFrame):
         n_pointing = len(pointing_list[0])
         
         x_1, x_2 = pointing_list[0][:-1], pointing_list[0][1:]
-        l_x, b_x =  0.5 * (x_1.l.degree + x_2.l.degree), 0.5 * (x_1.b.degree + x_2.b.degree)
+        l_x, b_x = 0.5 * (x_1.l.degree + x_2.l.degree), 0.5 * (x_1.b.degree + x_2.b.degree)
 
         z_1, z_2 = pointing_list[2][:-1], pointing_list[2][1:]
-        l_z, b_z =  0.5 * (z_1.l.degree + z_2.l.degree), 0.5 * (z_1.b.degree + z_2.b.degree)
+        l_z, b_z = 0.5 * (z_1.l.degree + z_2.l.degree), 0.5 * (z_1.b.degree + z_2.b.degree)
 
         if scheme == 'ring':
             nest = False

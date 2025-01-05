@@ -34,7 +34,7 @@ def test_line_background_estimation():
     ax, _ = instance.plot_energy_spectrum()
     
     # set range for source region
-    source_range = (2000.0, 2500.0)  * u.keV
+    source_range = (2000.0, 2500.0) * u.keV
 
     # generate background model
     

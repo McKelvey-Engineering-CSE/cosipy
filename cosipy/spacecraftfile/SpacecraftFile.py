@@ -500,7 +500,7 @@ class SpacecraftFile():
         
         pixel_unique = pixels[first_unique]
 
-        splits =  np.nonzero(first_unique)[0][1:]
+        splits = np.nonzero(first_unique)[0][1:]
         pixel_durations = [np.sum(weighted_duration[start:stop]) for start,stop in zip(np.append(0,splits), np.append(splits, pixels.size))]
         
         for pix, dur in zip(pixel_unique, pixel_durations):
@@ -697,15 +697,15 @@ class SpacecraftFile():
         cols = fits.ColDefs([col1_energ_lo, col2_energ_hi, col3_specresp]) # create a ColDefs (column-definitions) object for all columns
         specresp_bintablehdu = fits.BinTableHDU.from_columns(cols) # create a binary table HDU object
 
-        specresp_bintablehdu.header.comments["TTYPE1"] =  "label for field   1"
-        specresp_bintablehdu.header.comments["TFORM1"] =  "data format of field: 4-byte REAL"
-        specresp_bintablehdu.header.comments["TUNIT1"] =  "physical unit of field"
-        specresp_bintablehdu.header.comments["TTYPE2"] =  "label for field   2"
-        specresp_bintablehdu.header.comments["TFORM2"] =  "data format of field: 4-byte REAL"
-        specresp_bintablehdu.header.comments["TUNIT2"] =  "physical unit of field"
-        specresp_bintablehdu.header.comments["TTYPE3"] =  "label for field   3"
-        specresp_bintablehdu.header.comments["TFORM3"] =  "data format of field: 4-byte REAL"
-        specresp_bintablehdu.header.comments["TUNIT3"] =  "physical unit of field"
+        specresp_bintablehdu.header.comments["TTYPE1"] = "label for field   1"
+        specresp_bintablehdu.header.comments["TFORM1"] = "data format of field: 4-byte REAL"
+        specresp_bintablehdu.header.comments["TUNIT1"] = "physical unit of field"
+        specresp_bintablehdu.header.comments["TTYPE2"] = "label for field   2"
+        specresp_bintablehdu.header.comments["TFORM2"] = "data format of field: 4-byte REAL"
+        specresp_bintablehdu.header.comments["TUNIT2"] = "physical unit of field"
+        specresp_bintablehdu.header.comments["TTYPE3"] = "label for field   3"
+        specresp_bintablehdu.header.comments["TFORM3"] = "data format of field: 4-byte REAL"
+        specresp_bintablehdu.header.comments["TUNIT3"] = "physical unit of field"
 
         specresp_bintablehdu.header["EXTNAME"] = ("SPECRESP","name of this binary table extension")
         specresp_bintablehdu.header["TELESCOP"] = ("COSI","mission/satellite name")

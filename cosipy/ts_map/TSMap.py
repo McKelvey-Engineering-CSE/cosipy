@@ -55,18 +55,18 @@ class TSMap:
         """
         
         # necessary inputs
-        self.dr             = dr
-        self.data           = data
-        self.bkg            = bkg
+        self.dr = dr
+        self.data = data
+        self.bkg = bkg
         self.sc_orientation = sc_orientation
-        self.piv            = piv
-        self.index          = index
+        self.piv = piv
+        self.index = index
         
         # optional inputs (have default value)
-        self.other_plugins  = other_plugins
-        self.norm           = norm
-        self.ra             = ra
-        self.dec            = dec
+        self.other_plugins = other_plugins
+        self.norm = norm
+        self.ra = ra
+        self.dec = dec
         
         # instantiate plugin by dr, data, bkg and sc_orientation
         # only COSI plugin for now
@@ -165,7 +165,7 @@ class TSMap:
         """
         
         # using rad due to mollweide projection
-        self.ra_range  = (-np.pi, np.pi) # rad
+        self.ra_range = (-np.pi, np.pi) # rad
         self.dec_range = (-np.pi/2, np.pi/2) # rad
         
         self.log_like = Histogram(

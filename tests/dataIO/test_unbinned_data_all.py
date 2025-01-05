@@ -79,7 +79,7 @@ def test_unbinned_data_all(tmp_path):
     analysis.unbinned_output = "fits"
     analysis.combine_unbinned_data(
         [tmp_path/"test_fits.fits.gz",tmp_path/"test_fits.fits.gz"],
-        output_name  =tmp_path/"temp_test_file")
+        output_name = tmp_path/"temp_test_file")
     assert len(analysis.cosi_dataset['TimeTags']) == 2*n_events
     
     # Test selections method.

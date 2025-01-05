@@ -22,7 +22,7 @@ class SourceInjector():
             The frame of the Compton data space (CDS) of the response. It only accepts `local` or "galactic". (the default is `local`, which means the CDS is in the local detector frame.
         """
 
-        self.response_path =  response_path
+        self.response_path = response_path
 
         if response_frame == "local" or response_frame == "galactic":
 
