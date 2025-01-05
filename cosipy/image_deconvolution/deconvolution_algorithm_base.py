@@ -133,7 +133,7 @@ class DeconvolutionAlgorithmBase(ABC):
         """
         raise NotImplementedError
 
-### A subclass should not override the methods below. ###
+# A subclass should not override the methods below.
 
     def iteration(self):
         """

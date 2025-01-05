@@ -51,7 +51,7 @@ def test_image_deconvolution_override_parameter(dataset, model, mask, parameter_
     image_deconvolution.override_parameter("deconvolution:parameter:iteration_max = 1")
 
     # override a wrong parameter 
-    ## model
+    # model
     image_deconvolution.read_parameterfile(parameter_filepath)
 
     image_deconvolution.override_parameter('model_definition:class = "WrongName"')
@@ -59,7 +59,7 @@ def test_image_deconvolution_override_parameter(dataset, model, mask, parameter_
     with pytest.raises(ValueError) as e_info:
         image_deconvolution.initialize()
 
-    ## algorithm
+    # algorithm
     image_deconvolution.read_parameterfile(parameter_filepath)
 
     image_deconvolution.override_parameter('deconvolution:algorithm = "WrongName"')

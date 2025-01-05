@@ -45,7 +45,7 @@ def test_allskyimage():
 
     # set values from astromodels
     
-    ### spectrum
+    # spectrum
     F = 4e-2 / u.cm / u.cm / u.s  
     mu = 511*u.keV
     sigma = 0.85*u.keV
@@ -57,11 +57,11 @@ def test_allskyimage():
     spectrum.sigma.value = sigma.value
     spectrum.sigma.unit = sigma.unit
     
-    ### morphology:
+    # morphology:
     morphology = Gaussian_on_sphere(lon0=359.75, lat0=-1.25, sigma=5)
     
-    ### define source:
+    # define source:
     src = ExtendedSource('gaussian', spectral_shape=spectrum, spatial_shape=morphology)
     
-    ### set values 
+    # set values 
     model.set_values_from_extendedmodel(src)

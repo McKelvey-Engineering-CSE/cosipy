@@ -685,7 +685,7 @@ class SpacecraftFile():
         # blow write the arf file
         copyright_string = "  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
 
-        ## Create PrimaryHDU
+        # Create PrimaryHDU
         primaryhdu = fits.PrimaryHDU()  # create an empty primary HDU
         primaryhdu.header["BITPIX"] = -32  # since it's an empty HDU, I can just change the data type by resetting the BIPTIX value
         primaryhdu.header["COMMENT"] = copyright_string  # add comments
@@ -739,14 +739,14 @@ class SpacecraftFile():
         # blow write the arf file
         copyright_string = "  FITS (Flexible Image Transport System) format is defined in 'Astronomy and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H "
 
-        ## Create PrimaryHDU
+        # Create PrimaryHDU
         primaryhdu = fits.PrimaryHDU()  # create an empty primary HDU
         primaryhdu.header["BITPIX"] = -32  # since it's an empty HDU, I can just change the data type by resetting the BIPTIX value
         primaryhdu.header["COMMENT"] = copyright_string  # add comments
         primaryhdu.header  # print headers and their values
 
-        ## Create binary table HDU for MATRIX
-        ### prepare colums
+        # Create binary table HDU for MATRIX
+        # prepare columns
         energ_lo = []
         energ_hi = []
         n_grp = []
@@ -821,7 +821,7 @@ class SpacecraftFile():
         matrix_bintablehdu.header["HDUVERS"] = ("1.3.0", "version of format")
         matrix_bintablehdu.header["TLMIN4"] = (0, "minimum value legally allowed in column 4")
 
-        ## Create binary table HDU for EBOUNDS
+        # Create binary table HDU for EBOUNDS
         channels = np.int16(np.arange(len(self.Em_lo)))
         e_min = np.float32(self.Em_lo)
         e_max = np.float32(self.Em_hi)
