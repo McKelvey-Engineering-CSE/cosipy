@@ -3,8 +3,6 @@ logger = logging.getLogger(__name__)
 
 import numpy as np
 
-from copy import deepcopy
-
 from histpy import Histogram, Axes, Axis
 
 import astropy.units as u
@@ -37,6 +35,15 @@ class DetectorResponse(Histogram):
 
         self._spec = None
         self._aeff = None
+
+    def copy(self):
+
+        new = super().copy()
+
+        new._spec = self._spec
+        new._aeff = self._aeff
+
+        return new
 
     def _write(self, file, group_name):
         group = super()._write(file, group_name)
@@ -76,7 +83,7 @@ class DetectorResponse(Histogram):
                                           unit = spec.unit)
 
         if copy:
-            return deepcopy(self._spec)
+            return self._spec.copy()
         else:
             return self._spec
 
@@ -102,7 +109,7 @@ class DetectorResponse(Histogram):
 
         if energy is None:
             if copy:
-                return deepcopy(self._aeff)
+                return self._aeff.copy()
             else:
                 return self._aeff
         else:

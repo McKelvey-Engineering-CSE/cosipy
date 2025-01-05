@@ -26,7 +26,6 @@ import argparse
 import logging
 logger = logging.getLogger(__name__)
 
-from copy import copy, deepcopy
 import gzip
 from tqdm import tqdm
 import subprocess
