@@ -377,7 +377,7 @@ class FullDetectorResponse(HealpixBase):
 
                         sbin += 1
 
-                    if sbin%10e6 == 0: 
+                    if (sbin % 10e6) == 0: 
                         progress_bar.update(10e6)
             
                 progress_bar.close()
