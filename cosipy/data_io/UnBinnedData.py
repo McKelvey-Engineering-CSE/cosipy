@@ -323,12 +323,12 @@ class UnBinnedData(DataIO):
         chi_loc = conv[2].value
 
         # Calculate chi_gal and psi_gal from x,y,z coordinates of events:
-        xcoords = SkyCoord(lonX*u.rad, latX*u.rad, frame = 'galactic')
-        zcoords = SkyCoord(lonZ*u.rad, latZ*u.rad, frame = 'galactic')
-        attitude = Attitude.from_axes(x=xcoords, z=zcoords, frame = 'galactic')
+        xcoords = SkyCoord(lonX*u.rad, latX*u.rad, frame='galactic')
+        zcoords = SkyCoord(lonZ*u.rad, latZ*u.rad, frame='galactic')
+        attitude = Attitude.from_axes(x=xcoords, z=zcoords, frame='galactic')
         c = SkyCoord(
             dg_x, dg_y, dg_z, \
-            representation_type='cartesian', frame = SpacecraftFrame(attitude = attitude))   
+            representation_type='cartesian', frame=SpacecraftFrame(attitude=attitude))   
         c_rotated = c.transform_to('galactic')
         chi_gal = np.array(c_rotated.l.deg)
         psi_gal = np.array(c_rotated.b.deg)

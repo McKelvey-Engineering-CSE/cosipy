@@ -50,8 +50,8 @@ class FullDetectorResponse(HealpixBase):
 
     @classmethod
     def open(
-            cls, filename, Spectrumfile = None, norm = "Linear", single_pixel = False, \
-            alpha = 0, emin = 90, emax = 10000, polarization = False):
+            cls, filename, Spectrumfile=None, norm="Linear", single_pixel=False, \
+            alpha=0, emin=90, emax=10000, polarization=False):
         """
         Open a detector response file.
 
@@ -109,9 +109,9 @@ class FullDetectorResponse(HealpixBase):
         new._unit = u.Unit(new._drm.attrs['UNIT'])
         
         try:
-                new._sparse = new._drm.attrs['SPARSE']
+            new._sparse = new._drm.attrs['SPARSE']
         except KeyError:
-                new._sparse = True
+            new._sparse = True
 
         # Axes
         axes = []
@@ -155,8 +155,8 @@ class FullDetectorResponse(HealpixBase):
 
     @classmethod
     def _open_rsp(
-            cls, filename, Spectrumfile = None, norm = "Linear", single_pixel = False, \
-            alpha = 0, emin = 90, emax = 10000):
+            cls, filename, Spectrumfile=None, norm="Linear", single_pixel=False, \
+            alpha=0, emin=90, emax=10000):
         """
         
          Open a detector response rsp file.
@@ -184,8 +184,6 @@ class FullDetectorResponse(HealpixBase):
              emin/emax used in the simulation source file.
         """
 
-        
-        
         axes_names = []
         axes_edges = []
         axes_types = []
@@ -249,7 +247,6 @@ class FullDetectorResponse(HealpixBase):
                         else:
                             nside = int(2**int(line[1]))
                             axes_edges.append(int(12*nside**2))
-                        
                         
                     else:
                         axes_edges.append(np.array(line[1:], dtype='float'))
@@ -403,12 +400,12 @@ class FullDetectorResponse(HealpixBase):
                             logger.info("nb of bin content read ({0}) != nb of bins {1}".format(len(line), nbins))
                             sys.exit()
                         
-                        for i in tqdm(range(nbins), desc = "Processing", unit="bin"):
+                        for i in tqdm(range(nbins), desc="Processing", unit="bin"):
                             data[i] = line[i]  
                 
                         # we reshape the bincontent to the response matrice dimension
                         # note that for non sparse matrice SigmaTau and Dist are not used
-                        data = np.reshape(data, tuple(axes.nbins), order = "F")
+                        data = np.reshape(data, tuple(axes.nbins), order="F")
 
                         break
         
@@ -419,9 +416,9 @@ class FullDetectorResponse(HealpixBase):
 
         
         if sparse:
-            dr = Histogram(axes, contents = COO(coords = coords[:, :nbins_sparse], data = data[:nbins_sparse], shape = tuple(axes.nbins)))
+            dr = Histogram(axes, contents=COO(coords=coords[:, :nbins_sparse], data=data[:nbins_sparse], shape=tuple(axes.nbins)))
         else:
-            dr = Histogram(axes, contents = data)
+            dr = Histogram(axes, contents=data)
 
         # Weight to get effective area
 
@@ -612,7 +609,7 @@ class FullDetectorResponse(HealpixBase):
         else:
             data = drm.create_dataset(
                 'CONTENTS',
-                data=np.transpose(dr_area.contents, axes = [1, 0, 2, 3, 4]),
+                data=np.transpose(dr_area.contents, axes=[1, 0, 2, 3, 4]),
                 compression="gzip")
         
         #close the .h5 file in write mode in order to reopen it in read mode after
@@ -794,10 +791,10 @@ class FullDetectorResponse(HealpixBase):
 
     def get_point_source_response(
             self,
-            exposure_map = None,
-            coord = None,
-            scatt_map = None,
-            Earth_occ = True):
+            exposure_map=None,
+            coord=None,
+            scatt_map=None,
+            Earth_occ=True):
         """
         Convolve the all-sky detector response with exposure for a source at a given
         sky location.
@@ -862,11 +859,11 @@ class FullDetectorResponse(HealpixBase):
 
             axis = "PsiChi"
 
-            coords_axis = Axis(np.arange(coord.size+1), label = 'coords')
+            coords_axis = Axis(np.arange(coord.size+1), label='coords')
 
             psr = Histogram(
                 [coords_axis] + list(deepcopy(self.axes[1:])), 
-                unit = self.unit * scatt_map.unit)
+                unit=self.unit * scatt_map.unit)
             
             psr.axes[axis].coordsys = coord.frame
 
@@ -876,18 +873,19 @@ class FullDetectorResponse(HealpixBase):
 
                 #gc.collect() # HDF5 cache issues
                 
-                att = Attitude.from_axes(x = scatt_map.axes['x'].pix2skycoord(pixels[0]),
-                                         y = scatt_map.axes['y'].pix2skycoord(pixels[1]))
+                att = Attitude.from_axes(
+                    x=scatt_map.axes['x'].pix2skycoord(pixels[0]),
+                    y=scatt_map.axes['y'].pix2skycoord(pixels[1]))
 
                 coord.attitude = att
 
                 #TODO: Change this to interpolation
                 loc_nulambda_pixels = np.array(self.axes['NuLambda'].find_bin(coord),
-                                               ndmin = 1)
+                                               ndmin=1)
                 
                 dr_pix = Histogram.concatenate(coords_axis, [self[i] for i in loc_nulambda_pixels])
 
-                dr_pix.axes['PsiChi'].coordsys = SpacecraftFrame(attitude = att)
+                dr_pix.axes['PsiChi'].coordsys = SpacecraftFrame(attitude=att)
 
                 self._sum_rot_hist(dr_pix, psr, exposure)
 
@@ -895,9 +893,9 @@ class FullDetectorResponse(HealpixBase):
             psr = tuple([
                 PointSourceResponse(
                     psr.axes[1:],
-                    contents = data,
-                    sparse = psr.is_sparse,
-                    unit = psr.unit)
+                    contents=data,
+                    sparse=psr.is_sparse,
+                    unit=psr.unit)
                 for data in psr[:]])
             
             if coord.size == 1:
@@ -906,7 +904,7 @@ class FullDetectorResponse(HealpixBase):
                 return psr
             
     @staticmethod
-    def _sum_rot_hist(h, h_new, exposure, axis = "PsiChi"):
+    def _sum_rot_hist(h, h_new, exposure, axis="PsiChi"):
         """
         Rotate a histogram with HealpixAxis h into the grid of h_new, and sum
         it up with the weight of exposure.

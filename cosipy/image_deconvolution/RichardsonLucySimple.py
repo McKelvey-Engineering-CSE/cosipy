@@ -46,7 +46,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
 
         # mask setting
         if self.mask is None and np.any(self.summed_exposure_map.contents == 0):
-            self.mask = Histogram(self.model.axes, contents = self.summed_exposure_map.contents > 0)
+            self.mask = Histogram(self.model.axes, contents=self.summed_exposure_map.contents > 0)
             self.model = self.model.mask_pixels(self.mask)
             logger.info("There are zero-exposure pixels. A mask to ignore them was set.")
 
@@ -67,7 +67,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
         E-step in RL algoritm
         """
 
-        self.expectation_list = self.calc_expectation_list(self.model, dict_bkg_norm = self.dict_bkg_norm)
+        self.expectation_list = self.calc_expectation_list(self.model, dict_bkg_norm=self.dict_bkg_norm)
         logger.debug("The expected count histograms were updated with the new model map.")
 
     def Mstep(self):

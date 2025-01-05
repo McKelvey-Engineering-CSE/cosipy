@@ -41,9 +41,9 @@ def test_get_interp_response():
 
     with FullDetectorResponse.open(response_path) as response:
 
-        drm = response.get_interp_response(SkyCoord(lon = 0*u.deg,
-                                                    lat = 0*u.deg,
-                                                    frame = SpacecraftFrame()))
+        drm = response.get_interp_response(SkyCoord(lon=0*u.deg,
+                                                    lat=0*u.deg,
+                                                    frame=SpacecraftFrame()))
 
         assert drm.ndim == 6
 
@@ -51,10 +51,3 @@ def test_get_interp_response():
                       ['Ei', 'Em', 'Phi', 'PsiChi', 'SigmaTau', 'Dist'])
 
         assert drm.unit.is_equivalent('m2')
-        
-
-    
-
-        
-        
-    

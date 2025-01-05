@@ -124,8 +124,8 @@ class SpecFromDat(Function1D, metaclass=FunctionMeta):
             self.K.unit = y_unit
 
         def evaluate(self, x, K):
-            dataFlux = np.genfromtxt(self.dat.value, comments="#", usecols = (2), skip_footer=1, skip_header=5)
-            dataEn = np.genfromtxt(self.dat.value, comments="#", usecols = (1), skip_footer=1, skip_header=5)
+            dataFlux = np.genfromtxt(self.dat.value, comments="#", usecols=(2), skip_footer=1, skip_header=5)
+            dataEn = np.genfromtxt(self.dat.value, comments="#", usecols=(1), skip_footer=1, skip_header=5)
             
             # Calculate the widths of the energy bins
             ewidths = np.diff(dataEn, append=dataEn[-1])

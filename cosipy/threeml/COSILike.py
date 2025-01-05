@@ -323,8 +323,8 @@ class COSILike(PluginPrototype):
             Dwell time map
         """
         
-        self._sc_orientation.get_target_in_sc_frame(target_name = self._name, target_coord = coord)
-        dwell_time_map = self._sc_orientation.get_dwell_map(response = self._rsp_path)
+        self._sc_orientation.get_target_in_sc_frame(target_name=self._name, target_coord=coord)
+        dwell_time_map = self._sc_orientation.get_dwell_map(response=self._rsp_path)
         
         return dwell_time_map
     
@@ -343,8 +343,8 @@ class COSILike(PluginPrototype):
         """
         
         scatt_map = self._sc_orientation.get_scatt_map(
-            coord, nside = self._dr.nside * 2, \
-            coordsys = 'galactic', earth_occ = self.earth_occ)
+            coord, nside=self._dr.nside * 2, \
+            coordsys='galactic', earth_occ=self.earth_occ)
         
         return scatt_map
     

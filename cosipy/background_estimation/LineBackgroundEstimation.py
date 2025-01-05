@@ -238,7 +238,7 @@ class LineBackgroundEstimation:
             if axis.label != "Em":
                 new_axes.append(axis)
             else:
-                new_axes.append(Axis(source_energy_range, label = "Em"))
+                new_axes.append(Axis(source_energy_range, label="Em"))
         
         bkg_model_histogram = Histogram(new_axes)
 

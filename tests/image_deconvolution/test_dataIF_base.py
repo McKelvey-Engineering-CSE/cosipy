@@ -18,17 +18,17 @@ def test_ImageDeconvolutionDataInterfaceBase():
     assert data.bkg_model("test") is None
 
     with pytest.raises(RuntimeError) as e_info:
-        data.calc_expectation(model = None, dict_bkg_norm = {"test": 1})
+        data.calc_expectation(model=None, dict_bkg_norm={"test": 1})
     assert e_info.type is NotImplementedError
 
     with pytest.raises(RuntimeError) as e_info:
-        data.calc_T_product(dataspace_histogram = None)
+        data.calc_T_product(dataspace_histogram=None)
     assert e_info.type is NotImplementedError
 
     with pytest.raises(RuntimeError) as e_info:
-        data.calc_bkg_model_product(key = "test", dataspace_histogram = None)
+        data.calc_bkg_model_product(key="test", dataspace_histogram=None)
     assert e_info.type is NotImplementedError
 
     with pytest.raises(RuntimeError) as e_info:
-        data.calc_loglikelihood(expectation = None)
+        data.calc_loglikelihood(expectation=None)
     assert e_info.type is NotImplementedError

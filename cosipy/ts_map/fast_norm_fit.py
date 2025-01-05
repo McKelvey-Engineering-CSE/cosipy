@@ -50,10 +50,10 @@ class FastNormFit:
     """    
 
     def __init__(self,
-                 max_iter = 1000,
-                 conv_frac_tol = 1e-3,
-                 zero_ts_tol = 1e-5,
-                 allow_negative = False):
+                 max_iter=1000,
+                 conv_frac_tol=1e-3,
+                 zero_ts_tol=1e-5,
+                 allow_negative=False):
 
         self.max_iter = max_iter
         self.conv_frac_tol = conv_frac_tol
@@ -172,7 +172,7 @@ class FastNormFit:
             # Poisson Likelihood. When negative norm is allowed we assume
             # that we are in the Gaussian regime
 
-            ddts0 = self.dts(data, bkg, unit_excess, 0, order = 2)
+            ddts0 = self.dts(data, bkg, unit_excess, 0, order=2)
 
             if self.allow_negative:
 

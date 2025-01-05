@@ -20,10 +20,10 @@ def test_parallel_ts_fit():
     src_bkg = Histogram.open(src_bkg_path).project(['Em', 'PsiChi', 'Phi'])
     bkg = Histogram.open(bkg_path).project(['Em', 'PsiChi', 'Phi'])
 
-    ts = FastTSMap(data = src_bkg, bkg_model = bkg, orientation = ori, 
-                   response_path = response_path, cds_frame = "local", scheme = "RING")
+    ts = FastTSMap(data=src_bkg, bkg_model=bkg, orientation=ori, 
+                   response_path=response_path, cds_frame="local", scheme="RING")
 
-    hypothesis_coords = FastTSMap.get_hypothesis_coords(nside = 1)
+    hypothesis_coords = FastTSMap.get_hypothesis_coords(nside=1)
     
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -35,7 +35,7 @@ def test_parallel_ts_fit():
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
 
-    ts_results = ts.parallel_ts_fit(hypothesis_coords = hypothesis_coords, energy_channel = [2, 3], spectrum = spectrum, ts_scheme = "RING", cpu_cores = 2)
+    ts_results = ts.parallel_ts_fit(hypothesis_coords=hypothesis_coords, energy_channel=[2, 3], spectrum=spectrum, ts_scheme="RING", cpu_cores=2)
 
     assert np.allclose(ts_results[:, 1],
                        [51.30709447, 51.16302889, 51.11429069, 

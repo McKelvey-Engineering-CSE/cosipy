@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class FastTSMap():
     
-    def __init__(self, data, bkg_model, response_path, orientation = None, cds_frame = "local", scheme = "RING"):
+    def __init__(self, data, bkg_model, response_path, orientation=None, cds_frame="local", scheme="RING"):
         
         """
         Initialize the instance if a TS map fit.
@@ -77,7 +77,7 @@ class FastTSMap():
         return sliced_hist
     
     @staticmethod
-    def get_hypothesis_coords(nside, scheme = "RING", coordsys = "galactic"):
+    def get_hypothesis_coords(nside, scheme="RING", coordsys="galactic"):
         
         """
         Get a list of hypothesis coordinates.
@@ -98,7 +98,7 @@ class FastTSMap():
         """
         
         data_array = np.zeros(hp.nside2npix(nside))
-        ts_temp = HealpixMap(data = data_array, scheme = scheme, coordsys = coordsys)
+        ts_temp = HealpixMap(data=data_array, scheme=scheme, coordsys=coordsys)
         
         hypothesis_coords = []
         for i in np.arange(data_array.shape[0]):
@@ -185,19 +185,19 @@ class FastTSMap():
         axes = Axes(axes)
         
         # get the pixel number of the hypothesis coordinate
-        map_temp = HealpixMap(base = axes[0])
+        map_temp = HealpixMap(base=axes[0])
         hypothesis_coord_pix_number = map_temp.ang2pix(hypothesis_coord)
         
         # get the expectation for the hypothesis coordinate (a point source)
         with h5.File(response_path) as f:
             pix = hypothesis_coord_pix_number
-            psr = PointSourceResponse(axes[1:], f['hist/contents'][pix+1], unit = f['hist'].attrs['unit'])
+            psr = PointSourceResponse(axes[1:], f['hist/contents'][pix+1], unit=f['hist'].attrs['unit'])
                 
         return psr
     
     
     @staticmethod
-    def get_ei_cds_array(hypothesis_coord, energy_channel, response_path, spectrum, cds_frame, orientation = None):
+    def get_ei_cds_array(hypothesis_coord, energy_channel, response_path, spectrum, cds_frame, orientation=None):
                          
         """
         Get the expected counts in CDS in local or galactic frame.
@@ -234,16 +234,16 @@ class FastTSMap():
 
             #time_coord_convert_start = time.time()
             # convert the hypothesis coord to the local frame (Spacecraft frame)
-            hypothesis_in_sc_frame = orientation.get_target_in_sc_frame(target_name = "Hypothesis", 
-                                                                        target_coord = hypothesis_coord, 
-                                                                        quiet = True)
+            hypothesis_in_sc_frame = orientation.get_target_in_sc_frame(target_name="Hypothesis", 
+                                                                        target_coord=hypothesis_coord, 
+                                                                        quiet=True)
             #time_coord_convert_end = time.time()
             #time_coord_convert_used = time_coord_convert_end - time_coord_convert_start
             #logger.info(f"The time used for coordinate conversion is {time_coord_convert_used}s.")
 
             #time_dwell_start = time.time()
             # get the dwell time map: the map of the time spent on each pixel in the local frame
-            dwell_time_map = orientation.get_dwell_map(response = response_path)
+            dwell_time_map = orientation.get_dwell_map(response=response_path)
             #time_dwell_end = time.time()
             #time_dwell_used = time_dwell_end - time_dwell_start
             #logger.info(f"The time used for dwell time map is {time_dwell_used}s.")
@@ -258,7 +258,7 @@ class FastTSMap():
 
         elif cds_frame == "galactic":
             
-            psr = FastTSMap.get_psr_in_galactic(hypothesis_coord = hypothesis_coord, response_path = response_path, spectrum = spectrum)
+            psr = FastTSMap.get_psr_in_galactic(hypothesis_coord=hypothesis_coord, response_path=response_path, spectrum=spectrum)
             
         else:
             raise ValueError("The point source response must be calculated in the local and galactic frame. Others are not supported (yet)!")
@@ -320,13 +320,13 @@ class FastTSMap():
         start_fast_ts_fit = time.time()
 
         # get the indices of the pixels to fit
-        pix = hp.ang2pix(nside = ts_nside, theta = hypothesis_coord.l.deg, phi = hypothesis_coord.b.deg, lonlat = True)
+        pix = hp.ang2pix(nside=ts_nside, theta=hypothesis_coord.l.deg, phi=hypothesis_coord.b.deg, lonlat=True)
         
         # get the expected counts in the flattened cds array
         start_ei_cds_array = time.time()
-        ei_cds_array = FastTSMap.get_ei_cds_array(hypothesis_coord = hypothesis_coord, cds_frame = cds_frame,
-                                                  energy_channel = energy_channel, orientation = orientation, 
-                                                  response_path = response_path, spectrum = spectrum)
+        ei_cds_array = FastTSMap.get_ei_cds_array(hypothesis_coord=hypothesis_coord, cds_frame=cds_frame,
+                                                  energy_channel=energy_channel, orientation=orientation, 
+                                                  response_path=response_path, spectrum=spectrum)
         end_ei_cds_array = time.time()
         time_ei_cds_array = end_ei_cds_array - start_ei_cds_array
         
@@ -343,7 +343,7 @@ class FastTSMap():
         return [pix, result[0], result[1], result[2], result[3], result[4], time_ei_cds_array, time_fit, time_fast_ts_fit]
 
         
-    def parallel_ts_fit(self, hypothesis_coords, energy_channel, spectrum, ts_scheme = "RING", start_method = "fork", cpu_cores = None, ts_nside = None):
+    def parallel_ts_fit(self, hypothesis_coords, energy_channel, spectrum, ts_scheme="RING", start_method="fork", cpu_cores=None, ts_nside=None):
         
         """
         Perform parallel computation on all the hypothesis coordinates.
@@ -400,8 +400,8 @@ class FastTSMap():
             logger.info(f"You have total {total_cores} CPU cores, using {cores} CPU cores for parallel computation.")
 
         start = time.time()
-        multiprocessing.set_start_method(start_method, force = True)
-        pool = multiprocessing.Pool(processes = cores)
+        multiprocessing.set_start_method(start_method, force=True)
+        pool = multiprocessing.Pool(processes=cores)
         results = pool.starmap(
             FastTSMap.fast_ts_fit, 
             product(
@@ -428,7 +428,7 @@ class FastTSMap():
         return results
 
     @staticmethod
-    def _plot_ts(ts_array, skycoord = None, containment = None, save_plot = False, save_dir = "", save_name = "ts_map.png", dpi = 300):
+    def _plot_ts(ts_array, skycoord=None, containment=None, save_plot=False, save_dir="", save_name="ts_map.png", dpi=300):
 
         """
         Plot the containment region of the TS map.
@@ -469,22 +469,22 @@ class FastTSMap():
             percentage = containment*100
             max_ts = np.max(m_ts[:])
             min_ts = np.min(m_ts[:])        
-            hp.mollview(m_ts[:], max = max_ts, min = max_ts-critical, title = f"Containment {percentage}%", coord = "G", hold = True) 
+            hp.mollview(m_ts[:], max=max_ts, min=max_ts-critical, title=f"Containment {percentage}%", coord="G", hold=True) 
         elif containment == None:
-            hp.mollview(m_ts[:], coord = "G", hold = True) 
+            hp.mollview(m_ts[:], coord="G", hold=True) 
 
         if skycoord != None:
-            hp.projscatter(lon, lat, marker = "x", linewidths = 0.5, lonlat=True, coord = "G", label = f"True location at l={lon}, b={lat}", color = "fuchsia")
-        hp.projscatter(0, 0, marker = "o", linewidths = 0.5, lonlat=True, coord = "G", color = "red")
-        hp.projtext(350, 0, "(l=0, b=0)", lonlat=True, coord = "G", color = "red")
+            hp.projscatter(lon, lat, marker="x", linewidths=0.5, lonlat=True, coord="G", label=f"True location at l={lon}, b={lat}", color="fuchsia")
+        hp.projscatter(0, 0, marker="o", linewidths=0.5, lonlat=True, coord="G", color="red")
+        hp.projtext(350, 0, "(l=0, b=0)", lonlat=True, coord="G", color="red")
 
         if save_plot == True:
 
-            fig.savefig(Path(save_dir)/save_name, dpi = dpi)
+            fig.savefig(Path(save_dir)/save_name, dpi=dpi)
 
         return
 
-    def plot_ts(self, ts_array = None, skycoord = None, containment = None, save_plot = False, save_dir = "", save_name = "ts_map.png", dpi = 300):
+    def plot_ts(self, ts_array=None, skycoord=None, containment=None, save_plot=False, save_dir="", save_name="ts_map.png", dpi=300):
 
         """
         Plot the containment region of the TS map.
@@ -507,19 +507,18 @@ class FastTSMap():
 
         if ts_array is not None:
 
-            FastTSMap._plot_ts(ts_array = ts_array, skycoord = skycoord, containment = containment, 
-
-                               save_plot = save_plot, save_dir = save_dir, save_name = save_name, dpi = dpi)
+            FastTSMap._plot_ts(ts_array=ts_array, skycoord=skycoord, containment=containment, 
+                               save_plot=save_plot, save_dir=save_dir, save_name=save_name, dpi=dpi)
 
         else:
 
-            FastTSMap._plot_ts(ts_array = self.ts_array, skycoord = skycoord, containment = containment, 
-                               save_plot = save_plot, save_dir = save_dir, save_name = save_name, dpi = dpi)
+            FastTSMap._plot_ts(ts_array=self.ts_array, skycoord=skycoord, containment=containment, 
+                               save_plot=save_plot, save_dir=save_dir, save_name=save_name, dpi=dpi)
 
         return
 
     @staticmethod
-    def get_chi_critical_value(containment = 0.90):
+    def get_chi_critical_value(containment=0.90):
         
         """
         Get the critical value of the chi^2 distribution based ob the confidence level.

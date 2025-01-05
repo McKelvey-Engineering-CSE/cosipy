@@ -9,10 +9,10 @@ from cosipy import test_data
 
 def test_allskyimage():
 
-    model = AllSkyImageModel(nside = 1, energy_edges = [100, 1000] * u.keV)
+    model = AllSkyImageModel(nside=1, energy_edges=[100, 1000] * u.keV)
     
     # different energy unit
-    model = AllSkyImageModel(nside = 1, energy_edges = [0.1, 1.0] * u.MeV)
+    model = AllSkyImageModel(nside=1, energy_edges=[0.1, 1.0] * u.MeV)
 
     # open a file
     model = AllSkyImageModel.open(test_data.path / "image_deconvolution/all_sky_image_model_test_nside1.hdf5")
@@ -35,13 +35,13 @@ def test_allskyimage():
     model = AllSkyImageModel.instantiate_from_parameters(parameter)
     
     # smoothing
-    model.smoothing(fwhm = 10.0 * u.deg)
-    model.smoothing(sigma = 10.0 * u.deg)
+    model.smoothing(fwhm=10.0 * u.deg)
+    model.smoothing(sigma=10.0 * u.deg)
     
     # mask
-    mask = Histogram(model.axes, contents = np.zeros(model.axes.nbins, dtype = bool))
+    mask = Histogram(model.axes, contents=np.zeros(model.axes.nbins, dtype=bool))
 
-    model.mask_pixels(mask = mask, fill_value = 0)
+    model.mask_pixels(mask=mask, fill_value=0)
 
     # set values from astromodels
     
@@ -58,7 +58,7 @@ def test_allskyimage():
     spectrum.sigma.unit = sigma.unit
     
     ### morphology:
-    morphology = Gaussian_on_sphere(lon0 = 359.75, lat0 = -1.25, sigma = 5)
+    morphology = Gaussian_on_sphere(lon0=359.75, lat0=-1.25, sigma=5)
     
     ### define source:
     src = ExtendedSource('gaussian', spectral_shape=spectrum, spatial_shape=morphology)

@@ -38,7 +38,7 @@ class DetectorResponse(Histogram):
         self._spec = None
         self._aeff = None
     
-    def get_spectral_response(self, copy = True):
+    def get_spectral_response(self, copy=True):
         """
         Reduced detector response, projected along the real and measured energy axes only.
         The Compton Data Space axes are not included.
@@ -57,15 +57,15 @@ class DetectorResponse(Histogram):
         if self._spec is None:
             spec = self.project(['Ei', 'Em'])
             self._spec = DetectorResponse(spec.axes,
-                                          contents = spec.contents,
-                                          unit = spec.unit)
+                                          contents=spec.contents,
+                                          unit=spec.unit)
 
         if copy:
             return deepcopy(self._spec)
         else:
             return self._spec
         
-    def get_effective_area(self, energy = None, copy = True):
+    def get_effective_area(self, energy=None, copy=True):
         """
         Compute the effective area at a given energy. If no energy is specified, the
         output is a histogram for the effective area at each energy bin.
@@ -83,7 +83,7 @@ class DetectorResponse(Histogram):
         """
         
         if self._aeff is None:
-            self._aeff = self.get_spectral_response(copy = False).project('Ei').to_dense()
+            self._aeff = self.get_spectral_response(copy=False).project('Ei').to_dense()
 
         if energy is None:
             if copy:
@@ -105,7 +105,7 @@ class DetectorResponse(Histogram):
         """
         
         # Get spectral response and effective area normalization
-        spec = self.get_spectral_response(copy = False)
+        spec = self.get_spectral_response(copy=False)
         norm = self.get_effective_area().full_contents
 
         # Hack the under/overflow bins to supress 0/0 wearning
@@ -148,7 +148,3 @@ class DetectorResponse(Histogram):
         """
         
         return self.axes['Em']
-        
-
-        
-    

@@ -12,7 +12,7 @@ def test_fetch_wasabi_file():
 
         # Using output
         output = Path(tmpdir)/filename
-        fetch_wasabi_file(filename, output = output)
+        fetch_wasabi_file(filename, output=output)
         
         f = open(output)
         
@@ -21,7 +21,7 @@ def test_fetch_wasabi_file():
         # Current directory default and override
         os.chdir(tmpdir)
         
-        fetch_wasabi_file(filename, override = True)
+        fetch_wasabi_file(filename, override=True)
         
         f = open(filename)
         
@@ -30,4 +30,3 @@ def test_fetch_wasabi_file():
         # Test error when file exists and no override
         with pytest.raises(RuntimeError):
             fetch_wasabi_file(filename)
-        

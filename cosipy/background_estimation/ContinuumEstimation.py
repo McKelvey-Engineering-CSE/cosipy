@@ -41,11 +41,11 @@ class ContinuumEstimation:
         dr = detector_response
 
         # Scatt map:
-        scatt_map = sc_orientation.get_scatt_map(coord, nside = nside, coordsys = 'galactic')
+        scatt_map = sc_orientation.get_scatt_map(coord, nside=nside, coordsys='galactic')
 
         # Calculate PSR:
         with FullDetectorResponse.open(dr) as response:
-            psr = response.get_point_source_response(coord = coord, scatt_map = scatt_map)
+            psr = response.get_point_source_response(coord=coord, scatt_map=scatt_map)
 
         return psr
 
@@ -124,7 +124,7 @@ class ContinuumEstimation:
 
         # Get healpix map:
         h = psichi_map
-        m = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.contents)
+        m = HealpixMap(base=HealpixBase(npix=h.nbins), data=h.contents)
 
         # Sort data in descending order:
         sorted_data = np.sort(m)[::-1]
@@ -302,7 +302,7 @@ class ContinuumEstimation:
 
                 # Mask data:
                 h_data = self.full_data.binned_data.project('Em', 'Phi', 'PsiChi').slice[{'Em': E, 'Phi': s}].project('PsiChi')
-                m_data = HealpixMap(base=HealpixBase(npix = h_data.nbins), data=h_data.contents.todense())
+                m_data = HealpixMap(base=HealpixBase(npix=h_data.nbins), data=h_data.contents.todense())
                 m_data[sorted_indices[arm_mask]] = 0
 
                 # Skip this iteration if map is all zeros:

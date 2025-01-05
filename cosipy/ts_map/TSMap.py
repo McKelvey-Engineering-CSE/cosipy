@@ -85,7 +85,7 @@ class TSMap:
         self.fix_index()
         
         # put model and all plugins together
-        self.like = JointLikelihood(self.model, self.all_plugins, verbose = False)
+        self.like = JointLikelihood(self.model, self.all_plugins, verbose=False)
         
     def instantiate_plugin(self):
 
@@ -95,10 +95,10 @@ class TSMap:
         
         if self.other_plugins == None:
             self.cosi_plugin = COSILike("cosi",
-                                        dr = self.dr,
-                                        data = self.data, 
-                                        bkg = self.bkg, 
-                                        sc_orientation = self.sc_orientation)
+                                        dr=self.dr,
+                                        data=self.data, 
+                                        bkg=self.bkg, 
+                                        sc_orientation=self.sc_orientation)
         else:
             raise RuntimeError("Only COSI plugin for now")
             
@@ -132,9 +132,9 @@ class TSMap:
         self.spectrum.index.value = self.index
         
         self.source = PointSource("source", # The name of the source is arbitrary, but needs to be unique
-                                  ra = self.ra, 
-                                  dec = self.dec,
-                                  spectral_shape = self.spectrum)
+                                  ra=self.ra, 
+                                  dec=self.dec,
+                                  spectral_shape=self.spectrum)
         
         self.model = Model(self.source)
         
@@ -169,16 +169,16 @@ class TSMap:
         self.dec_range = (-np.pi/2, np.pi/2) # rad
         
         self.log_like = Histogram(
-            [Axis(np.linspace(*self.ra_range, 50), label = "ra"), 
-             Axis(np.linspace(*self.dec_range, 25), label = "dec"),]
+            [Axis(np.linspace(*self.ra_range, 50), label="ra"), 
+             Axis(np.linspace(*self.dec_range, 25), label="dec"),]
         )
         
         for i in range(self.log_like.axes['ra'].nbins):
             for j in range(self.log_like.axes['dec'].nbins):
         
                 # progress
-                logger.info(f"\rra = {i:2d}/{self.log_like.axes['ra'].nbins}   ", end = "")
-                logger.info(f"dec = {j:2d}/{self.log_like.axes['dec'].nbins}   ", end = "")
+                logger.info(f"\rra = {i:2d}/{self.log_like.axes['ra'].nbins}   ", end="")
+                logger.info(f"dec = {j:2d}/{self.log_like.axes['dec'].nbins}   ", end="")
         
                 # changing the position parameters
                 # converting rad to deg due to ra and dec in 3ML PointSource
@@ -256,7 +256,7 @@ class TSMap:
         """
         
         # save TS to .h5 file
-        self.ts.write(output_file_name, overwrite = True)
+        self.ts.write(output_file_name, overwrite=True)
     
     def load_ts(self, input_file_name):
 
@@ -309,12 +309,12 @@ class TSMap:
         
         _, plot = self.ts.plot(ax, vmin=0, colorbar=False, zorder=0)
         
-        ax.scatter([self.ts.axes['ra'].centers[self.argmax[0]]], [self.ts.axes['dec'].centers[self.argmax[1]]], label = "Max TS", zorder=3)
+        ax.scatter([self.ts.axes['ra'].centers[self.argmax[0]]], [self.ts.axes['dec'].centers[self.argmax[1]]], label="Max TS", zorder=3)
         
         ax.scatter([20/180*np.pi], [40/180*np.pi], marker="x", label="Injected", zorder=2)
         
         # here we also use Wilk's theorem to find the DeltaTS that corresponse to a 90% containment confidence
-        ts_thresh = self.ts_max - stats.chi2.isf(1-.9, df = 2)
+        ts_thresh = self.ts_max - stats.chi2.isf(1-.9, df=2)
         contours = ax.contour(self.ts.axes['ra'].centers, 
                               self.ts.axes['dec'].centers, 
                               self.ts.contents.transpose(), 

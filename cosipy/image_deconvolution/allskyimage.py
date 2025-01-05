@@ -35,11 +35,11 @@ class AllSkyImageModel(ModelBase):
     def __init__(self,
                  nside,
                  energy_edges,
-                 scheme = 'ring',
-                 coordsys = 'galactic',
-                 label_image = 'lb',
-                 label_energy = 'Ei',
-                 unit = '1/(s*cm*cm*sr)'
+                 scheme='ring',
+                 coordsys='galactic',
+                 label_image='lb',
+                 label_energy='Ei',
+                 unit='1/(s*cm*cm*sr)'
                  ):
 
         if energy_edges.unit != u.keV:
@@ -47,19 +47,19 @@ class AllSkyImageModel(ModelBase):
             logger.warning(f"The unit of the given energy_edges is {energy_edges.unit}. It will be converted to keV.")
             energy_edges = energy_edges.to('keV')
 
-        image_axis = HealpixAxis(nside = nside,
-                                 scheme = scheme,
-                                 coordsys = coordsys,
-                                 label = label_image)
+        image_axis = HealpixAxis(nside=nside,
+                                 scheme=scheme,
+                                 coordsys=coordsys,
+                                 label=label_image)
 
-        energy_axis = Axis(edges = energy_edges, label = label_energy, scale = "log")
+        energy_axis = Axis(edges=energy_edges, label=label_energy, scale="log")
 
         axes = Axes([image_axis, energy_axis])
 
-        super().__init__(axes, sparse = False, unit = unit)
+        super().__init__(axes, sparse=False, unit=unit)
 
     @classmethod
-    def open(cls, filename, name = 'hist'):
+    def open(cls, filename, name='hist'):
         """
         Open a file
 
@@ -75,13 +75,13 @@ class AllSkyImageModel(ModelBase):
         hist = Histogram.open(filename, name)
 
         allskyimage = AllSkyImageModel(
-            nside = hist.axes[0].nside, 
-            energy_edges = hist.axes[1].edges,
-            scheme = hist.axes[0].scheme, 
-            coordsys = hist.axes[0].coordsys.name, 
-            label_image = hist.axes[0].label, 
-            label_energy = hist.axes[1].label,
-            unit = hist.unit)
+            nside=hist.axes[0].nside, 
+            energy_edges=hist.axes[1].edges,
+            scheme=hist.axes[0].scheme, 
+            coordsys=hist.axes[0].coordsys.name, 
+            label_image=hist.axes[0].label, 
+            label_energy=hist.axes[1].label,
+            unit=hist.unit)
 
         allskyimage[:] = hist.contents
 
@@ -115,11 +115,11 @@ class AllSkyImageModel(ModelBase):
 
         """
 
-        new = cls(nside = parameter['nside'],
-                  energy_edges = parameter['energy_edges']['value'] * u.Unit(parameter['energy_edges']['unit']), 
-                  scheme = parameter['scheme'], 
-                  coordsys = parameter['coordinate'],
-                  unit = u.Unit(parameter['unit']))
+        new = cls(nside=parameter['nside'],
+                  energy_edges=parameter['energy_edges']['value'] * u.Unit(parameter['energy_edges']['unit']), 
+                  scheme=parameter['scheme'], 
+                  coordsys=parameter['coordinate'],
+                  unit=u.Unit(parameter['unit']))
 
         return new
 
@@ -166,17 +166,17 @@ class AllSkyImageModel(ModelBase):
             Extended source model
         """
 
-        integrated_flux = get_integrated_spectral_model(spectrum = extendedmodel.spectrum.main.shape,
-                                                        energy_axis = self.axes[1])
+        integrated_flux = get_integrated_spectral_model(spectrum=extendedmodel.spectrum.main.shape,
+                                                        energy_axis=self.axes[1])
         
         npix = self.axes[0].npix
         coords = self.axes[0].pix2skycoord(np.arange(npix))
 
         normalized_map = extendedmodel.spatial_shape(coords.l.deg, coords.b.deg) / u.sr
 
-        self[:] = np.tensordot(normalized_map, integrated_flux.contents, axes = 0) 
+        self[:] = np.tensordot(normalized_map, integrated_flux.contents, axes=0) 
 
-    def smoothing(self, fwhm = None, sigma = None):
+    def smoothing(self, fwhm=None, sigma=None):
         """
         Smooth a map with a Gaussian filter
 
@@ -197,6 +197,6 @@ class AllSkyImageModel(ModelBase):
         allskyimage_new = copy.deepcopy(self)
         
         for i in range(self.axes['Ei'].nbins):
-            allskyimage_new[:, i] = hp.smoothing(self[:, i].value, fwhm = fwhm.to('rad').value) * self.unit
+            allskyimage_new[:, i] = hp.smoothing(self[:, i].value, fwhm=fwhm.to('rad').value) * self.unit
 
         return allskyimage_new

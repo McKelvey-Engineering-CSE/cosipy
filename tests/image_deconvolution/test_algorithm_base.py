@@ -9,10 +9,10 @@ def test_deconvolution_algorithm_base(dataset, model, mask):
 
     parameter = Configurator({})
 
-    algorithm = DeconvolutionAlgorithmBase(initial_model = model, 
-                                           dataset = dataset, 
-                                           mask = mask, 
-                                           parameter = parameter)
+    algorithm = DeconvolutionAlgorithmBase(initial_model=model, 
+                                           dataset=dataset, 
+                                           mask=mask, 
+                                           parameter=parameter)
 
     with pytest.raises(RuntimeError) as e_info:
         algorithm.initialization()

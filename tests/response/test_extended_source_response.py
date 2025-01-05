@@ -17,9 +17,9 @@ def test_get_expectation():
     nside = resp.axes['NuLambda'].nside
     energy_edges = resp.axes['Ei'].edges
 
-    allsky_imagemodel = AllSkyImageModel(nside = nside, 
-                                         energy_edges = energy_edges,
-                                         label_image = 'NuLambda')
+    allsky_imagemodel = AllSkyImageModel(nside=nside, 
+                                         energy_edges=energy_edges,
+                                         label_image='NuLambda')
 
     hist = resp.get_expectation(allsky_imagemodel)
 
@@ -42,7 +42,7 @@ def test_get_expectation_from_astromodel():
     spectrum.sigma.unit = sigma.unit
 
     # Define morphology:
-    morphology = Gaussian_on_sphere(lon0 = 0, lat0 = 0, sigma = 5)
+    morphology = Gaussian_on_sphere(lon0=0, lat0=0, sigma=5)
 
     # Define source:
     extended_model = ExtendedSource('gaussian', spectral_shape=spectrum, spatial_shape=morphology)

@@ -30,7 +30,7 @@ def test_coordsys_conversion_matrix_scatt(tmp_path):
 
     exposure_table = SpacecraftAttitudeExposureTable.from_fits(test_data.path / "image_deconvolution/exposure_table_test_nside1_ring.fits") 
 
-    ccm = CoordsysConversionMatrix.spacecraft_attitude_binning_ccm(full_detector_response, exposure_table, use_averaged_pointing = False)
+    ccm = CoordsysConversionMatrix.spacecraft_attitude_binning_ccm(full_detector_response, exposure_table, use_averaged_pointing=False)
 
     assert ccm.binning_method == 'ScAtt'
 
@@ -40,7 +40,7 @@ def test_coordsys_conversion_matrix_scatt(tmp_path):
     assert np.allclose(ccm.contents.todense(), ccm_test.contents.todense())
     assert ccm.unit == ccm_test.unit
 
-    ccm = CoordsysConversionMatrix.spacecraft_attitude_binning_ccm(full_detector_response, exposure_table, use_averaged_pointing = True)
+    ccm = CoordsysConversionMatrix.spacecraft_attitude_binning_ccm(full_detector_response, exposure_table, use_averaged_pointing=True)
 
     assert ccm.binning_method == 'ScAtt'
 

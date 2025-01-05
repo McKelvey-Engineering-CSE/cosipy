@@ -28,16 +28,16 @@ def test_inject_point_source():
     spectrum.piv.unit = piv.unit
     
     # Define an injector by the response
-    injector = SourceInjector(response_path = response_path)
+    injector = SourceInjector(response_path=response_path)
     
     # Define the coordinate of the point source
-    source_coord = SkyCoord(l = 50, b = -45, frame = "galactic", unit = "deg")
+    source_coord = SkyCoord(l=50, b=-45, frame="galactic", unit="deg")
     
     # Get the data of the injected source
-    injected_crab_signal = injector.inject_point_source(spectrum = spectrum, coordinate = source_coord, 
-                                                        orientation = ori, source_name = "point_source",
-                                                        make_spectrum_plot = False, data_save_path = None,
-                                                        project_axes = None)
+    injected_crab_signal = injector.inject_point_source(spectrum=spectrum, coordinate=source_coord, 
+                                                        orientation=ori, source_name="point_source",
+                                                        make_spectrum_plot=False, data_save_path=None,
+                                                        project_axes=None)
 
     results = injected_crab_signal.project("Em").to_dense().contents
 
@@ -66,16 +66,16 @@ def test_inject_point_source_galactic():
     spectrum.piv.unit = piv.unit
     
     # Define an injector by the response
-    injector = SourceInjector(response_path = response_path, response_frame = "galactic")
+    injector = SourceInjector(response_path=response_path, response_frame="galactic")
     
     # Define the coordinate of the point source
-    source_coord = SkyCoord(l = 50, b = -45, frame = "galactic", unit = "deg")
+    source_coord = SkyCoord(l=50, b=-45, frame="galactic", unit="deg")
     
     # Get the data of the injected source
-    injected_crab_signal = injector.inject_point_source(spectrum = spectrum, coordinate = source_coord, 
-                                                        source_name = "point_source",
-                                                        make_spectrum_plot = True, data_save_path = None,
-                                                        project_axes = None)
+    injected_crab_signal = injector.inject_point_source(spectrum=spectrum, coordinate=source_coord, 
+                                                        source_name="point_source",
+                                                        make_spectrum_plot=True, data_save_path=None,
+                                                        project_axes=None)
 
     results = injected_crab_signal.project("Em").to_dense().contents
 
@@ -103,16 +103,16 @@ def test_inject_point_source_saving():
     spectrum.piv.unit = piv.unit
     
     # Define an injector by the response
-    injector = SourceInjector(response_path = response_path, response_frame = "galactic")
+    injector = SourceInjector(response_path=response_path, response_frame="galactic")
     
     # Define the coordinate of the point source
-    source_coord = SkyCoord(l = 50, b = -45, frame = "galactic", unit = "deg")
+    source_coord = SkyCoord(l=50, b=-45, frame="galactic", unit="deg")
     
     # Get the data of the injected source
-    injected_crab_signal = injector.inject_point_source(spectrum = spectrum, coordinate = source_coord, 
-                                                        source_name = "point_source",
-                                                        make_spectrum_plot = False, data_save_path = Path("./galactic_rsp.h5"),
-                                                        project_axes = "Em")
+    injected_crab_signal = injector.inject_point_source(spectrum=spectrum, coordinate=source_coord, 
+                                                        source_name="point_source",
+                                                        make_spectrum_plot=False, data_save_path=Path("./galactic_rsp.h5"),
+                                                        project_axes="Em")
     
     hist = Histogram.open(Path("./galactic_rsp.h5"))
     
@@ -129,7 +129,7 @@ def test_response_frame_error():
     response_path = test_data.path / "test_precomputed_response.h5"
     
     with pytest.raises(ValueError):
-        injector = SourceInjector(response_path = response_path, response_frame = "some_frame")
+        injector = SourceInjector(response_path=response_path, response_frame="some_frame")
         
 
 def test_orientation_error():
@@ -149,15 +149,15 @@ def test_orientation_error():
     spectrum.piv.unit = piv.unit
     
     # Define an injector by the response
-    injector = SourceInjector(response_path = response_path)
+    injector = SourceInjector(response_path=response_path)
     
     # Define the coordinate of the point source
-    source_coord = SkyCoord(l = 50, b = -45, frame = "galactic", unit = "deg")
+    source_coord = SkyCoord(l=50, b=-45, frame="galactic", unit="deg")
 
     with pytest.raises(TypeError):
     
         # Get the data of the injected source
-        injected_crab_signal = injector.inject_point_source(spectrum = spectrum, coordinate = source_coord, 
-                                                            source_name = "point_source",
-                                                            make_spectrum_plot = False, data_save_path = None,
-                                                            project_axes = None)
+        injected_crab_signal = injector.inject_point_source(spectrum=spectrum, coordinate=source_coord, 
+                                                            source_name="point_source",
+                                                            make_spectrum_plot=False, data_save_path=None,
+                                                            project_axes=None)

@@ -92,29 +92,29 @@ class BinnedData(UnBinnedData):
         # Define psichi axis and data for binning:
         if psichi_binning == 'galactic':
             psichi_axis = HealpixAxis(
-                nside = self.nside, 
-                scheme = self.scheme, coordsys = 'galactic', label = 'PsiChi')
+                nside=self.nside, 
+                scheme=self.scheme, coordsys='galactic', label='PsiChi')
             coords = SkyCoord(
                 l=self.cosi_dataset['Chi galactic']*u.deg, 
-                b=self.cosi_dataset['Psi galactic']*u.deg, frame = 'galactic')
+                b=self.cosi_dataset['Psi galactic']*u.deg, frame='galactic')
         if psichi_binning == 'local':
             psichi_axis = HealpixAxis(
-                nside = self.nside, 
-                scheme = self.scheme, coordsys = SpacecraftFrame(), label = 'PsiChi')
+                nside=self.nside, 
+                scheme=self.scheme, coordsys=SpacecraftFrame(), label='PsiChi')
             coords = SkyCoord(
-                lon = self.cosi_dataset['Chi local']*u.rad, 
-                lat = ((np.pi/2.0) - self.cosi_dataset['Psi local'])*u.rad, 
-                frame = SpacecraftFrame())
+                lon=self.cosi_dataset['Chi local']*u.rad, 
+                lat=((np.pi/2.0) - self.cosi_dataset['Psi local'])*u.rad, 
+                frame=SpacecraftFrame())
 
         # Initialize histogram:
         self.binned_data = Histogram(
             [
-                Axis(time_bin_edges*u.s, label = 'Time'), 
-                Axis(energy_bin_edges*u.keV, label = 'Em'), 
-                Axis(phi_bin_edges*u.deg, label = 'Phi'), 
+                Axis(time_bin_edges*u.s, label='Time'), 
+                Axis(energy_bin_edges*u.keV, label='Em'), 
+                Axis(phi_bin_edges*u.deg, label='Phi'), 
                 psichi_axis
             ], 
-            sparse = True)
+            sparse=True)
          
         # Fill histogram:
         if event_range == None:
@@ -280,7 +280,7 @@ class BinnedData(UnBinnedData):
         """
 
         logger.info("plotting psichi in Galactic coordinates...")
-        plot, ax = self.binned_data.project('PsiChi').plot(ax_kw = {'coord': 'G'})
+        plot, ax = self.binned_data.project('PsiChi').plot(ax_kw={'coord': 'G'})
         ax.get_figure().set_figwidth(4)
         ax.get_figure().set_figheight(3)
         plt.title("PsiChi Binning (counts)")
@@ -321,28 +321,28 @@ class BinnedData(UnBinnedData):
 
         # Make healpix map with binned data slice:
         h = self.binned_data.project('Em', 'Phi', 'PsiChi').slice[{'Em': Em, 'Phi': phi}].project('PsiChi')
-        m = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.contents.todense())
+        m = HealpixMap(base=HealpixBase(npix=h.nbins), data=h.contents.todense())
         
         # Plot standard view:
         plot, ax = m.plot('mollview')
         if coords:
-            ax.scatter(coords[0], coords[1], s=9, transform=ax.get_transform('world'), color = 'red')
+            ax.scatter(coords[0], coords[1], s=9, transform=ax.get_transform('world'), color='red')
         ax.coords.grid(True, color='grey', ls='dotted')
         ax.get_figure().set_figwidth(6)
         ax.get_figure().set_figheight(3)
-        plt.savefig("%s.pdf" % output, bbox_inches = 'tight')
+        plt.savefig("%s.pdf" % output, bbox_inches='tight')
         if show_plots == True:
             plt.show()
         plt.close()
 
         # Plot rotated view:
         if coords:
-            plot, ax = m.plot('orthview', ax_kw = {'rot': [coords[0], coords[1], 0]})
-            ax.scatter(coords[0], coords[1], s = 9, transform = ax.get_transform('world'), color = 'red')
-            ax.coords.grid(True, color = 'grey', ls = 'dotted')
+            plot, ax = m.plot('orthview', ax_kw={'rot': [coords[0], coords[1], 0]})
+            ax.scatter(coords[0], coords[1], s=9, transform=ax.get_transform('world'), color='red')
+            ax.coords.grid(True, color='grey', ls='dotted')
             ax.get_figure().set_figwidth(6)
             ax.get_figure().set_figheight(3)
-            plt.savefig("%s_rotated.pdf" % output, bbox_inches = 'tight')
+            plt.savefig("%s_rotated.pdf" % output, bbox_inches='tight')
             if show_plots == True:
                 plt.show()
             plt.close()

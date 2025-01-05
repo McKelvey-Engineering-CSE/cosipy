@@ -165,7 +165,7 @@ class DeconvolutionAlgorithmBase(ABC):
 
         return stop_iteration
 
-    def calc_expectation_list(self, model, dict_bkg_norm = None, almost_zero = 1e-12):
+    def calc_expectation_list(self, model, dict_bkg_norm=None, almost_zero=1e-12):
         """
         Calculate a list of expected count histograms corresponding to each data in the registered dataset.
 
@@ -185,7 +185,7 @@ class DeconvolutionAlgorithmBase(ABC):
             List of expected count histograms
         """
         
-        return [data.calc_expectation(model, dict_bkg_norm = dict_bkg_norm, almost_zero = almost_zero) for data in self.dataset]
+        return [data.calc_expectation(model, dict_bkg_norm=dict_bkg_norm, almost_zero=almost_zero) for data in self.dataset]
 
     def calc_loglikelihood_list(self, expectation_list):
         """
@@ -267,4 +267,4 @@ class DeconvolutionAlgorithmBase(ABC):
 
         indexlist = self.dict_dataset_indexlist_for_bkg_models[key]
 
-        return functools.reduce(lambda x, y: x + y, map(lambda i: self.dataset[i].calc_bkg_model_product(key = key, dataspace_histogram = dataspace_histogram_list[i]), indexlist))
+        return functools.reduce(lambda x, y: x + y, map(lambda i: self.dataset[i].calc_bkg_model_product(key=key, dataspace_histogram=dataspace_histogram_list[i]), indexlist))

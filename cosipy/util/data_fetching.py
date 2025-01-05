@@ -3,12 +3,12 @@ from awscli.clidriver import create_clidriver
 from pathlib import Path
 
 def fetch_wasabi_file(file,
-                      output = None,
-                      override = False,
-                      bucket = 'cosi-pipeline-public',
-                      endpoint = 'https://s3.us-west-1.wasabisys.com',
-                      access_key = 'GBAL6XATQZNRV3GFH9Y4',
-                      secret_key = 'GToOczY5hGX3sketNO2fUwiq4DJoewzIgvTCHoOv'):
+                      output=None,
+                      override=False,
+                      bucket='cosi-pipeline-public',
+                      endpoint='https://s3.us-west-1.wasabisys.com',
+                      access_key='GBAL6XATQZNRV3GFH9Y4',
+                      secret_key='GToOczY5hGX3sketNO2fUwiq4DJoewzIgvTCHoOv'):
     """
     Download a file from COSI's Wasabi acccount.
 
@@ -48,3 +48,5 @@ def fetch_wasabi_file(file,
 
     cli.main(command)
 
+# TODO: 
+# list_wasabit_files()

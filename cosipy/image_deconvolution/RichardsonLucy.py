@@ -84,7 +84,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
 
         # mask setting
         if self.mask is None and np.any(self.summed_exposure_map.contents == 0):
-            self.mask = Histogram(self.model.axes, contents = self.summed_exposure_map.contents > 0)
+            self.mask = Histogram(self.model.axes, contents=self.summed_exposure_map.contents > 0)
             self.model = self.model.mask_pixels(self.mask)
             logger.info("There are zero-exposure pixels. A mask to ignore them was set.")
 
@@ -94,7 +94,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
             logger.info("The response weighting filter was calculated.")
 
         # expected count histograms
-        self.expectation_list = self.calc_expectation_list(model = self.initial_model, dict_bkg_norm = self.dict_bkg_norm)
+        self.expectation_list = self.calc_expectation_list(model=self.initial_model, dict_bkg_norm=self.dict_bkg_norm)
         logger.info("The expected count histograms were calculated with the initial model map.")
 
         # calculate summed background models for M-step
@@ -160,7 +160,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
             self.processed_delta_model[:] *= self.response_weighting_filter
 
         if self.do_smoothing:
-            self.processed_delta_model = self.processed_delta_model.smoothing(fwhm = self.smoothing_fwhm)
+            self.processed_delta_model = self.processed_delta_model.smoothing(fwhm=self.smoothing_fwhm)
         
         if self.do_acceleration:
             self.alpha = self.calc_alpha(self.processed_delta_model, self.model)
@@ -174,7 +174,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
             self.model = self.model.mask_pixels(self.mask)
         
         # update expectation_list
-        self.expectation_list = self.calc_expectation_list(self.model, dict_bkg_norm = self.dict_bkg_norm)
+        self.expectation_list = self.calc_expectation_list(self.model, dict_bkg_norm=self.dict_bkg_norm)
         logger.debug("The expected count histograms were updated with the new model map.")
 
         # update loglikelihood_list
@@ -232,9 +232,9 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
             for this_result in self.results:
                 iteration_count = this_result["iteration"]
 
-                this_result["model"].write(f"{self.save_results_directory}/model_itr{iteration_count}.hdf5", overwrite = True)
-                this_result["delta_model"].write(f"{self.save_results_directory}/delta_model_itr{iteration_count}.hdf5", overwrite = True)
-                this_result["processed_delta_model"].write(f"{self.save_results_directory}/processed_delta_model_itr{iteration_count}.hdf5", overwrite = True)
+                this_result["model"].write(f"{self.save_results_directory}/model_itr{iteration_count}.hdf5", overwrite=True)
+                this_result["delta_model"].write(f"{self.save_results_directory}/delta_model_itr{iteration_count}.hdf5", overwrite=True)
+                this_result["processed_delta_model"].write(f"{self.save_results_directory}/processed_delta_model_itr{iteration_count}.hdf5", overwrite=True)
 
             #fits
             primary_hdu = fits.PrimaryHDU()

@@ -94,7 +94,7 @@ def test_get_target_in_sc_frame():
     ori = SpacecraftFile.parse_from_file(ori_path)
 
     target_name = "Crab"
-    target_coord = SkyCoord(l=184.5551, b = -05.7877, unit = (u.deg, u.deg), frame = "galactic")
+    target_coord = SkyCoord(l=184.5551, b=-05.7877, unit=(u.deg, u.deg), frame="galactic")
 
     path_in_sc = ori.get_target_in_sc_frame(target_name, target_coord)
 
@@ -114,10 +114,10 @@ def test_get_dwell_map():
     ori = SpacecraftFile.parse_from_file(ori_path)
     
     target_name = "Crab"
-    target_coord = SkyCoord(l=184.5551, b = -05.7877, unit = (u.deg, u.deg), frame = "galactic")
+    target_coord = SkyCoord(l=184.5551, b=-05.7877, unit=(u.deg, u.deg), frame="galactic")
     path_in_sc = ori.get_target_in_sc_frame(target_name, target_coord)
     
-    dwell_map = ori.get_dwell_map(response = response_path)
+    dwell_map = ori.get_dwell_map(response=response_path)
     
     assert np.allclose(dwell_map[:].value, 
                        np.array([1.895057, 7.615584, 0.244679, 0.244679, 0.000000, 0.000000, 
@@ -131,10 +131,10 @@ def test_get_psr_rsp():
     ori = SpacecraftFile.parse_from_file(ori_path)
     
     target_name = "Crab"
-    target_coord = SkyCoord(l=184.5551, b = -05.7877, unit = (u.deg, u.deg), frame = "galactic")
+    target_coord = SkyCoord(l=184.5551, b=-05.7877, unit=(u.deg, u.deg), frame="galactic")
     path_in_sc = ori.get_target_in_sc_frame(target_name, target_coord)
     
-    dwell_map = ori.get_dwell_map(response = response_path)
+    dwell_map = ori.get_dwell_map(response=response_path)
     
     Ei_edges, Ei_lo, Ei_hi, Em_edges, Em_lo, Em_hi, areas, matrix = ori.get_psr_rsp()
     
@@ -199,15 +199,15 @@ def test_get_arf():
     ori = SpacecraftFile.parse_from_file(ori_path)
     
     target_name = "Crab"
-    target_coord = SkyCoord(l=184.5551, b = -05.7877, unit = (u.deg, u.deg), frame = "galactic")
+    target_coord = SkyCoord(l=184.5551, b=-05.7877, unit=(u.deg, u.deg), frame="galactic")
     
     path_in_sc = ori.get_target_in_sc_frame(target_name, target_coord)
     
-    dwell_map = ori.get_dwell_map(response = response_path)
+    dwell_map = ori.get_dwell_map(response=response_path)
     
     _ = ori.get_psr_rsp()
     
-    ori.get_arf(out_name = "test")
+    ori.get_arf(out_name="test")
     
     fits_file = fits.open("test.arf")
     
@@ -236,15 +236,15 @@ def test_get_rmf():
     ori = SpacecraftFile.parse_from_file(ori_path)
     
     target_name = "Crab"
-    target_coord = SkyCoord(l=184.5551, b = -05.7877, unit = (u.deg, u.deg), frame = "galactic")
+    target_coord = SkyCoord(l=184.5551, b=-05.7877, unit=(u.deg, u.deg), frame="galactic")
     
     path_in_sc = ori.get_target_in_sc_frame(target_name, target_coord)
     
-    dwell_map = ori.get_dwell_map(response = response_path)
+    dwell_map = ori.get_dwell_map(response=response_path)
     
     _ = ori.get_psr_rsp()
     
-    ori.get_rmf(out_name = "test")
+    ori.get_rmf(out_name="test")
     
     fits_file = fits.open("test.rmf")
     
@@ -344,13 +344,13 @@ def test_get_pha():
     ori = SpacecraftFile.parse_from_file(ori_path)
     
     target_name = "Crab"
-    target_coord = SkyCoord(l=184.5551, b = -05.7877, unit = (u.deg, u.deg), frame = "galactic")
+    target_coord = SkyCoord(l=184.5551, b=-05.7877, unit=(u.deg, u.deg), frame="galactic")
     
     path_in_sc = ori.get_target_in_sc_frame(target_name, target_coord)
-    dwell_map = ori.get_dwell_map(response = response_path)
+    dwell_map = ori.get_dwell_map(response=response_path)
     _ = ori.get_psr_rsp()
-    ori.get_arf(out_name = "test")
-    ori.get_rmf(out_name = "test")
+    ori.get_arf(out_name="test")
+    ori.get_rmf(out_name="test")
     
     counts = np.array([0.01094232, 0.04728866, 0.06744612, 0.01393708, 0.05420688,
                        0.03141498, 0.01818584, 0.00717219, 0.00189568, 0.00010503])*1000
@@ -384,12 +384,12 @@ def test_plot_arf():
     ori = SpacecraftFile.parse_from_file(ori_path)
     
     target_name = "Crab"
-    target_coord = SkyCoord(l=184.5551, b = -05.7877, unit = (u.deg, u.deg), frame = "galactic")
+    target_coord = SkyCoord(l=184.5551, b=-05.7877, unit=(u.deg, u.deg), frame="galactic")
     
     path_in_sc = ori.get_target_in_sc_frame(target_name, target_coord)
-    dwell_map = ori.get_dwell_map(response = response_path)
+    dwell_map = ori.get_dwell_map(response=response_path)
     _ = ori.get_psr_rsp()
-    ori.get_arf(out_name = "test")
+    ori.get_arf(out_name="test")
     
     ori.plot_arf()
     
@@ -405,12 +405,12 @@ def test_plot_rmf():
     ori = SpacecraftFile.parse_from_file(ori_path)
     
     target_name = "Crab"
-    target_coord = SkyCoord(l=184.5551, b = -05.7877, unit = (u.deg, u.deg), frame = "galactic")
+    target_coord = SkyCoord(l=184.5551, b=-05.7877, unit=(u.deg, u.deg), frame="galactic")
     
     path_in_sc = ori.get_target_in_sc_frame(target_name, target_coord)
-    dwell_map = ori.get_dwell_map(response = response_path)
+    dwell_map = ori.get_dwell_map(response=response_path)
     _ = ori.get_psr_rsp()
-    ori.get_rmf(out_name = "test")
+    ori.get_rmf(out_name="test")
     
     ori.plot_rmf()
     
@@ -425,8 +425,8 @@ def test_source_interval():
     ori_path = test_data.path / "20280301_first_10sec.ori"
     ori = SpacecraftFile.parse_from_file(ori_path)
 
-    new_ori = ori.source_interval(Time(ori._load_time[0]+0.1, format = "unix"), 
-                                  Time(ori._load_time[0]+2.1, format = "unix"))
+    new_ori = ori.source_interval(Time(ori._load_time[0]+0.1, format="unix"), 
+                                  Time(ori._load_time[0]+2.1, format="unix"))
 
     assert np.allclose(new_ori._load_time, 
                        np.array([1.835478e+09, 1.835478e+09, 1.835478e+09, 1.835478e+09]))
@@ -438,4 +438,3 @@ def test_source_interval():
     assert np.allclose(new_ori._z_direction.flatten(), 
                        np.array([221.86062093,  16.85631235, 221.88225011,  16.90482073,
                                 221.90629597,  16.9587162, 221.9087019,  16.96410546]))
-    

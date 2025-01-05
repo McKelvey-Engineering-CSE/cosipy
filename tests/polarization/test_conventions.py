@@ -13,16 +13,15 @@ def test_orthographic_projection_default():
     ortho_convention = OrthographicConvention()
     px, py = ortho_convention.get_basis(source_direction)
 
-    assert np.isclose(px.separation(SkyCoord(ra = 0*u.deg, dec = 90*u.deg)), 0)
-    assert np.isclose(py.separation(SkyCoord(ra = 0*u.deg, dec = 0*u.deg)), 0)
+    assert np.isclose(px.separation(SkyCoord(ra=0*u.deg, dec=90*u.deg)), 0)
+    assert np.isclose(py.separation(SkyCoord(ra=0*u.deg, dec=0*u.deg)), 0)
 
 def test_stereographic_projection_default():
     
     stereo_convention = StereographicConvention()
     px, py = stereo_convention.get_basis(source_direction)
     
-    assert np.isclose(px.separation(SkyCoord(lon = 0*u.deg, lat = 0*u.deg,
-                                             frame = SpacecraftFrame())), 0)
-    assert np.isclose(py.separation(SkyCoord(lon = 0*u.deg, lat = -90*u.deg,
-                                             frame = SpacecraftFrame())), 0)
-
+    assert np.isclose(px.separation(SkyCoord(lon=0*u.deg, lat=0*u.deg,
+                                             frame=SpacecraftFrame())), 0)
+    assert np.isclose(py.separation(SkyCoord(lon=0*u.deg, lat=-90*u.deg,
+                                             frame=SpacecraftFrame())), 0)

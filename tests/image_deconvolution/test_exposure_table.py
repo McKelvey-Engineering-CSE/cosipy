@@ -18,11 +18,11 @@ def test_exposure_table(tmp_path):
                                                                       start=ori.get_time()[0], stop=ori.get_time()[-1], 
                                                                       min_exposure=0, min_num_pointings=1)
 
-    exposure_table_nest = SpacecraftAttitudeExposureTable.from_orientation(ori, nside=nside, scheme = 'nested',
+    exposure_table_nest = SpacecraftAttitudeExposureTable.from_orientation(ori, nside=nside, scheme='nested',
                                                                            start=ori.get_time()[0], stop=ori.get_time()[-1], 
                                                                            min_exposure=0, min_num_pointings=1)
 
-    exposure_table_badscheme = SpacecraftAttitudeExposureTable.from_orientation(ori, nside=nside, scheme = None,
+    exposure_table_badscheme = SpacecraftAttitudeExposureTable.from_orientation(ori, nside=nside, scheme=None,
                                                                                 start=ori.get_time()[0], stop=ori.get_time()[-1], 
                                                                                 min_exposure=0, min_num_pointings=1)
 

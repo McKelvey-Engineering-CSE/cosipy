@@ -49,7 +49,7 @@ class ImageDeconvolutionDataInterfaceBase(ABC):
     expected counts or the product using the transpose matrix of the response function.
     """
 
-    def __init__(self, name = None):
+    def __init__(self, name=None):
         self._name = name
 
         # must assign data to them somewhere
@@ -90,7 +90,7 @@ class ImageDeconvolutionDataInterfaceBase(ABC):
         return self._summed_bkg_models[key]
 
     @abstractmethod
-    def calc_expectation(self, model, dict_bkg_norm = None, almost_zero = 1e-12):
+    def calc_expectation(self, model, dict_bkg_norm=None, almost_zero=1e-12):
         """
         Calculate expected counts from a given model map.
 

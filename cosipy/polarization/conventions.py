@@ -120,18 +120,18 @@ class OrthographicConvention(PolarizationConvention):
 
         # Broadcast reference vector
         ref = np.expand_dims(self.ref_vector.cartesian.xyz,
-                             axis = tuple(np.arange(1, pz.ndim, dtype=int)))
+                             axis=tuple(np.arange(1, pz.ndim, dtype=int)))
 
         # Get py. Normalize because pz and ref dot not make 90deg angle
-        py = np.cross(pz, ref, axisa = 0, axisb = 0, axisc = 0)
-        py /= np.linalg.norm(py, axis = 0, keepdims = True)
+        py = np.cross(pz, ref, axisa=0, axisb=0, axisc=0)
+        py /= np.linalg.norm(py, axis=0, keepdims=True)
 
         # Get px
-        px = np.cross(py, pz, axisa = 0, axisb = 0, axisc = 0)
+        px = np.cross(py, pz, axisa=0, axisb=0, axisc=0)
         
         # To SkyCoord
-        px = SkyCoord(*px, representation_type='cartesian', frame = self.frame)
-        py = SkyCoord(*py, representation_type='cartesian', frame = self.frame)
+        px = SkyCoord(*px, representation_type='cartesian', frame=self.frame)
+        py = SkyCoord(*py, representation_type='cartesian', frame=self.frame)
         
         return px, py
 
@@ -139,7 +139,7 @@ class OrthographicConvention(PolarizationConvention):
 #https://github.com/zoglauer/megalib/blob/1eaad14c51ec52ad1cb2399a7357fe2ca1074f79/src/cosima/src/MCSource.cc#L3452
 class MEGAlibRelative(OrthographicConvention):
 
-    def __init__(self, axis, attitude = None):
+    def __init__(self, axis, attitude=None):
         """
         Use a polarization vector which is created the following way: 
         Create an initial polarization vector which is orthogonal on the 
@@ -156,17 +156,17 @@ class MEGAlibRelative(OrthographicConvention):
         
         if axis == 'x':
             ref_vector = SkyCoord(lon=0 * u.deg, lat=0 * u.deg,
-                                  frame = SpacecraftFrame(attitude = attitude))
+                                  frame=SpacecraftFrame(attitude=attitude))
         elif axis == 'y':
             ref_vector = SkyCoord(lon=90 * u.deg, lat=0 * u.deg,
-                                  frame = SpacecraftFrame(attitude = attitude))
+                                  frame=SpacecraftFrame(attitude=attitude))
         elif axis == 'z':
             ref_vector = SkyCoord(lon=0 * u.deg, lat=90 * u.deg,
-                                  frame = SpacecraftFrame(attitude = attitude))
+                                  frame=SpacecraftFrame(attitude=attitude))
         else:
             raise ValueError("Axis must be 'x', 'y' or 'z'.")
             
-        super().__init__(ref_vector, clockwise = False)
+        super().__init__(ref_vector, clockwise=False)
         
     def get_basis(self, source_direction: SkyCoord):
 
@@ -194,8 +194,8 @@ class MEGAlibRelative(OrthographicConvention):
 
         # Sign of px
         py = SkyCoord(-py.cartesian,
-                      representation_type = 'cartesian',
-                      frame = py.frame)
+                      representation_type='cartesian',
+                      frame=py.frame)
         
         return px, py
 

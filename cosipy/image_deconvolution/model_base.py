@@ -15,11 +15,11 @@ class ModelBase(Histogram, ABC):
     - set_values_from_parameters(self, parameter)
     """
 
-    def __init__(self, edges, contents = None, sumw2 = None,
-                 labels=None, axis_scale = None, sparse = None, unit = None):
+    def __init__(self, edges, contents=None, sumw2=None,
+                 labels=None, axis_scale=None, sparse=None, unit=None):
 
-        super().__init__(edges, contents = contents, sumw2 = sumw2, 
-                         labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit)
+        super().__init__(edges, contents=contents, sumw2=sumw2, 
+                         labels=labels, axis_scale=axis_scale, sparse=sparse, unit=unit)
 
     @classmethod
     @abstractmethod
@@ -52,7 +52,7 @@ class ModelBase(Histogram, ABC):
 
         raise NotImplementedError
 
-    def mask_pixels(self, mask, fill_value = 0):
+    def mask_pixels(self, mask, fill_value=0):
         """
         Mask pixels
 

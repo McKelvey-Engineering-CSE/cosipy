@@ -9,7 +9,7 @@ from mhealpy import HealpixMap
 
 class SourceInjector():
     
-    def __init__(self, response_path, response_frame = "local"):
+    def __init__(self, response_path, response_frame="local"):
 
         """
         `SourceInjector` convolve response, source model(s) and orientation to produce a mocked simulated data. The data can be saved for data anlysis with cosipy.
@@ -72,19 +72,19 @@ class SourceInjector():
         axes = Axes(axes)
         
         # get the pixel number of the hypothesis coordinate
-        map_temp = HealpixMap(base = axes[0])
+        map_temp = HealpixMap(base=axes[0])
         coordinate_pix_number = map_temp.ang2pix(coordinate)
         
         # get the expectation for the hypothesis coordinate (a point source)
         with h5.File(response_path) as f:
             pix = coordinate_pix_number
-            psr = PointSourceResponse(axes[1:], f['hist/contents'][pix+1], unit = f['hist'].attrs['unit'])
+            psr = PointSourceResponse(axes[1:], f['hist/contents'][pix+1], unit=f['hist'].attrs['unit'])
                 
         return psr
 
 
-    def inject_point_source(self, spectrum, coordinate, orientation = None, source_name = "point_source",
-                            make_spectrum_plot = False, data_save_path = None, project_axes = None):
+    def inject_point_source(self, spectrum, coordinate, orientation=None, source_name="point_source",
+                            make_spectrum_plot=False, data_save_path=None, project_axes=None):
 
         """
         Get the expected counts for a point source.
@@ -120,12 +120,12 @@ class SourceInjector():
                 raise TypeError("The when the data are binned in local frame, orientation must be provided to compute the expected counts.")
                 
             # get the dwell time map
-            coord_in_sc_frame = orientation.get_target_in_sc_frame(target_name = source_name, 
-                                                                   target_coord = coordinate, 
-                                                                   quiet = True)
+            coord_in_sc_frame = orientation.get_target_in_sc_frame(target_name=source_name, 
+                                                                   target_coord=coordinate, 
+                                                                   quiet=True)
             
             # get the dwell time map in the detector frame
-            dwell_time_map = orientation.get_dwell_map(response = self.response_path)
+            dwell_time_map = orientation.get_dwell_map(response=self.response_path)
 
             with FullDetectorResponse.open(self.response_path) as response:
                 psr = response.get_point_source_response(dwell_time_map)
@@ -133,7 +133,7 @@ class SourceInjector():
         # get the point source response in galactic frame
         elif self.response_frame == "galactic":
 
-            psr = SourceInjector.get_psr_in_galactic(coordinate = coordinate, response_path = self.response_path, spectrum = spectrum)
+            psr = SourceInjector.get_psr_in_galactic(coordinate=coordinate, response_path=self.response_path, spectrum=spectrum)
 
         injected = psr.get_expectation(spectrum)
         # setting the Em and Ei scale to linear to match the simulated data
@@ -144,7 +144,7 @@ class SourceInjector():
             injected = injected.project(project_axes)
 
         if make_spectrum_plot is True:
-            ax, plot = injected.project("Em").draw(label = "Injected point source", color = "green")
+            ax, plot = injected.project("Em").draw(label="Injected point source", color="green")
             ax.legend()
             ax.set_xscale("log")
             ax.set_yscale("log")
@@ -154,7 +154,3 @@ class SourceInjector():
             injected.write(data_save_path)
 
         return injected
-
-        
-
-

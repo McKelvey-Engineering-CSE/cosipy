@@ -195,10 +195,10 @@ class ImageDeconvolution:
             raise ValueError
 
         self._deconvolution_class = self.deconvolution_algorithm_classes[algorithm_name]
-        self._deconvolution = self._deconvolution_class(initial_model = self.initial_model, 
-                                                        dataset = self.dataset, 
-                                                        mask = self.mask, 
-                                                        parameter = algorithm_parameter)
+        self._deconvolution = self._deconvolution_class(initial_model=self.initial_model, 
+                                                        dataset=self.dataset, 
+                                                        mask=self.mask, 
+                                                        parameter=algorithm_parameter)
 
         logger.info("---- parameters ----")
         logger.info(parameter_deconvolution.dump()) 

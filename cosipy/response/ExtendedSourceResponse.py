@@ -66,10 +66,10 @@ class ExtendedSourceResponse(Histogram):
         
         new = cls(
             axes, 
-            contents = contents,
-            sumw2 = sumw2,
-            unit = unit,
-            track_overflow = track_overflow)
+            contents=contents,
+            sumw2=sumw2,
+            unit=unit,
+            track_overflow=track_overflow)
 
         if new.is_sparse:
             new = new.to_dense()
@@ -128,6 +128,6 @@ class ExtendedSourceResponse(Histogram):
             provided extended source model.
         """
 
-        allsky_image_model = get_integrated_extended_model(source, image_axis = self.axes[0], energy_axis = self.axes[1])
+        allsky_image_model = get_integrated_extended_model(source, image_axis=self.axes[0], energy_axis=self.axes[1])
 
         return self.get_expectation(allsky_image_model)

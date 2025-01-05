@@ -45,25 +45,25 @@ spectrum.xp.unit = xp.unit
 spectrum.K.unit = K.unit
 spectrum.piv.unit = piv.unit
 
-source = PointSource("source",                     # Name of source (arbitrary, but needs to be unique)
-                     l = l,                        # Longitude (deg)
-                     b = b,                        # Latitude (deg)
-                     spectral_shape = spectrum)    # Spectral model
+source = PointSource("source",                   # Name of source (arbitrary, but needs to be unique)
+                     l=l,                        # Longitude (deg)
+                     b=b,                        # Latitude (deg)
+                     spectral_shape=spectrum)    # Spectral model
 
 model = Model(source)
 
 def test_point_source_spectral_fit():
     
-    cosi = COSILike("cosi",                                                        # COSI 3ML plugin
-                    dr = dr,                                                       # detector response
-                    data = data.binned_data.project('Em', 'Phi', 'PsiChi'),        # data (source+background)
-                    bkg = background.binned_data.project('Em', 'Phi', 'PsiChi'),   # background model 
-                    sc_orientation = sc_orientation,                               # spacecraft orientation
-                    nuisance_param = bkg_par)                                      # background parameter
+    cosi = COSILike("cosi",                                                      # COSI 3ML plugin
+                    dr=dr,                                                       # detector response
+                    data=data.binned_data.project('Em', 'Phi', 'PsiChi'),        # data (source+background)
+                    bkg=background.binned_data.project('Em', 'Phi', 'PsiChi'),   # background model 
+                    sc_orientation=sc_orientation,                               # spacecraft orientation
+                    nuisance_param=bkg_par)                                      # background parameter
     
     plugins = DataList(cosi)
 
-    like = JointLikelihood(model, plugins, verbose = False)
+    like = JointLikelihood(model, plugins, verbose=False)
 
     like.fit()
 

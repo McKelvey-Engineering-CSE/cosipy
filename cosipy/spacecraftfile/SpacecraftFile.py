@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 class SpacecraftFile():
 
     def __init__(
-            self, time, x_pointings = None, y_pointings = None, \
-            z_pointings = None, earth_zenith = None, altitude = None, \
-            attitude = None, instrument = "COSI", frame = "galactic"):
+            self, time, x_pointings=None, y_pointings=None, \
+            z_pointings=None, earth_zenith=None, altitude=None, \
+            attitude=None, instrument="COSI", frame="galactic"):
 
         """
         Handles the spacecraft orientation. Calculates the dwell time 
@@ -108,7 +108,7 @@ class SpacecraftFile():
         else:
             self.attitude = None  # if you have the inputs of x, y and z pointings, the attitude will be overwritten by a None value regardless of the input for the attitude variable.
 
-        self._load_time = self._time.to_value(format = "unix")  # this is not necessary, but just to make sure evething works fine...
+        self._load_time = self._time.to_value(format="unix")  # this is not necessary, but just to make sure evething works fine...
         self._x_direction = np.array([x_pointings.l.deg, x_pointings.b.deg]).T  # this is not necessary, but just to make sure evething works fine...
         self._z_direction = np.array([z_pointings.l.deg, z_pointings.b.deg]).T  # this is not necessary, but just to make sure evething works fine...
         self._earth_direction = np.array([earth_zenith.l.deg, earth_zenith.b.deg]).T  # this is not necessary, but just to make sure evething works fine...
@@ -139,14 +139,14 @@ class SpacecraftFile():
         axis_3 = orientation_file[:, [7, 6]]
         altitude = np.array(orientation_file[:, 5]) 
         
-        time = Time(time_stamps, format = "unix")
+        time = Time(time_stamps, format="unix")
         xpointings = SkyCoord(l=axis_1[:, 0]*u.deg, b=axis_1[:, 1]*u.deg, frame="galactic")
         zpointings = SkyCoord(l=axis_2[:, 0]*u.deg, b=axis_2[:, 1]*u.deg, frame="galactic")
         earthpointings = SkyCoord(l=axis_3[:, 0]*u.deg, b=axis_3[:, 1]*u.deg, frame="galactic")
         
-        return cls(time, x_pointings = xpointings, z_pointings = zpointings, earth_zenith = earthpointings, altitude = altitude)
+        return cls(time, x_pointings=xpointings, z_pointings=zpointings, earth_zenith=earthpointings, altitude=altitude)
 
-    def get_time(self, time_array = None):
+    def get_time(self, time_array=None):
 
         """
         Return the array pf pointing times as a astropy.Time object.
@@ -163,9 +163,9 @@ class SpacecraftFile():
         """
 
         if time_array == None:
-            self._time = Time(self._load_time, format = "unix")
+            self._time = Time(self._load_time, format="unix")
         else:
-            self._time = Time(time_array, format = "unix")
+            self._time = Time(time_array, format="unix")
 
         return self._time
 
@@ -184,7 +184,7 @@ class SpacecraftFile():
 
         return self._altitude
 
-    def get_time_delta(self, time_array = None):
+    def get_time_delta(self, time_array=None):
 
         """
         Return an array of the time period between neighbouring time points.
@@ -283,13 +283,13 @@ class SpacecraftFile():
             new_times = np.insert(new_times, 0, start.value)
 
             new_x_direction = self._x_direction[start_idx + 1: stop_idx + 1]
-            new_x_direction = np.insert(new_x_direction, 0, x_direction_start, axis = 0)
+            new_x_direction = np.insert(new_x_direction, 0, x_direction_start, axis=0)
 
             new_z_direction = self._z_direction[start_idx + 1: stop_idx + 1]
-            new_z_direction = np.insert(new_z_direction, 0, z_direction_start, axis = 0)
+            new_z_direction = np.insert(new_z_direction, 0, z_direction_start, axis=0)
         
             new_earth_direction = self._earth_direction[start_idx + 1: stop_idx + 1]
-            new_earth_direction = np.insert(new_earth_direction, 0, earth_direction_start, axis = 0)
+            new_earth_direction = np.insert(new_earth_direction, 0, earth_direction_start, axis=0)
 
             # Use linear interpolation to get starting altitude at desired time. 
             f = interpolate.interp1d(self._time.value, self._altitude, kind="linear")
@@ -309,13 +309,13 @@ class SpacecraftFile():
             new_times = np.append(new_times, stop.value)
 
             new_x_direction = new_x_direction[:-1]
-            new_x_direction = np.append(new_x_direction, [x_direction_stop], axis = 0)
+            new_x_direction = np.append(new_x_direction, [x_direction_stop], axis=0)
 
             new_z_direction = new_z_direction[:-1]
-            new_z_direction = np.append(new_z_direction, [z_direction_stop], axis = 0)
+            new_z_direction = np.append(new_z_direction, [z_direction_stop], axis=0)
             
             new_earth_direction = new_earth_direction[:-1]
-            new_earth_direction = np.append(new_earth_direction, [earth_direction_stop], axis = 0)
+            new_earth_direction = np.append(new_earth_direction, [earth_direction_stop], axis=0)
             
             # Use linear interpolation to get starting altitude at desired time.
             f = interpolate.interp1d(self._time.value, self._altitude, kind="linear")
@@ -323,15 +323,15 @@ class SpacecraftFile():
             new_earth_altitude = new_earth_altitude[:-1]
             new_earth_altitude = np.append(new_earth_altitude, [stop_alt])
 
-        time = Time(new_times, format = "unix")
+        time = Time(new_times, format="unix")
         xpointings = SkyCoord(l=new_x_direction[:, 0]*u.deg, b=new_x_direction[:, 1]*u.deg, frame="galactic")
         zpointings = SkyCoord(l=new_z_direction[:, 0]*u.deg, b=new_z_direction[:, 1]*u.deg, frame="galactic")
         earthpointings = SkyCoord(l=new_earth_direction[:, 0]*u.deg, b=new_earth_direction[:, 1]*u.deg, frame="galactic")
         altitude = new_earth_altitude
 
-        return self.__class__(time, x_pointings = xpointings, z_pointings = zpointings, earth_zenith = earthpointings, altitude =altitude)
+        return self.__class__(time, x_pointings=xpointings, z_pointings=zpointings, earth_zenith=earthpointings, altitude=altitude)
       
-    def get_attitude(self, x_pointings = None, y_pointings = None, z_pointings = None):
+    def get_attitude(self, x_pointings=None, y_pointings=None, z_pointings=None):
 
         """
         Converts the x, y and z pointings to the attitude of the telescope.
@@ -374,11 +374,11 @@ class SpacecraftFile():
             self.attitude = Attitude.from_axes(x=self.x_pointings,
                                                y=self.y_pointings,
                                                z=self.z_pointings,
-                                               frame = self.frame)
+                                               frame=self.frame)
 
         return self.attitude
 
-    def get_target_in_sc_frame(self, target_name, target_coord, attitude = None, quiet = False, save = False):
+    def get_target_in_sc_frame(self, target_name, target_coord, attitude=None, quiet=False, save=False):
 
         """
         Convert the x, y and z pointings of the spacescraft axes to the path of the source in the spacecraft frame.
@@ -412,8 +412,8 @@ class SpacecraftFile():
         if quiet == False:
             logger.info("Now converting to the Spacecraft frame...")
         self.src_path_cartesian = SkyCoord(np.dot(self.attitude.rot.inv().as_matrix(), target_coord.cartesian.xyz.value),
-                                           representation_type = 'cartesian',
-                                           frame = SpacecraftFrame())
+                                           representation_type='cartesian',
+                                           frame=SpacecraftFrame())
 
         # The conversion above is in Cartesian frame, so we have to convert them to the spherical one.
 
@@ -437,7 +437,7 @@ class SpacecraftFile():
         return self.src_path_skycoord
 
 
-    def get_dwell_map(self, response, src_path = None, save = False):
+    def get_dwell_map(self, response, src_path=None, save=False):
 
         """
         Generates the dwell time map for the source.
@@ -476,15 +476,15 @@ class SpacecraftFile():
             raise ValueError("The dimensions of the dts or source coordinates are not correct. Please check your inputs.")
 
         with FullDetectorResponse.open(self.response_file) as response:
-            self.dwell_map = HealpixMap(base = response,
-                                        coordsys = SpacecraftFrame())
+            self.dwell_map = HealpixMap(base=response,
+                                        coordsys=SpacecraftFrame())
 
         # Get the unique pixels to weight, and sum all the correspondint weights first, so
         # each pixels needs to be called only once.
         # Based on https://stackoverflow.com/questions/23268605/grouping-indices-of-unique-elements-in-numpy
         
         # remove the last value. Effectively a 0th order interpolations
-        pixels, weights = self.dwell_map.get_interp_weights(theta = self.src_path_skycoord[:-1])  
+        pixels, weights = self.dwell_map.get_interp_weights(theta=self.src_path_skycoord[:-1])  
 
         weighted_duration = weights * self.dts.to_value(u.second)[None]
 
@@ -506,10 +506,10 @@ class SpacecraftFile():
         for pix, dur in zip(pixel_unique, pixel_durations):
             self.dwell_map[pix] += dur
 
-        self.dwell_map.to(u.second, update = False, copy = False)
+        self.dwell_map.to(u.second, update=False, copy=False)
             
         if save == True:
-            self.dwell_map.write_map(self.target_name + "_DwellMap.fits", overwrite = True)
+            self.dwell_map.write_map(self.target_name + "_DwellMap.fits", overwrite=True)
 
         return self.dwell_map
 
@@ -517,10 +517,10 @@ class SpacecraftFile():
                     self,
                     target_coord,
                     nside,
-                    scheme = 'ring',
-                    coordsys = 'galactic',
-                    r_earth = 6378.0,
-                    earth_occ = True):
+                    scheme='ring',
+                    coordsys='galactic',
+                    r_earth=6378.0,
+                    earth_occ=True):
 
         """
         Bin the spacecraft attitude history into a 4D histogram that 
@@ -560,9 +560,9 @@ class SpacecraftFile():
         earth_zenith = self.earth_zenith
 
         # Fill (only 2 axes needed to fully define the orientation)
-        h_ori = SpacecraftAttitudeMap(nside = nside,
-                                      scheme = scheme,
-                                      coordsys = coordsys)
+        h_ori = SpacecraftAttitudeMap(nside=nside,
+                                      scheme=scheme,
+                                      coordsys=coordsys)
         
         x, y, z = attitudes[:-1].as_axes()
        
@@ -583,12 +583,12 @@ class SpacecraftFile():
             weight[earth_occ_index[:-1]] = 0        
         
         # Fill histogram:
-        h_ori.fill(x, y, weight = weight)
+        h_ori.fill(x, y, weight=weight)
 
         return h_ori
 
 
-    def get_psr_rsp(self, response = None, dwell_map = None, dts = None):
+    def get_psr_rsp(self, response=None, dwell_map=None, dts=None):
 
         """
         Generates the point source response based on the response file and dwell time map.
@@ -666,7 +666,7 @@ class SpacecraftFile():
         return self.Ei_edges, self.Ei_lo, self.Ei_hi, self.Em_edges, self.Em_lo, self.Em_hi, self.areas, self.matrix
 
 
-    def get_arf(self, out_name = None):
+    def get_arf(self, out_name=None):
 
         """
         Converts the point source response to an arf file that can be read by XSPEC.
@@ -691,9 +691,9 @@ class SpacecraftFile():
         primaryhdu.header["COMMENT"] = copyright_string # add comments
         primaryhdu.header # print headers and their values
 
-        col1_energ_lo = fits.Column(name="ENERG_LO", format="E", unit = "keV", array=self.Em_lo)
-        col2_energ_hi = fits.Column(name="ENERG_HI", format="E", unit = "keV", array=self.Em_hi)
-        col3_specresp = fits.Column(name="SPECRESP", format="E", unit = "cm**2", array=self.areas)
+        col1_energ_lo = fits.Column(name="ENERG_LO", format="E", unit="keV", array=self.Em_lo)
+        col2_energ_hi = fits.Column(name="ENERG_HI", format="E", unit="keV", array=self.Em_hi)
+        col3_specresp = fits.Column(name="SPECRESP", format="E", unit="cm**2", array=self.areas)
         cols = fits.ColDefs([col1_energ_lo, col2_energ_hi, col3_specresp]) # create a ColDefs (column-definitions) object for all columns
         specresp_bintablehdu = fits.BinTableHDU.from_columns(cols) # create a binary table HDU object
 
@@ -720,7 +720,7 @@ class SpacecraftFile():
 
         return
 
-    def get_rmf(self, out_name = None):
+    def get_rmf(self, out_name=None):
 
         """
         Converts the point source response to an rmf file that can be read by XSPEC.
@@ -785,8 +785,8 @@ class SpacecraftFile():
             n_chan.append(n_chan_temp)
             matrix.append(matrix_temp)
 
-        col1_energ_lo = fits.Column(name="ENERG_LO", format="E", unit = "keV", array=energ_lo)
-        col2_energ_hi = fits.Column(name="ENERG_HI", format="E", unit = "keV", array=energ_hi)
+        col1_energ_lo = fits.Column(name="ENERG_LO", format="E", unit="keV", array=energ_lo)
+        col2_energ_hi = fits.Column(name="ENERG_HI", format="E", unit="keV", array=energ_hi)
         col3_n_grp = fits.Column(name="N_GRP", format="I", array=n_grp)
         col4_f_chan = fits.Column(name="F_CHAN", format="PI(54)", array=f_chan)
         col5_n_chan = fits.Column(name="N_CHAN", format="PI(54)", array=n_chan)
@@ -857,7 +857,7 @@ class SpacecraftFile():
 
         return
 
-    def get_pha(self, src_counts, errors, rmf_file = None, arf_file = None, bkg_file = None, exposure_time = None, dts = None, telescope="COSI", instrument="COSI"):
+    def get_pha(self, src_counts, errors, rmf_file=None, arf_file=None, bkg_file=None, exposure_time=None, dts=None, telescope="COSI", instrument="COSI"):
 
         """
         Generate the pha file that can be read by XSPEC. This file stores the counts info of the source.
@@ -973,7 +973,7 @@ class SpacecraftFile():
         return
 
 
-    def plot_arf(self, file_name = None, save_name = None, dpi = 300):
+    def plot_arf(self, file_name=None, save_name=None, dpi=300):
 
         """
         Read the arf fits file, plot and save it.
@@ -1025,7 +1025,7 @@ class SpacecraftFile():
         return
 
 
-    def plot_rmf(self, file_name = None, save_name = None, dpi = 300):
+    def plot_rmf(self, file_name=None, save_name=None, dpi=300):
 
         """
         Read the rmf fits file, plot and save it.
@@ -1111,7 +1111,7 @@ class SpacecraftFile():
         #plt.xlim([70,10000])
         #plt.ylim([70,10000])
         plt.colorbar(norm=LogNorm())
-        plt.savefig(f"Redistribution_matrix_for_{self.save_name}.png", bbox_inches = "tight", pad_inches=0.1, dpi=300)
+        plt.savefig(f"Redistribution_matrix_for_{self.save_name}.png", bbox_inches="tight", pad_inches=0.1, dpi=300)
         #plt.show()
 
         return

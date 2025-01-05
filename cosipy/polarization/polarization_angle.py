@@ -8,7 +8,7 @@ class PolarizationAngle:
 
     def __init__(
             self, angle, skycoord,
-            convention = 'iau',
+            convention='iau',
             *args, **kwargs):
         """
         Defines a polarization angle in the context of a source direction and
@@ -69,8 +69,8 @@ class PolarizationAngle:
         pol_vec = px * cos_pa + py * sin_pa
                 
         return SkyCoord(*pol_vec,
-                        representation_type = 'cartesian',
-                        frame = self.convention.frame)
+                        representation_type='cartesian',
+                        frame=self.convention.frame)
     
     def transform_to(self, convention, *args, **kwargs):
 
@@ -99,6 +99,4 @@ class PolarizationAngle:
 
         return PolarizationAngle(pa_2,
                                  self.skycoord,
-                                 convention = convention2)
-
-        
+                                 convention=convention2)
