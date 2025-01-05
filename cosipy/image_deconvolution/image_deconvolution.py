@@ -36,7 +36,7 @@ class ImageDeconvolution:
         """
 
         self._dataset = dataset
-        
+
         logger.debug(f"dataset for image deconvolution was set -> {self._dataset}")
 
     def set_mask(self, mask):
@@ -46,7 +46,7 @@ class ImageDeconvolution:
         Parameters
         ----------
         mask: :py:class:`histpy.Histogram`
-            A mask which will be applied to a model 
+            A mask which will be applied to a model
         """
 
         self._mask = mask
@@ -125,10 +125,10 @@ class ImageDeconvolution:
         """
 
         logger.info("#### Initialization Starts ####")
-        
-        self.model_initialization()        
 
-        self.register_deconvolution_algorithm()        
+        self.model_initialization()
+
+        self.register_deconvolution_algorithm()
 
         logger.info("#### Initialization Finished ####")
 
@@ -138,13 +138,13 @@ class ImageDeconvolution:
 
         Returns
         -------
-        bool 
+        bool
             whether the instantiation and initialization are successfully done.
         """
         # set self._model_class
         model_name = self.parameter['model_definition']['class']
 
-        if not model_name in self.model_classes.keys():
+        if not model_name in self.model_classes:
             logger.error(f'The model class "{model_name}" does not exist!')
             raise ValueError
 
@@ -181,7 +181,7 @@ class ImageDeconvolution:
 
         Returns
         -------
-        bool 
+        bool
             whether the deconvolution algorithm is successfully registered.
         """
         logger.info("<< Registering the deconvolution algorithm >>")
@@ -195,28 +195,28 @@ class ImageDeconvolution:
             raise ValueError
 
         self._deconvolution_class = self.deconvolution_algorithm_classes[algorithm_name]
-        self._deconvolution = self._deconvolution_class(initial_model = self.initial_model, 
-                                                        dataset = self.dataset, 
-                                                        mask = self.mask, 
+        self._deconvolution = self._deconvolution_class(initial_model = self.initial_model,
+                                                        dataset = self.dataset,
+                                                        mask = self.mask,
                                                         parameter = algorithm_parameter)
 
         logger.info("---- parameters ----")
-        logger.info(parameter_deconvolution.dump()) 
+        logger.info(parameter_deconvolution.dump())
 
     def run_deconvolution(self):
         """
         Perform the image deconvolution. Make sure that the initialize method has been conducted.
-        
+
         Returns
         -------
         list
-            List containing results (reconstructed image, likelihood etc) at each iteration. 
+            List containing results (reconstructed image, likelihood etc) at each iteration.
         """
         logger.info("#### Image Deconvolution Starts ####")
-       
+
         logger.info(f"<< Initialization >>")
         self._deconvolution.initialization()
-        
+
         stop_iteration = False
         for i in tqdm(range(self._deconvolution.iteration_max)):
             if stop_iteration:
@@ -234,10 +234,10 @@ class ImageDeconvolution:
 
         Returns
         -------
-        bool 
+        bool
             whether the axes of dataset are consistent with the model.
         """
-        
+
         for data in self.dataset:
             if data.model_axes != self.initial_model.axes:
                 return False
