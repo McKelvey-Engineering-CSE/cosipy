@@ -22,7 +22,7 @@ setup(name='cosipy',
       author_email='imc@umd.edu',
       url='https://github.com/cositools/cosipy',
       packages = find_packages(include=["cosipy", "cosipy.*"]),
-      install_requires = ["histpy",
+      install_requires = ["histpy @ git+https://gitlab.com/washu-sbs-lab/histpy.git@histpy_cleanup#egg=histpy",
                           "mhealpy",
                           "scoords",
                           'astromodels>=2.4.2',
@@ -36,8 +36,7 @@ setup(name='cosipy',
       entry_points={"console_scripts":[
           "cosi-response = cosipy.response.FullDetectorResponse:cosi_response",
                               ]},
-      
+
       long_description = long_description,
       long_description_content_type="text/markdown",
       )
-
