@@ -401,7 +401,7 @@ class FullDetectorResponse(HealpixBase):
 
                         # we reshape the bincontent to the response matrice dimension
                         # note that for non sparse matrice SigmaTau and Dist are not used
-                        data = np.reshape(data,tuple(axes.nbins),order="F")
+                        data = np.reshape(data,axes.shape,order="F")
 
                         break
 
@@ -411,14 +411,14 @@ class FullDetectorResponse(HealpixBase):
 
 
         if sparse :
+
             dr = Histogram(axes,
-                           contents=COO(coords=coords[:, :nbins_sparse], data= data[:nbins_sparse], shape = tuple(axes.nbins)),
+                           contents=COO(coords=coords[:, :nbins_sparse], data= data[:nbins_sparse], shape = axes.shape)),
                            copy_contents = False)
 
         else :
 
             dr = Histogram(axes, contents=data, copy_contents = False)
-
 
         # Weight to get effective area
 
@@ -611,8 +611,8 @@ class FullDetectorResponse(HealpixBase):
 
                 pix_slice = dr_area[{'NuLambda':b}]
 
-
                 coords[b] = pix_slice.coords.ravel()
+
                 data[b] = pix_slice.data
                 progress_bar.update(1)
 
@@ -668,8 +668,6 @@ class FullDetectorResponse(HealpixBase):
                 axes += [Axis(np.array(axis) * u.Unit(axis.attrs['UNIT']),
                                   scale=axis_type,
                                   label=axis_label)]
-
-
 
         new._axes = Axes(axes, copy_axes=False)
 
@@ -734,9 +732,10 @@ class FullDetectorResponse(HealpixBase):
             return DetectorResponse(self.axes[1:],
                                     contents=COO(coords=coords,
                                                  data=data,
-                                                 shape=tuple(self.axes.nbins[1:])),
+                                                 shape=self.axes.shape[1:]),
                                     unit=self.unit,
                                     copy_contents = False)
+
 
         else :
             data = self._file['DRM']['CONTENTS'][pix]
