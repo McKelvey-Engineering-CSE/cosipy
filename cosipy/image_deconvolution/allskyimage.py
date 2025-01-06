@@ -163,9 +163,5 @@ class AllSkyImageModel(ModelBase):
         if sigma is not None:
             fwhm = 2.354820 * sigma
 
-        allskyimage_new = self.copy()
-
         for i in range(self.axes['Ei'].nbins):
-            allskyimage_new[:,i] = hp.smoothing(self[:,i].value, fwhm = fwhm.to('rad').value) * self.unit
-
-        return allskyimage_new
+            self[:,i] = hp.smoothing(self[:,i].value, fwhm = fwhm.to('rad').value) * self.unit

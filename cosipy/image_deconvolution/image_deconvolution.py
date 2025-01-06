@@ -165,7 +165,7 @@ class ImageDeconvolution:
 
         # applying a mask to the model if needed
         if self.mask is not None:
-            self._initial_model = self._initial_model.mask_pixels(self.mask, 0)
+            self._initial_model.mask_pixels(self.mask, 0)
 
         # axes check
         if not self._check_model_response_consistency():
