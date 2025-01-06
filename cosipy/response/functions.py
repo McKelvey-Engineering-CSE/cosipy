@@ -111,7 +111,7 @@ def get_integrated_extended_model(extendedmodel, image_axis, energy_axis):
 
     normalized_map = extendedmodel.spatial_shape(coords.l.deg, coords.b.deg) / u.sr
 
-    flux_map = Histogram([image_axis, energy_axis],
+    flux_map = Histogram((image_axis, energy_axis),
                          contents = np.tensordot(normalized_map, integrated_flux.contents, axes = 0),
                          copy_contents = False)
 

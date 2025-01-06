@@ -3,7 +3,7 @@ logger = logging.getLogger(__name__)
 
 import numpy as np
 
-from histpy import Histogram, Axes, Axis
+from histpy import Histogram
 
 import astropy.units as u
 

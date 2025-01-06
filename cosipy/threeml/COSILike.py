@@ -14,7 +14,6 @@ from mhealpy import HealpixMap
 from cosipy.response import PointSourceResponse, DetectorResponse
 from histpy import Histogram
 import h5py as h5
-from histpy import Axis, Axes
 import sys
 
 import astropy.units as u

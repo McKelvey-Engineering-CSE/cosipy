@@ -1,4 +1,4 @@
-from histpy import Histogram, Axes, Axis
+from histpy import Histogram
 
 import numpy as np
 import astropy.units as u

@@ -487,8 +487,8 @@ class SpacecraftFile():
 
         weighted_duration = weights * self.dts.to_value(u.second)[None]
 
-        pixels = pixels.flatten()
-        weighted_duration = weighted_duration.flatten()
+        pixels = pixels.ravel()
+        weighted_duration = weighted_duration.ravel()
 
         pixels_argsort = np.argsort(pixels)
 

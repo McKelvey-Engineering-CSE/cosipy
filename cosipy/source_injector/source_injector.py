@@ -69,7 +69,6 @@ class SourceInjector():
                     class_module, class_name = axis.attrs['__class__']
                     axis_cls = getattr(sys.modules[class_module], class_name)
                 axes += [axis_cls._open(axis)]
-        axes = Axes(axes)
 
         # get the pixel number of the hypothesis coordinate
         map_temp = HealpixMap(base = axes[0])
@@ -78,7 +77,7 @@ class SourceInjector():
         # get the expectation for the hypothesis coordinate (a point source)
         with h5.File(response_path) as f:
             pix = coordinate_pix_number
-            psr = PointSourceResponse(axes[1:],
+            psr = PointSourceResponse(Axes(axes[1:], copy_axes = False),
                                       contents=f['hist/contents'][pix+1],
                                       unit = f['hist'].attrs['unit'],
                                       copy_contents = False)
@@ -140,8 +139,13 @@ class SourceInjector():
 
         injected = psr.get_expectation(spectrum)
         # setting the Em and Ei scale to linear to match the simulated data
-        # The linear scale of Em is the default for COSI data
-        injected.axes["Em"].axis_scale = "linear"
+        # The linear scale of Em is the default for COSI data.
+        # Because Histograms can share Axis objects, we must copy the
+        # Axis before modifying it and then replace it in the Histogram's
+        # Axes object.
+        em_axis = injected.axes["Em"].copy()
+        em_axis.axis_scale = "linear"
+        injected.axes.set("Em", em_axis, copy=False)
 
         if project_axes is not None:
             injected = injected.project(project_axes)

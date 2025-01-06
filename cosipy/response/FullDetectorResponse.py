@@ -131,7 +131,7 @@ class FullDetectorResponse(HealpixBase):
                                   scale=axis_type,
                                   label=axis_label)]
 
-        new._axes = Axes(axes)
+        new._axes = Axes(axes, copy_axes=False)
 
         # Init HealpixMap (local coordinates, main axis)
         HealpixBase.__init__(new,
@@ -555,7 +555,7 @@ class FullDetectorResponse(HealpixBase):
         for axis in dr.axes[axes_to_write]:
 
             axis_dataset = axes.create_dataset(axis.label,
-                                    data=axis.edges)
+                                               data=axis.edges)
 
 
             if axis.label in ['NuLambda', 'PsiChi','SigmaTau']:
@@ -612,7 +612,7 @@ class FullDetectorResponse(HealpixBase):
                 pix_slice = dr_area[{'NuLambda':b}]
 
 
-                coords[b] = pix_slice.coords.flatten()
+                coords[b] = pix_slice.coords.ravel()
                 data[b] = pix_slice.data
                 progress_bar.update(1)
 
@@ -671,12 +671,12 @@ class FullDetectorResponse(HealpixBase):
 
 
 
-        new._axes = Axes(axes)
+        new._axes = Axes(axes, copy_axes=False)
 
         # Init HealpixMap (local coordinates, main axis)
         HealpixBase.__init__(new,
-                                 base=new.axes['NuLambda'],
-                                 coordsys=SpacecraftFrame())
+                             base=new.axes['NuLambda'],
+                             coordsys=SpacecraftFrame())
 
         return new
 
@@ -873,8 +873,8 @@ class FullDetectorResponse(HealpixBase):
                 raise ValueError("Coord +  scatt_map currently only supported for dense responses")
 
             coords_axis = Axis(np.arange(coord.size+1), label = 'coords')
-            axes = Axes([coords_axis] + self.axes[1:]) # makes copies
-            axes["PsiChi"].coordsys = coord.frame # not shared with any other Axes yet
+            axes = Axes([coords_axis] + self.axes[1:]) # copies all Axis objects
+            axes["PsiChi"].coordsys = coord.frame # OK because not shared with any other Axes yet
 
             psrs = Histogram(axes, unit = self.unit * scatt_map.unit, track_overflow = False)
 

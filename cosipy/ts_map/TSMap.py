@@ -4,7 +4,7 @@ from threeML import DataList, Powerlaw, PointSource, Model, JointLikelihood
 
 import numpy as np
 
-from histpy import Histogram, Axis
+from histpy import Histogram, Axis, Axes
 
 from scipy import stats
 
@@ -169,7 +169,8 @@ class TSMap:
         self.dec_range = (-np.pi/2, np.pi/2) # rad
 
         axes = Axes((Axis(np.linspace(*self.ra_range , 50), label = "ra" ),
-                     Axis(np.linspace(*self.dec_range, 25), label = "dec"),))
+                     Axis(np.linspace(*self.dec_range, 25), label = "dec"),),
+                    copy_axes=False)
 
         contents = np.empty((axes['ra'].nbins, axes['dec'].nbins))
 

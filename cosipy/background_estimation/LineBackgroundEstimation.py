@@ -239,7 +239,7 @@ class LineBackgroundEstimation:
                 new_axes.append(axis)
             else:
                 new_axes.append(Axis(source_energy_range, label = "Em"))
-        new_axes = Axes(new_axes)
+        new_axes = Axes(new_axes, copy_axes=False)
 
         # initialize contents
         bkg_model = np.zeros(tuple(new_axes.nbins))

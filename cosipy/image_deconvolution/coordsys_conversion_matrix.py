@@ -60,7 +60,7 @@ class CoordsysConversionMatrix(Histogram):
         axis_model_map = HealpixAxis(nside = nside_model, coordsys = "galactic", label = "lb")
         axis_local_map = full_detector_response.axes["NuLambda"]
 
-        axis_coordsys_conv_matrix = [ axis_time, axis_model_map, axis_local_map ] #Time, lb, NuLambda
+        axis_coordsys_conv_matrix = Axes((axis_time, axis_model_map, axis_local_map), copy_axes=False) #Time, lb, NuLambda
 
         contents = []
 
@@ -139,7 +139,7 @@ class CoordsysConversionMatrix(Histogram):
         axis_model_map = HealpixAxis(nside = nside_model, coordsys = "galactic", scheme = exposure_table.scheme, label = "lb")
         axis_local_map = full_detector_response.axes["NuLambda"]
 
-        axis_coordsys_conv_matrix = [ axis_scatt, axis_model_map, axis_local_map ] #lb, ScAtt, NuLambda
+        axis_coordsys_conv_matrix = Axes((axis_scatt, axis_model_map, axis_local_map), copy_axes=False) #lb, ScAtt, NuLambda
 
         contents = []
 
