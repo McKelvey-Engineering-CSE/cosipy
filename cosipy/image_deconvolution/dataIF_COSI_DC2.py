@@ -29,7 +29,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
     A subclass of ImageDeconvolutionDataInterfaceBase for the COSI data challenge 2.
     """
 
-    def __init__(self, name = None):
+    def __init__(self, name = None, dtype = None):
 
         ImageDeconvolutionDataInterfaceBase.__init__(self, name)
 
@@ -42,7 +42,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         self.is_miniDC2_format = False #should be removed in the future
 
     @classmethod
-    def load(cls, name, event_binned_data, dict_bkg_binned_data, rsp, coordsys_conv_matrix = None, is_miniDC2_format = False):
+    def load(cls, name, event_binned_data, dict_bkg_binned_data, rsp, coordsys_conv_matrix = None, is_miniDC2_format = False, dtype = None):
         """
         Load data
 
@@ -74,6 +74,9 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # we don't need overflow tracking of binned data for RL
         new._event.track_overflow(False)
 
+        # coerce data type of event
+        new._event = new._event.astype(dtype, copy = False)
+
         new._bkg_models = dict_bkg_binned_data
 
         for key in new._bkg_models:
@@ -82,10 +85,13 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
             # we don't need overflow tracking of bkg binned data for RL
             new._bkg_models[key].track_overflow(False)
+            # coerce data type of bkg model
+            new._bkg_models[key] = new._bkg_models[key].astype(dtype, copy = False)
 
             new._summed_bkg_models[key] = np.sum(new._bkg_models[key])
 
-        new._coordsys_conv_matrix = coordsys_conv_matrix
+        # coerce data type of conversion matrix
+        new._coordsys_conv_matrix = coordsys_conv_matrix.astype(dtype, copy = False)
 
         # Enable sparse reshape caching to accelerate tensordot calls.
         # CoordSysConvMatrix disables overflow tracking, so
@@ -98,11 +104,12 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         if isinstance(rsp, FullDetectorResponse):
             logger.info('Loading the response matrix onto your computer memory...')
-            new._load_full_detector_response_on_memory(rsp, is_miniDC2_format)
+            new._load_full_detector_response_on_memory(rsp, is_miniDC2_format, dtype)
             logger.info('Finished')
         elif isinstance(rsp, Histogram):
             new._image_response = rsp
             new._image_response.track_overflow(False) # not needed for RL
+            new._image_response = new._image_response.astype(dtype, copy = False) # coerce type of response
 
         # We modify the axes in event, bkg_models, response. This is only for DC2.
         new._modify_axes()
@@ -208,7 +215,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         return True
 
-    def _load_full_detector_response_on_memory(self, full_detector_response, is_miniDC2_format):
+    def _load_full_detector_response_on_memory(self, full_detector_response, is_miniDC2_format, dtype):
         """
         Load a response file on the computer memory.
         """
@@ -229,7 +236,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         self._image_response = Histogram(axes_image_response, contents=contents,
                                          unit = full_detector_response.unit,
-                                         copy_contents = False)
+                                         dtype = dtype, copy_contents = False)
 
     def _calc_exposure_map(self):
         """

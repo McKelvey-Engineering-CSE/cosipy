@@ -38,7 +38,8 @@ class AllSkyImageModel(ModelBase):
                  coordsys = 'galactic',
                  label_image = 'lb',
                  label_energy = 'Ei',
-                 unit = '1/(s*cm*cm*sr)'
+                 unit = '1/(s*cm*cm*sr)',
+                 dtype = None
                  ):
 
         if energy_edges.unit != u.keV:
@@ -55,7 +56,7 @@ class AllSkyImageModel(ModelBase):
 
         axes = Axes((image_axis, energy_axis), copy_axes=False)
 
-        super().__init__(axes, sparse = False, unit = unit, track_overflow = False)
+        super().__init__(axes, sparse = False, unit = unit, dtype = dtype, track_overflow = False)
 
     @classmethod
     def instantiate_from_parameters(cls, parameter):
@@ -88,7 +89,8 @@ class AllSkyImageModel(ModelBase):
                   energy_edges = parameter['energy_edges']['value'] * u.Unit(parameter['energy_edges']['unit']),
                   scheme = parameter['scheme'],
                   coordsys = parameter['coordinate'],
-                  unit = u.Unit(parameter['unit']))
+                  unit = u.Unit(parameter['unit']),
+                  dtype = np.dtype(parameter['dtype']))
 
         return new
 
