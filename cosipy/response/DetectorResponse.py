@@ -40,8 +40,8 @@ class DetectorResponse(Histogram):
 
         new = super().copy()
 
-        new._spec = self._spec
-        new._aeff = self._aeff
+        new._spec = None if self._spec is None else self._spec.copy()
+        new._aeff = None if self._aeff is None else self._aeff.copy()
 
         return new
 

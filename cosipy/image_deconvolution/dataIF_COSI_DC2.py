@@ -110,13 +110,13 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         new._data_axes = new._event.axes
 
         if new._coordsys_conv_matrix is None:
-            axes = [new._image_response.axes['NuLambda'], new._image_response.axes['Ei']]
+            axes = (new._image_response.axes['NuLambda'].copy(), new._image_response.axes['Ei']) # will mutate axes[0]
             axes[0].label = 'lb'
             # The gamma-ray direction of pre-computed response in DC2 is in the galactic coordinate, not in the local coordinate.
             # Actually, it is labeled as 'NuLambda'. So I replace it with 'lb'.
             new._model_axes = Axes(axes)
         else:
-            new._model_axes = Axes([new._coordsys_conv_matrix.axes['lb'], new._image_response.axes['Ei']])
+            new._model_axes = Axes((new._coordsys_conv_matrix.axes['lb'], new._image_response.axes['Ei']))
 
         new._calc_exposure_map()
 
@@ -181,14 +181,16 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                 raise ValueError
 
         if self._coordsys_conv_matrix is None:
-            axes_cds = Axes([self._image_response.axes["Em"], \
+            axes_cds = Axes((self._image_response.axes["Em"], \
                              self._image_response.axes["Phi"], \
-                             self._image_response.axes["PsiChi"]])
+                             self._image_response.axes["PsiChi"]),
+                            copy_axes=False)
         else:
-            axes_cds = Axes([self._event.axes[0], \
+            axes_cds = Axes((self._event.axes[0], \
                              self._image_response.axes["Em"], \
                              self._image_response.axes["Phi"], \
-                             self._image_response.axes["PsiChi"]])
+                             self._image_response.axes["PsiChi"]),
+                            copy_axes=False)
 
         self._event = Histogram(axes_cds,
                                 contents = self._event.contents,
@@ -215,7 +217,8 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                                     full_detector_response.axes["Ei"],
                                     full_detector_response.axes["Em"],
                                     full_detector_response.axes["Phi"],
-                                    full_detector_response.axes["PsiChi"]))
+                                    full_detector_response.axes["PsiChi"]),
+                                   copy_axes=False)
 
         if is_miniDC2_format:
             npix = axes_image_response["NuLambda"].npix

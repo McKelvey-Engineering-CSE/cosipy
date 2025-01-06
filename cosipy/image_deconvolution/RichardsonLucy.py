@@ -168,7 +168,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
         else:
             self.alpha = 1.0
 
-        self.model = self.model + self.processed_delta_model * self.alpha
+        self.model += self.processed_delta_model * self.alpha
         self.model[:] = np.where(self.model.contents < self.minimum_flux, self.minimum_flux, self.model.contents)
 
         if self.mask is not None:
