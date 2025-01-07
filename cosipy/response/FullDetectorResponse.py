@@ -890,7 +890,8 @@ class FullDetectorResponse(HealpixBase):
                 loc_nulambda_pixels = np.array(self.axes['NuLambda'].find_bin(coord),
                                                ndmin = 1)
 
-                dr_pix = Histogram.concatenate(coords_axis, [self[i] for i in loc_nulambda_pixels])
+                dr_pix = Histogram.concatenate(coords_axis,
+                                               contents = [self[i] for i in loc_nulambda_pixels])
 
                 dr_pix.axes['PsiChi'].coordsys = SpacecraftFrame(attitude = att)
 
@@ -920,15 +921,13 @@ class FullDetectorResponse(HealpixBase):
 
         axis_id = h.axes.label_to_index(axis)
 
-        old_axes = h.axes
-        new_axes = h_new.axes
-
         old_axis = h.axes[axis_id]
         new_axis = h_new.axes[axis_id]
 
         # Convolve
         # TODO: Change this to interpolation (pixels + weights)
         old_pixels = old_axis.find_bin(new_axis.pix2skycoord(np.arange(new_axis.nbins)))
+
         # NOTE: there are some pixels that are duplicated, since the center 2 pixels
         # of the original grid can land within the boundaries of a single pixel
         # of the target grid. The following commented code fixes this, but it's slow, and
@@ -941,19 +940,9 @@ class FullDetectorResponse(HealpixBase):
         # old_norm = np.sum(h, axis = tuple(np.arange(1, h.ndim)))
         # norm_corr = h.expand_dims(norm / norm_rot, "NuLambda")
 
-        for old_pix,new_pix in zip(old_pixels,range(new_axis.npix)):
+        for old_pix, new_pix in zip(old_pixels, range(new_axis.npix)):
 
-            #h_new[{axis:new_pix}] += exposure * h[{axis: old_pix}] # * norm_corr
-            # The following code does the same than the code above, but is faster
-            # However, it uses some internal functionality in histpy, which is bad practice
-            # TODO: change this in a future version. We might need to modify histpy so that
-            # this is not needed
-
-            old_indices = tuple([slice(None)]*axis_id + [old_pix+1])
-            new_indices = tuple([slice(None)]*axis_id + [new_pix+1])
-
-            h_new._contents[new_indices] += exposure * h._contents[old_indices] # * norm_corr
-
+            h_new[{axis:new_pix}] += exposure * h[{axis: old_pix}] # * norm_corr
 
     def __str__(self):
         return f"{self.__class__.__name__}(filename = '{self.filename.resolve()}')"
