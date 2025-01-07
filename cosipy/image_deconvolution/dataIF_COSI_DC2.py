@@ -60,7 +60,9 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             Coordsys conversion matrix
         is_miniDC2_format : bool, default False
             Whether the file format is for mini-DC2. It will be removed in the future.
-
+        dtype : np.dtype
+            Data type to be used for elements of loaded event, bkg_models,
+            response, and coordsys_conv_matrix
         Returns
         -------
         :py:class:`cosipy.image_deconvolution.DataIF_COSI_DC2`
