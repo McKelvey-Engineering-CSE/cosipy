@@ -1,4 +1,5 @@
 import numpy as np
+from numba import jit, prange
 from tqdm.autonotebook import tqdm
 import astropy.units as u
 
@@ -72,6 +73,8 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         new = cls(name)
 
         new._event = event_binned_data.to_dense()
+        new._event =  new._event.to(unit=u.dimensionless_unscaled,
+                                    update=False, copy=False)
 
         # we don't need overflow tracking of binned data for RL
         new._event.track_overflow(False)
@@ -251,6 +254,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         if self._coordsys_conv_matrix is None:
             exposure_map  = np.sum(self._image_response.contents, axis = (2,3,4))
+            # [NuLambda(lb), Ei, Em, Phi, PsiChi] -> [NuLambda(lb), Ei]
         else:
             exposure_map = tensordot_sparse(np.sum(self._coordsys_conv_matrix, axis = (0)),
                                             self._coordsys_conv_matrix.unit,
@@ -265,6 +269,24 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         self._exposure_map = Histogram(self._model_axes, contents = exposure_map, copy_contents = False)
 
         logger.info("Finished...")
+
+    @staticmethod
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    def exmath(ex, bg, bgnorm):
+        for i in prange(len(ex)):
+            ex[i] += bg[i] * bgnorm
+
+    @staticmethod
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    def acc_mul(ex, v):
+        for i in prange(len(ex)):
+            ex[i] = ex[i] * v
+
+    @staticmethod
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    def acc_muladd(ex, v, v0):
+        for i in prange(len(ex)):
+            ex[i] = ex[i] * v + v0
 
     def calc_expectation(self, model, dict_bkg_norm = None, almost_zero = 1e-12):
         """
@@ -309,14 +331,20 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             expectation = np.tensordot(map_rotated, self._image_response.contents, axes = ((1,2), (0,1)))
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
-        expectation *= model.axes['lb'].pixarea()
-        expectation += almost_zero
+        ex = expectation.ravel()
+
+        # expectation *= model.axes['lb'].pixarea()
+        # expectation += almost_zero
+        self.acc_muladd(ex, model.axes['lb'].pixarea().value, almost_zero)
 
         if dict_bkg_norm is not None:
             for key in self.keys_bkg_models():
-                expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
+                #expectation += self.bkg_model(key).contents * dict_bkg_norm[key]
+                self.exmath(ex, self.bkg_model(key).contents.ravel(), dict_bkg_norm[key])
 
-        return Histogram(self.data_axes, contents = expectation, copy_contents = False)
+        # patch unit of result to reflect multiply by pixarea
+        return Histogram(self.data_axes, contents = expectation.value, unit = expectation.unit * u.sr,
+                          copy_contents = False)
 
     def calc_T_product(self, dataspace_histogram):
         """
@@ -350,9 +378,15 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
                                      axes = ((0,2), (0,1)))
              # [Time/ScAtt, lb, NuLambda] x [Time/ScAtt, NuLambda, Ei] -> [lb, Ei]
 
-        tprod *= self.model_axes['lb'].pixarea()
 
-        return Histogram(self.model_axes, contents = tprod, copy_contents = False)
+        tp = tprod.ravel()
+
+        #tprod *= self.model_axes['lb'].pixarea()
+        self.acc_mul(tp, self.model_axes['lb'].pixarea().value)
+
+        # patch unit of result to reflect multiply by pixarea
+        return Histogram(self.model_axes, contents = tprod.value, unit = tprod.unit * u.sr,
+                         copy_contents = False)
 
     def calc_bkg_model_product(self, key, dataspace_histogram):
         """
@@ -390,6 +424,24 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         float
             Log-likelihood
         """
-        loglikelihood = np.sum( self.event * np.log(expectation) ) - np.sum(expectation)
+        ev = self.event.contents
+        ex = expectation.contents
+
+        loglikelihood = self.ll(ev.ravel(), ex.ravel())
+        #loglikelihood = np.sum( ev * np.log(ex) ) - np.sum(ex)
 
         return loglikelihood
+
+    @staticmethod
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    def ll(ev, ex):
+
+        llhood = 0.
+
+        for i in prange(len(ev)):
+            llhood += ev[i] * np.log(ex[i])
+
+        for i in prange(len(ev)):
+            llhood -= ex[i]
+
+        return llhood

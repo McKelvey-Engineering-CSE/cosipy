@@ -54,7 +54,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
         # calculate summed background models for M-step
         if self.do_bkg_norm_optimization:
             self.dict_summed_bkg_model = {}
-            for key in self.dict_bkg_norm.keys():
+            for key in self.dict_bkg_norm:
                 self.dict_summed_bkg_model[key] = self.calc_summed_bkg_model(key)
 
     def pre_processing(self):
@@ -84,7 +84,7 @@ class RichardsonLucySimple(DeconvolutionAlgorithmBase):
 
         # background normalization optimization
         if self.do_bkg_norm_optimization:
-            for key in self.dict_bkg_norm.keys():
+            for key in self.dict_bkg_norm:
 
                 sum_bkg_T_product = self.calc_summed_bkg_model_product(key, ratio_list)
                 sum_bkg_model = self.dict_summed_bkg_model[key]

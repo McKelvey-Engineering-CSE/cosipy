@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from numba import jit, prange
 import astropy.units as u
 import astropy.io.fits as fits
 import logging
@@ -101,7 +102,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
         # calculate summed background models for M-step
         if self.do_bkg_norm_optimization:
             self.dict_summed_bkg_model = {}
-            for key in self.dict_bkg_norm.keys():
+            for key in self.dict_bkg_norm:
                 self.dict_summed_bkg_model[key] = self.calc_summed_bkg_model(key)
 
     def pre_processing(self):
@@ -117,12 +118,26 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
         """
         pass
 
+    @staticmethod
+    def _div(A, B):
+        R = np.empty_like(A.contents)
+        RichardsonLucy._do_div(R.ravel(), A.contents.ravel(), B.contents.ravel())
+        return Histogram(A.axes, contents = R, unit = A.unit/B.unit,
+                         copy_contents=False)
+
+    @staticmethod
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    def _do_div(R, A, B):
+        for i in prange(len(A)):
+            R[i] = A[i]/B[i]
+
     def Mstep(self):
         """
         M-step in RL algorithm.
         """
 
-        ratio_list = [ data.event / expectation for data, expectation in zip(self.dataset, self.expectation_list) ]
+        ratio_list = [ self._div(data.event, expectation) for data, expectation in zip(self.dataset, self.expectation_list) ]
+        #ratio_list = [ data.event / expectation for data, expectation in zip(self.dataset, self.expectation_list) ]
 
         # delta model
         sum_T_product = self.calc_summed_T_product(ratio_list)
@@ -133,7 +148,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
 
         # background normalization optimization
         if self.do_bkg_norm_optimization:
-            for key in self.dict_bkg_norm.keys():
+            for key in self.dict_bkg_norm:
 
                 sum_bkg_T_product = self.calc_summed_bkg_model_product(key, ratio_list)
                 sum_bkg_model = self.dict_summed_bkg_model[key]
@@ -243,7 +258,7 @@ class RichardsonLucy(DeconvolutionAlgorithmBase):
             col_iteration = fits.Column(name='iteration', array=[float(result['iteration']) for result in self.results], format='K')
             col_alpha = fits.Column(name='alpha', array=[float(result['alpha']) for result in self.results], format='D')
             cols_bkg_norm = [fits.Column(name=key, array=[float(result['background_normalization'][key]) for result in self.results], format='D')
-                             for key in self.dict_bkg_norm.keys()]
+                             for key in self.dict_bkg_norm]
             cols_loglikelihood = [fits.Column(name=f"{self.dataset[i].name}", array=[float(result['loglikelihood'][i]) for result in self.results], format='D')
                                   for i in range(len(self.dataset))]
 
