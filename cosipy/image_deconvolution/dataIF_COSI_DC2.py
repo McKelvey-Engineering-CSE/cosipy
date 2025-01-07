@@ -1,4 +1,5 @@
 import numpy as np
+import cupy as cp
 from numba import jit, prange
 from tqdm.autonotebook import tqdm
 import astropy.units as u
@@ -24,6 +25,16 @@ def tensordot_sparse(A, A_unit, B, axes):
     dotprod = np.tensordot(A, B.value, axes=axes)
     return u.Quantity(dotprod, unit= A_unit * B.unit, copy=False)
 
+def tensordot_resp(A, response, axes):
+    """
+    perform a tensordot operation between A, a Quantity array, and
+    response, an image response Histogram whose contents have been
+    copied to the CUDA device. We assume a reference to the device
+    response array is attached to the response Histogram.
+    Return a proper Quantity as the result.
+    """
+    dotprod = cp.tensordot(cp.array(A), response.cu_array, axes=axes).get()
+    return u.Quantity(dotprod, unit= A.unit * response.unit, copy=False)
 
 class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
     """
@@ -120,6 +131,23 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
 
         # We modify the axes in event, bkg_models, response. This is only for DC2.
         new._modify_axes()
+
+        # copy response to device and attach to this object for later reference
+        new._image_response.cu_array = cp.array(new._image_response.contents)
+
+        for key in new._bkg_models:
+            if new._bkg_models[key].is_sparse:
+                new._bkg_models[key] = new._bkg_models[key].to_dense()
+
+            # we don't need overflow tracking of bkg binned data for RL
+            new._bkg_models[key].track_overflow(False)
+            # coerce data type of bkg model
+            new._bkg_models[key] = new._bkg_models[key].astype(dtype, copy = False)
+
+            # copy bkg model to device and attach to this object for later reference
+            new._bkg_models[key].cu_array = cp.array(new._bkg_models[key].contents.ravel())
+
+            new._summed_bkg_models[key] = np.sum(new._bkg_models[key])
 
         new._data_axes = new._event.axes
 
@@ -318,7 +346,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # Then, the implementation here will not work. Thus, keep in mind that we need to modify it once the response format is fixed.
 
         if self._coordsys_conv_matrix is None:
-            expectation = np.tensordot( model.contents, self._image_response.contents, axes = ((0,1),(0,1)))
+            expectation = tensordot_resp( model.contents, self._image_response, axes = ((0,1),(0,1)))
             # ['lb', 'Ei'] x [NuLambda(lb), Ei, Em, Phi, PsiChi] -> [Em, Phi, PsiChi]
         else:
             map_rotated = tensordot_sparse(self._coordsys_conv_matrix.contents,
@@ -328,7 +356,7 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             # ['Time/ScAtt', 'lb', 'NuLambda'] x ['lb', 'Ei'] -> [Time/ScAtt, NuLambda, Ei]
             # the unit of map_rotated is 1/cm2 ( = s * 1/cm2/s/sr * sr)
 
-            expectation = np.tensordot(map_rotated, self._image_response.contents, axes = ((1,2), (0,1)))
+            expectation = tensordot_resp(map_rotated, self._image_response, axes = ((1,2), (0,1)))
             # [Time/ScAtt, NuLambda, Ei] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, Em, Phi, PsiChi]
 
         ex = expectation.ravel()
@@ -366,10 +394,10 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         # TODO: currently, dataspace_histogram is assumed to be dense.
 
         if self._coordsys_conv_matrix is None:
-            tprod = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ((0,1,2), (2,3,4)))
+            tprod = tensordot_resp(dataspace_histogram.contents, self._image_response, axes = ((0,1,2), (2,3,4)))
             # [Em, Phi, PsiChi] x [NuLambda (lb), Ei, Em, Phi, PsiChi] -> [NuLambda (lb), Ei]
         else:
-            _ = np.tensordot(dataspace_histogram.contents, self._image_response.contents, axes = ((1,2,3), (2,3,4)))
+            _ = tensordot_resp(dataspace_histogram.contents, self._image_response, axes = ((1,2,3), (2,3,4)))
             # [Time/ScAtt, Em, Phi, PsiChi] x [NuLambda, Ei, Em, Phi, PsiChi] -> [Time/ScAtt, NuLambda, Ei]
 
             tprod = tensordot_sparse(self._coordsys_conv_matrix.contents,
@@ -406,8 +434,8 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         float
         """
         # TODO: currently, dataspace_histogram is assumed to be a dense.
-        return np.dot(dataspace_histogram.contents.ravel(),
-                      self.bkg_model(key).contents.ravel())
+        return cp.dot(cp.array(dataspace_histogram.contents.ravel()),
+                      self.bkg_model(key).cu_array).item()
 
 
     def calc_loglikelihood(self, expectation):
