@@ -9,6 +9,7 @@ model_definition:
     energy_edges: # shoud be the same as the response matrix
       value: [150.0, 220.0, 325.0, 480.0, 520.0, 765.0, 1120.0, 1650.0, 2350.0, 3450.0, 5000.0]
       unit: "keV"
+    dtype: "float64"
     unit: "cm-2 s-1 sr-1" # do not change it as for now
   initialization:
     algorithm: "flat" # more methods, e.g., simple-backprojection, user-defined, would be implemented.

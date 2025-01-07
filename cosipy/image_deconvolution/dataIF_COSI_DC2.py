@@ -91,7 +91,9 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             new._summed_bkg_models[key] = np.sum(new._bkg_models[key])
 
         # coerce data type of conversion matrix
-        new._coordsys_conv_matrix = coordsys_conv_matrix.astype(dtype, copy = False)
+        new._coordsys_conv_matrix = coordsys_conv_matrix
+        if new._coordsys_conv_matrix is not None:
+            new._coordsys_conv_matrix = new._coordsys_conv_matrix.astype(dtype, copy = False)
 
         # Enable sparse reshape caching to accelerate tensordot calls.
         # CoordSysConvMatrix disables overflow tracking, so
