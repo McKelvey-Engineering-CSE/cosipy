@@ -795,8 +795,7 @@ class FullDetectorResponse(HealpixBase):
 
         dr = DetectorResponse(self.axes[1:],
                               sparse=self._sparse,
-                              unit=self.unit,
-                              track_overflow = False)
+                              unit=self.unit)
 
         for p, w in zip(pixels, weights):
             dr += self[p]*w
@@ -848,8 +847,7 @@ class FullDetectorResponse(HealpixBase):
 
             psr = PointSourceResponse(self.axes[1:],
                                       sparse=self._sparse,
-                                      unit=u.cm*u.cm*u.s,
-                                      track_overflow = False)
+                                      unit=u.cm*u.cm*u.s)
 
             for p in range(self.npix):
 
@@ -875,7 +873,7 @@ class FullDetectorResponse(HealpixBase):
             axes = Axes([coords_axis] + self.axes[1:]) # copies all Axis objects
             axes["PsiChi"].coordsys = coord.frame # OK because not shared with any other Axes yet
 
-            psrs = Histogram(axes, unit = self.unit * scatt_map.unit, track_overflow = False)
+            psrs = Histogram(axes, unit = self.unit * scatt_map.unit)
 
             for i, (pixels, exposure) in \
                 enumerate(zip(scatt_map.contents.coords.transpose(),

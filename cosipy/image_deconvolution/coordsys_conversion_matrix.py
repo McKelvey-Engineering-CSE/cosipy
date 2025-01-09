@@ -20,7 +20,7 @@ class CoordsysConversionMatrix(Histogram):
 
         super().__init__(edges, contents = contents, sumw2 = sumw2,
                          labels = labels, axis_scale = axis_scale, sparse = sparse, unit = unit,
-                         track_overflow = False, copy_contents = copy_contents)
+                         copy_contents = copy_contents)
 
         self.binning_method = binning_method #'Time' or 'ScAtt'
 

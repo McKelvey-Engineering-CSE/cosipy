@@ -43,5 +43,4 @@ class SpacecraftAttitudeMap(Histogram):
 
         super().__init__(axes,
                          sparse = True,
-                         unit = u.s,
-                         track_overflow = False)
+                         unit = u.s)
