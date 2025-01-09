@@ -87,9 +87,6 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
         new._event =  new._event.to(unit=u.dimensionless_unscaled,
                                     update=False, copy=False)
 
-        # we don't need overflow tracking of binned data for RL
-        new._event.track_overflow(False)
-
         # coerce data type of event
         new._event = new._event.astype(dtype, copy = False)
 
@@ -99,8 +96,6 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             if new._bkg_models[key].is_sparse:
                 new._bkg_models[key] = new._bkg_models[key].to_dense()
 
-            # we don't need overflow tracking of bkg binned data for RL
-            new._bkg_models[key].track_overflow(False)
             # coerce data type of bkg model
             new._bkg_models[key] = new._bkg_models[key].astype(dtype, copy = False)
 
@@ -126,7 +121,6 @@ class DataIF_COSI_DC2(ImageDeconvolutionDataInterfaceBase):
             logger.info('Finished')
         elif isinstance(rsp, Histogram):
             new._image_response = rsp
-            new._image_response.track_overflow(False) # not needed for RL
             new._image_response = new._image_response.astype(dtype, copy = False) # coerce type of response
 
         # We modify the axes in event, bkg_models, response. This is only for DC2.

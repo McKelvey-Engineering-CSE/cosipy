@@ -55,7 +55,9 @@ class SourceInjector():
         """
 
         # Open the response
-        # Notes from Israel: Inside it contains a single histogram with all the regular axes for a Compton Data Space (CDS) analysis, in galactic coordinates. Since there is no class yet to handle it, this is how to read in the HDF5 manually.
+        # Notes from Israel: Inside it contains a single histogram with all the regular axes for a
+        # Compton Data Space (CDS) analysis, in galactic coordinates. Since there is no class yet to
+        # handle it, this is how to read in the HDF5 manually.
 
         with h5.File(response_path) as f:
 
@@ -75,10 +77,16 @@ class SourceInjector():
         coordinate_pix_number = map_temp.ang2pix(coordinate)
 
         # get the expectation for the hypothesis coordinate (a point source)
+        # NB: must adjust which part of contents to extract depending on
+        # whether overflow is being tracked; previously, code just assumed that
+        # tracking was always on.
         with h5.File(response_path) as f:
+            hc = f['hist/contents']
+            track_overflow = (hc.shape[0] == axes[0].nbins + 2)
+
             pix = coordinate_pix_number
             psr = PointSourceResponse(Axes(axes[1:], copy_axes = False),
-                                      contents=f['hist/contents'][pix+1],
+                                      contents=f['hist/contents'][pix + track_overflow],
                                       unit = f['hist'].attrs['unit'],
                                       copy_contents = False)
 
