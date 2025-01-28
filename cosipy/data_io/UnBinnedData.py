@@ -707,39 +707,36 @@ class UnBinnedData(DataIO):
             Prefix of output file.
         """
         # get fits file attributes from first input
-        rows = 0
-        column_info = {}
-        with fits.open(file_list[0]) as hdul:
+        rows = 0 # stores data size
+        col_shapes = {} # stores col info
+        col_dtypes = {} # " "
+        with fits.open(input_files[0]) as hdul:
             header = hdul[0].header
             columns = hdul[1].columns
             for idx, col in enumerate(columns):
-                col_key = col.name
-                column_info[col_key] = {
-                    'dtype': col.dtype,
-                    'shape': (0,) + hdul[1].data[col_key].shape[1:]
-                }
+                col_shapes[col.name] = [0] + [_ for _ in hdul[1].data[col.name].shape[1:]]
+                col_dtypes[col.name] = col.dtype
             rows += len(hdul[1].data)
-
-        for _file in file_list[1:]:
+        # get sizes
+        for _file in input_files[1:]:
             with fits.open(_file) as hdul:
-                rows += len(hdul[1].data)
+                for col in hdul[1].columns:
+                    col_shapes[col.name][0] += hdul[1].data[col.name].shape[0]
 
         self.cosi_dataset = {}
         try:
-            for col_key, info in column_info.items():
-                shape = (rows,) + info['shape'][1:]
-                self.cosi_dataset[col_key] = np.memmap(
-                    temp_file, dtype=info['dtype'], mode='w+', shape=shape
-                )
+            for col_key in col_shapes.keys():
+                shape = col_shapes[col_key]
+                self.cosi_dataset[col_key] = np.empty(dtype=col_dtypes[col_key], shape=tuple(shape))
             
             current_idx = 0
-            for _file in file_list:
-                with fits.open(_file) as hdul:
+            for i, _file in enumerate(input_files):
+                with fits.open(_file, memmap=True) as hdul:
                     data = hdul[1].data
                     file_rows = len(data)
                     
-                    for col_name in column_info:
-                        self.cosi_dataset[col_name][current_idx:current_idx+file_rows] = data[col_name]
+                    for col_name in col_shapes.keys():
+                        self.cosi_dataset[col_name][current_idx:current_idx+file_rows][:] = data[col_name][:]
                     
                     current_idx += file_rows
                     del data
