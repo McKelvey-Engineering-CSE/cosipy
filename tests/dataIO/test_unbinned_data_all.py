@@ -95,3 +95,16 @@ def test_unbinned_data_all(tmp_path):
     analysis.read_tra()
 
     return
+def test_small_fits_combine():
+
+    yaml = os.path.join(test_data.path,"inputs_crab.yaml")
+    analysis = UnBinnedData(yaml)
+    test_filename = analysis.data_file
+    analysis.data_file = os.path.join(test_data.path,analysis.data_file)
+    analysis.ori_file = os.path.join(test_data.path,analysis.ori_file)
+    
+    data_path = "/project/scratch01/compile/thomas.a/"
+    input_files = [data_path + 'Crab_unbinned.fits.gz', data_path + 'Crab_unbinned.fits.gz']
+    analysis.fast_fits_combine(input_files, output_name='test')
+
+    return

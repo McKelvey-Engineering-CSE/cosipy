@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 class BinnedData(UnBinnedData):
     """Handles binned data."""
 
-    def get_binned_data(self, unbinned_data=None, output_name=None, \
-            make_binning_plots=False, show_plots=False, \
-            psichi_binning="galactic", event_range=None):
+    def get_binned_data(self, unbinned_data=None, output_name=None,
+                        make_binning_plots=False, show_plots=False,
+                        psichi_binning="galactic", event_range=None):
 
         """Bin the data using histpy and mhealpy.
         
@@ -71,14 +71,17 @@ class BinnedData(UnBinnedData):
             num_bins = round(delta_t / self.time_bins)
             new_bin_size = delta_t / num_bins
             if self.time_bins != new_bin_size:
-                logger.info("Note: time bins must be equally spaced between min and max time.")
+                logger.info("Note: time bins must be equally spaced between \
+                            min and max time.")
                 logger.info("Using time bin size [s]: " + str(new_bin_size))
             time_bin_edges = np.linspace(min_time,max_time,num_bins+1)
 
         if type(self.time_bins).__name__ == 'list':
-            # Check that bins correspond to min and max time:
-            if (self.time_bins[0] > min_time) | (self.time_bins[-1] < max_time):
-                logger.error("ERROR: Time bins do not cover the full selected data range!")
+            # Check if bins correspond to min and max time:
+            if (self.time_bins[0] > min_time) \
+            or (self.time_bins[-1] < max_time):
+                logger.error("ERROR: Time bins do not cover the full \
+                            selected data range!")
                 sys.exit()
             time_bin_edges = np.array(self.time_bins)
 
@@ -229,20 +232,27 @@ class BinnedData(UnBinnedData):
             self.load_binned_data_from_hdf5(binned_data)
     
         # Define plot dictionaries:
-        time_energy_plot = {"projection":["Time","Em"],"xlabel":"Time [s]",\
-                "ylabel":"Em [keV]","savefig":"2d_time_energy.png"}
-        time_plot = {"projection":"Time","xlabel":"Time [s]",\
-                "ylabel":"Counts","savefig":"time_binning.pdf"}
-        energy_plot = {"projection":"Em","xlabel":"Em [keV]",\
-                "ylabel":"Counts","savefig":"energy_binning.pdf"}
-        phi_plot = {"projection":"Phi","xlabel":"Phi [deg]",\
-                "ylabel":"Counts","savefig":"phi_binning.pdf"}
-        psichi_plot = {"projection":"PsiChi",\
-                "xlabel":"PsiChi [HEALPix ring pixel number]",\
-                "ylabel":"Counts","savefig":"psichi_binning.pdf"}
+        time_energy_plot = {
+            "projection": ["Time", "Em"], "xlabel": "Time [s]",
+            "ylabel": "Em [keV]", "savefig": "2d_time_energy.png"}
+        time_plot = {
+            "projection": "Time", "xlabel": "Time [s]",
+            "ylabel": "Counts", "savefig": "time_binning.pdf"}
+        energy_plot = {
+            "projection": "Em", "xlabel": "Em [keV]",
+            "ylabel": "Counts", "savefig": "energy_binning.pdf"}
+        phi_plot = {
+            "projection": "Phi", "xlabel": "Phi [deg]",
+            "ylabel": "Counts", "savefig": "phi_binning.pdf"}
+        psichi_plot = {
+            "projection": "PsiChi",
+            "xlabel": "PsiChi [HEALPix ring pixel number]",
+            "ylabel": "Counts", "savefig": "psichi_binning.pdf"}
         
         # Make plots:
-        plot_list = [time_energy_plot,time_plot,energy_plot,phi_plot,psichi_plot]
+        plot_list = [
+            time_energy_plot, time_plot, energy_plot, 
+            phi_plot, psichi_plot]
         for each in plot_list:
             self.binned_data.project(each["projection"]).plot()
             plt.xlabel(each["xlabel"],fontsize=12)
@@ -266,7 +276,8 @@ class BinnedData(UnBinnedData):
         """
 
         logger.info("plotting psichi in Galactic coordinates...")
-        plot, ax = self.binned_data.project('PsiChi').plot(ax_kw = {'coord':'G'})
+        plot, ax = self.binned_data.project('PsiChi') \
+            .plot(ax_kw={'coord': 'G'})
         ax.get_figure().set_figwidth(4)
         ax.get_figure().set_figheight(3)
         plt.title("PsiChi Binning (counts)")
@@ -277,8 +288,9 @@ class BinnedData(UnBinnedData):
 
         return
 
-    def plot_psichi_map_slices(self, Em, phi, output, binned_data=None, \
-            coords=None, show_plots=True):
+    def plot_psichi_map_slices(
+        self, Em, phi, output, binned_data=None,
+        coords=None, show_plots=True):
 
         """Plot psichi map in slices of Em and phi.
         
@@ -305,13 +317,21 @@ class BinnedData(UnBinnedData):
             self.load_binned_data_from_hdf5(binned_data)
 
         # Make healpix map with binned data slice:
-        h = self.binned_data.project('Em', 'Phi', 'PsiChi').slice[{'Em':Em, 'Phi':phi}].project('PsiChi')
-        m = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.contents.todense())
+        h = self.binned_data.project('Em', 'Phi', 'PsiChi') \
+            .slice[{'Em': Em, 'Phi': phi}].project('PsiChi')
+        m = HealpixMap(
+            base=HealpixBase(npix=h.nbins), 
+            data=h.contents.todense()
+        )
         
         # Plot standard view:
         plot,ax = m.plot('mollview')
         if coords:
-            ax.scatter(coords[0], coords[1], s=9, transform=ax.get_transform('world'), color = 'red')
+            ax.scatter(
+                coords[0], coords[1], 
+                s=9, transform=ax.get_transform('world'), 
+                color='red'
+            )
         ax.coords.grid(True, color='grey', ls='dotted')
         ax.get_figure().set_figwidth(6)
         ax.get_figure().set_figheight(3)
@@ -322,8 +342,14 @@ class BinnedData(UnBinnedData):
 
         # Plot rotated view:
         if coords:
-            plot,ax = m.plot('orthview', ax_kw = {'rot':[coords[0],coords[1],0]})
-            ax.scatter(coords[0], coords[1], s=9, transform=ax.get_transform('world'), color = 'red')
+            plot, ax = m.plot(
+                'orthview', ax_kw={'rot': [coords[0], coords[1], 0]}
+            )
+            ax.scatter(
+                coords[0], coords[1], 
+                s=9, transform=ax.get_transform('world'), 
+                color='red'
+            )
             ax.coords.grid(True, color='grey', ls='dotted')
             ax.get_figure().set_figwidth(6)
             ax.get_figure().set_figheight(3)
@@ -334,7 +360,8 @@ class BinnedData(UnBinnedData):
 
         return
 
-    def make_basic_plot(self, x, y, plt_scale='loglog', output_name=None,\
+    def make_basic_plot(
+        self, x, y, plt_scale='loglog', output_name=None,
         x_error=[], plot_kwargs={}, fig_kwargs={}, show_plots=True):
 
         """Make a basic plot.
@@ -395,7 +422,9 @@ class BinnedData(UnBinnedData):
 
         return
     
-    def get_raw_spectrum(self, binned_data=None, time_rate=False, output_name=None, show_plots=False):
+    def get_raw_spectrum(
+        self, binned_data=None, time_rate=False, 
+        output_name=None, show_plots=False):
 
         """Calculates raw spectrum of binned data, plots, and writes to file. 
         
@@ -430,23 +459,30 @@ class BinnedData(UnBinnedData):
             data_label = "Rate[ct/keV/s]"
 
         # Plot:
-        plot_kwargs = {"label":"raw spectrum", "ls":"", "marker":"o", "color":"black"}
-        fig_kwargs = {"xlabel":"Energy [keV]", "ylabel":ylabel}
-        self.make_basic_plot(self.energy_bin_centers, raw_rate,\
-            x_error=self.energy_bin_widths/2.0, output_name=output_name,\
+        plot_kwargs = {
+            "label": "raw spectrum", "ls": "", "marker": "o", "color": "black"}
+        fig_kwargs = {"xlabel": "Energy [keV]", "ylabel": ylabel}
+        self.make_basic_plot(
+            self.energy_bin_centers, raw_rate,
+            x_error=self.energy_bin_widths/2.0, output_name=output_name,
             plot_kwargs=plot_kwargs, fig_kwargs=fig_kwargs, show_plots=show_plots)
 
         # Write data:
         if output_name != None:
             d = {"Energy[keV]":self.energy_bin_centers,data_label:raw_rate}
             df = pd.DataFrame(data=d)
-            df.to_csv("%s.dat" %output_name,float_format='%10.5e',index=False,sep="\t",columns=["Energy[keV]",data_label])
+            df.to_csv(
+                "%s.dat" % output_name, float_format='%10.5e', index=False, sep="\t", 
+                columns=["Energy[keV]", data_label])
         
         return
 
-    def get_raw_lightcurve(self, binned_data=None, output_name=None, show_plots=False):
+    def get_raw_lightcurve(
+        self, binned_data=None, output_name=None, show_plots=False):
 
-        """Calculates raw lightcurve of binned data, plots, and writes data to file.
+        """
+        Calculates raw lightcurve of binned data, plots, \
+        and writes data to file.
         
         Parameters
         ----------
@@ -470,16 +506,23 @@ class BinnedData(UnBinnedData):
         raw_lc = self.time_hist/self.time_bin_widths
 
         # Plot:
-        plot_kwargs = {"ls":"-", "marker":"", "color":"black", "label":"raw lightcurve"}
-        fig_kwargs = {"xlabel":"Time [s]", "ylabel":"Rate [$\mathrm{ct \ s^{-1}}$]"}
-        self.make_basic_plot(self.time_bin_centers - self.time_bin_centers[0], raw_lc,\
+        plot_kwargs = {
+            "ls": "-", "marker": "", "color": "black", "label": "raw lightcurve"}
+        fig_kwargs = {
+            "xlabel": "Time [s]", "ylabel": "Rate [$\mathrm{ct \ s^{-1}}$]"}
+        self.make_basic_plot(
+            self.time_bin_centers - self.time_bin_centers[0], raw_lc,
             output_name=output_name, plt_scale="semilogy", 
             plot_kwargs=plot_kwargs, fig_kwargs=fig_kwargs, show_plots=show_plots)
             
         # Write data:
         if output_name != None:
-            d = {"Time[UTC]":self.time_bin_centers,"Rate[ct/s]":self.time_hist/self.time_bin_widths}
+            d = {
+                "Time[UTC]": self.time_bin_centers, 
+                "Rate[ct/s]": self.time_hist/self.time_bin_widths}
             df = pd.DataFrame(data=d)
-            df.to_csv("%s.dat" %output_name,index=False,sep="\t",columns=["Time[UTC]","Rate[ct/s]"])
+            df.to_csv(
+                "%s.dat" % output_name, index=False, sep="\t", 
+                columns=["Time[UTC]", "Rate[ct/s]"])
 
         return

@@ -578,11 +578,17 @@ class UnBinnedData(DataIO):
 
         # Fill dictionary from input h5fy file:
         hf = h5py.File(input_hdf5,"r")
+        print("hf type", type(hf)) # File
         keys = list(hf.keys())
-        for each in keys:
-            this_dict[each] = hf[each][:]
+        print("keys", keys)
+        for each in keys: # ['hist']
+            print("hf[each]", hf[each]) # Group
+            print("type(hf[each]", type(hf[each]))
+            this_dict[each] = hf[each].values()
+            # this_dict[each] = hf[each][:]
 
         return this_dict
+        # {'hist': histogram?}
 
     def get_dict(self, input_file):
 
@@ -665,6 +671,8 @@ class UnBinnedData(DataIO):
     
             # Read dict from hdf5 or fits:
             this_dict = self.get_dict(each)
+            # print("this_dict[key] type", type(this_dict[key]))
+            # if self.cosi_dataset[]
 
             # Combine dictionaries:
             if counter == 0:
@@ -673,7 +681,9 @@ class UnBinnedData(DataIO):
             
             if counter > 0:
                 for key in this_dict:
-                    self.cosi_dataset[key] = np.concatenate((self.cosi_dataset[key],this_dict[key]))
+                    self.cosi_dataset[key] = np.concatenate((self.cosi_dataset[key], this_dict[key][()]))
+                    # this_dict[key] has shape (, 5)
+                    #
                     
             counter =+ 1
             
@@ -684,4 +694,58 @@ class UnBinnedData(DataIO):
         if output_name != None:
             self.write_unbinned_output(output_name)
 
+        return
+
+    def small_fits_combine(self, input_files, output_name=None):
+        """Combines input unbinned data files (fits)
+        
+        Parameters
+        ----------
+        input_files : list
+            List of file names to combine.
+        output_name : str, optional
+            Prefix of output file.
+        """
+        # get fits file attributes from first input
+        rows = 0
+        column_info = {}
+        with fits.open(file_list[0]) as hdul:
+            header = hdul[0].header
+            columns = hdul[1].columns
+            for idx, col in enumerate(columns):
+                col_key = col.name
+                column_info[col_key] = {
+                    'dtype': col.dtype,
+                    'shape': (0,) + hdul[1].data[col_key].shape[1:]
+                }
+            rows += len(hdul[1].data)
+
+        for _file in file_list[1:]:
+            with fits.open(_file) as hdul:
+                rows += len(hdul[1].data)
+
+        self.cosi_dataset = {}
+        try:
+            for col_key, info in column_info.items():
+                shape = (rows,) + info['shape'][1:]
+                self.cosi_dataset[col_key] = np.memmap(
+                    temp_file, dtype=info['dtype'], mode='w+', shape=shape
+                )
+            
+            current_idx = 0
+            for _file in file_list:
+                with fits.open(_file) as hdul:
+                    data = hdul[1].data
+                    file_rows = len(data)
+                    
+                    for col_name in column_info:
+                        self.cosi_dataset[col_name][current_idx:current_idx+file_rows] = data[col_name]
+                    
+                    current_idx += file_rows
+                    del data
+                    gc.collect()
+        finally:
+            self.unbinned_output = 'fits'
+            self.write_unbinned_output('test')
+        
         return
