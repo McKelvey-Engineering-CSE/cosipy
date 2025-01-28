@@ -714,29 +714,29 @@ class UnBinnedData(DataIO):
             header = hdul[0].header
             columns = hdul[1].columns
             for idx, col in enumerate(columns):
-                col_shapes[col.name] = [0] + [_ for _ in hdul[1].data[col.name].shape[1:]]
-                col_dtypes[col.name] = col.dtype
+                col_shapes[col.name] = list(hdul[1].data[col.name].shape) # (sum of the rows x col shape 1 x col shape 2 x ...)
+                col_dtypes[col.name] = hdul[1].data[col.name].dtype
             rows += len(hdul[1].data)
         # get sizes
         for _file in input_files[1:]:
             with fits.open(_file) as hdul:
                 for col in hdul[1].columns:
-                    col_shapes[col.name][0] += hdul[1].data[col.name].shape[0]
+                    col_shapes[col.name][0] += hdul[1].data[col.name].shape[0] # array ?
 
         self.cosi_dataset = {}
         try:
             for col_key in col_shapes.keys():
                 shape = col_shapes[col_key]
                 self.cosi_dataset[col_key] = np.empty(dtype=col_dtypes[col_key], shape=tuple(shape))
-            
+
             current_idx = 0
             for i, _file in enumerate(input_files):
                 with fits.open(_file, memmap=True) as hdul:
                     data = hdul[1].data
-                    file_rows = len(data)
+                    file_rows = len(data) # length of first dimension?
                     
                     for col_name in col_shapes.keys():
-                        self.cosi_dataset[col_name][current_idx:current_idx+file_rows][:] = data[col_name][:]
+                        self.cosi_dataset[col_name][current_idx:current_idx+file_rows] = data[col_name]
                     
                     current_idx += file_rows
                     del data
