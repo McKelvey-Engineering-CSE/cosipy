@@ -1,4 +1,5 @@
 # Imports:
+from memory_profiler import profile
 import numpy as np
 from astropy.table import Table
 from astropy.io import fits
@@ -651,6 +652,8 @@ class UnBinnedData(DataIO):
 
         return
 
+    fp=open('memory_profiler.log','w+')
+    @profile(stream=fp)
     def combine_unbinned_data(self, input_files, output_name=None):
 
         """Combines input unbinned data files.
@@ -695,8 +698,62 @@ class UnBinnedData(DataIO):
             self.write_unbinned_output(output_name)
 
         return
-
+    
+    fp=open('memory_profiler.log','w+')
+    @profile(stream=fp)
     def small_fits_combine(self, input_files, output_name=None):
+        """Combines input unbinned data files (fits)
+        
+        Parameters
+        ----------
+        input_files : list
+            List of file names to combine.
+        output_name : str, optional
+            Prefix of output file.
+        """
+        # get fits file attributes from first input
+        rows = 0 # stores data size
+        offsets = []
+        with fits.open(input_files[0]) as hdul:
+            dtype = hdul[1].data.dtype
+            cols = len(hdul[1].columns)
+            units = hdul[1].columns.units # Q: how to get this w/o hard coding
+            names = hdul[1].columns.names
+            row_count = hdul[1].header['NAXIS2']
+            rows += row_count
+            offsets.append(row_count)
+        # get sizes
+        for _file in input_files[1:]:
+            with fits.open(_file) as hdul:
+                row_count = hdul[1].header['NAXIS2']
+                rows += row_count
+                offsets.append(row_count)
+        
+        record = np.empty(shape=(rows,), dtype=dtype)
+
+        # self.cosi_dataset = {}
+        try:
+            idx = 0
+            for i, _file in enumerate(input_files):
+                with fits.open(_file, memmap=True) as hdul:
+                    data = hdul[1].data                    
+                    record[idx:idx+offsets[i]][:] = data
+                    idx += offsets[i]
+                    del data
+                    gc.collect()
+        finally:
+            table = Table(record,\
+                    names=names, \
+                    units=units, \
+                    meta={'version':cosipy.__version__})
+            table.write("%s.fits" %output_name, overwrite=True)
+            os.system('gzip -f %s.fits' %output_name)
+        
+        return
+    
+    fp=open('memory_profiler.log','w+')
+    @profile(stream=fp)
+    def fast_fits_combine(self, input_files, output_name=None):
         """Combines input unbinned data files (fits)
         
         Parameters
