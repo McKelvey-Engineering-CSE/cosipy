@@ -12,6 +12,8 @@ from histpy import Histogram
 
 from cosipy import test_data
 from cosipy import FastTSMap, MOCTSMap, SpacecraftFile
+from cosipy.response import FullDetectorResponse, GalacticResponse
+from cosipy.response.functions import get_integrated_spectral_model
 
 def test_ts_fit():
 
@@ -25,8 +27,10 @@ def test_ts_fit():
     src_bkg = Histogram.open(src_bkg_path).project(['Em', 'PsiChi', 'Phi'])
     bkg = Histogram.open(bkg_path).project(['Em', 'PsiChi', 'Phi'])
 
-    ts = FastTSMap(data = src_bkg, bkg_model = bkg, orientation = ori,
-                   response_path = response_path, cds_frame = "local")
+    response = FullDetectorResponse.open(response_path)
+    ts = FastTSMap(response = response,
+                   orientation = ori,
+                   cds_frame = "local")
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -38,8 +42,13 @@ def test_ts_fit():
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
 
+    spectral_flux = get_integrated_spectral_model(spectrum,
+                                                  response.axes["Ei"])
+
     ts_results = ts.fit(nside = 1,
-                        spectrum = spectrum,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux,
                         max_cache_size = 10)
 
     assert np.allclose(ts_results,
@@ -49,7 +58,10 @@ def test_ts_fit():
                         142.36211847, 145.47734097, 143.22293343])
 
 
-    ts_results = ts.fit(nside = 1, energy_channel = [2,3],
+    ts_results = ts.fit(nside = 1,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        energy_channel = [2,3],
                         spectrum = spectrum, cpu_cores = 1)
 
     assert np.allclose(ts_results,
@@ -77,8 +89,10 @@ def test_ts_fit_galactic():
     src_bkg = Histogram.open(src_bkg_path).project(['Em', 'PsiChi', 'Phi'])
     bkg = Histogram.open(bkg_path).project(['Em', 'PsiChi', 'Phi'])
 
-    ts = FastTSMap(data = src_bkg, bkg_model = bkg, orientation = None,
-                   response_path = response_path, cds_frame = "galactic")
+    response = GalacticResponse.open(response_path)
+    ts = FastTSMap(response = response,
+                   orientation = None,
+                   cds_frame = "galactic")
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -90,8 +104,14 @@ def test_ts_fit_galactic():
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
 
-    ts_results = ts.fit(nside = 1, energy_channel = [2,3],
-                        spectrum = spectrum)
+    spectral_flux = get_integrated_spectral_model(spectrum,
+                                                  response.axes["Ei"])
+
+    ts_results = ts.fit(nside = 1,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        energy_channel = [2,3],
+                        spectral_flux = spectral_flux)
 
     assert np.allclose(ts_results,
                        [39.75648143, 39.61688953, 39.33241148,
@@ -111,8 +131,10 @@ def test_moc_ts_fit():
     src_bkg = Histogram.open(src_bkg_path).project(['Em', 'PsiChi', 'Phi'])
     bkg = Histogram.open(bkg_path).project(['Em', 'PsiChi', 'Phi'])
 
-    ts = MOCTSMap(data = src_bkg, bkg_model = bkg, orientation = ori,
-                  response_path = response_path, cds_frame = "local")
+    response = FullDetectorResponse.open(response_path)
+    ts = MOCTSMap(response = response,
+                  orientation = ori,
+                  cds_frame = "local")
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -124,9 +146,16 @@ def test_moc_ts_fit():
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
 
+    spectral_flux = get_integrated_spectral_model(spectrum,
+                                                  response.axes["Ei"])
+
     # test default top-k strategy
-    ts_results = ts.fit(max_nside = 2, energy_channel = [2,3],
-                        spectrum = spectrum, cpu_cores = 1)
+    ts_results = ts.fit(max_nside = 2,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux,
+                        energy_channel = [2,3],
+                        cpu_cores = 1)
 
     ts_values, pixels = ts_results
     assert all(pixels == [
@@ -162,8 +191,11 @@ def test_moc_ts_fit():
     os.remove("ts_map.png")
 
     # test containment strategy
-    ts_results = ts.fit(max_nside = 2, energy_channel = [2,3],
-                        spectrum = spectrum,
+    ts_results = ts.fit(max_nside = 2,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux,
+                        energy_channel = [2,3],
                         strategy=MOCTSMap.ContainmentStrategy(0.9))
 
     ts_values, pixels = ts_results
@@ -195,8 +227,11 @@ def test_moc_ts_fit():
 
     # test padding strategy over a different containment threshold
     # (yields same result as previous test)
-    ts_results = ts.fit(max_nside = 2, energy_channel = [2,3],
-                        spectrum = spectrum,
+    ts_results = ts.fit(max_nside = 2,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux,
+                        energy_channel = [2,3],
                         strategy=MOCTSMap.PaddingStrategy(
                             MOCTSMap.ContainmentStrategy(0.5)))
 
