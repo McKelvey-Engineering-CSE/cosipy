@@ -52,6 +52,7 @@ class FastTSMap():
                 if orientation is None:
                     raise TypeError("When data are binned in local frame, "
                                     "orientation must be provided")
+                orientation.cache_earth_occ = True
                 self._orientation = orientation
 
             case "galactic":
@@ -186,10 +187,6 @@ class FastTSMap():
                                          phi = lons,
                                          lonlat = False,
                                          source = source)
-
-            is_live = (exposures > 0.)
-            pixels = pixels[is_live]
-            exposures = exposures[is_live]
 
         else: # galactic frame
 
