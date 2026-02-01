@@ -79,6 +79,8 @@ def save_moc_map(llrs, uniq_pix, out_nside, save_name, save_dir = ""):
 data_dir = Path("/project/cassini/cosidata/dc3")
 #data_dir = Path("/home/jbuhler/dc3")
 
+output_dir = Path("/project/cassini/cosidata/ts_map")
+
 grb_dir = data_dir / "grb"
 
 bkg_model_path = data_dir / "bg" / "binned_bg.hdf5"
@@ -303,12 +305,13 @@ for i, burst in enumerate([bursts[-1]] * n_warmup + bursts):
                        grid_lines = False,
                        plot_zenith = False,
                        dpi = 300,
-                       save_plot = True, save_dir = "maps",
+                       save_plot = True,
+                       save_dir = output_dir / "maps",
                        save_name = "ts_map_" + burst + ".png")
 
         #save_moc_map(m_llrs, m_pix,
         #             out_nside = 64,
-        #             save_dir = "maps",
+        #             save_dir = output_dir / "maps",
         #             save_name = "ts_map_" + burst + ".txt")
 
         results.append((burst, err, t))

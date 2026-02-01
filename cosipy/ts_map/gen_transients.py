@@ -597,12 +597,13 @@ def extract_bg(group, bg_time, tstart, tend, outfile):
 #####################################################################
 
 data_dir = Path("/project/cassini/cosidata/dc3")
+output_dir = Path("/project/cassini/cosidata/ts_map")
 
 orientation_path = data_dir / "orientation.fits"
 
 response_path = data_dir / "response.h5"
 
-output_path = Path("./transients")
+output_path = output_dir / "transients"
 
 print("Reading orientations...")
 orientations = SpacecraftFile.open(orientation_path)
@@ -634,7 +635,7 @@ for i in range(n_transients):
 
     # pick a random source pixel and use its center as source dir
     src = src_grid.pix2skycoord(np.random.randint(src_grid.npix))
-    
+
     # pick a random start time s.t. source is live and not occluded
     t_s = rand_start_time(src, transient_len, orientations)
 

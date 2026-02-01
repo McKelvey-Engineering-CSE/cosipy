@@ -62,6 +62,8 @@ def save_moc_map(llrs, uniq_pix, out_nside, save_name,
 data_dir = Path("/project/cassini/cosidata/dc3")
 #data_dir = Path("/home/jbuhler/dc3")
 
+output_dir = Path("/project/cassini/cosidata/ts_map")
+
 grb_dir = data_dir / "grb"
 
 bkg_model_path = data_dir / "bg" / "binned_bg.hdf5"
@@ -113,7 +115,7 @@ moc_strategy = \
         MOCTSMap.ContainmentStrategy(0.99)
     )
 
-transient_path = Path("./transients")
+transient_path = output_dir / "transients"
 sources = list(transient_path.glob("sim_*_params.txt"))
 
 # Run a few warmup iterations to make sure the JIT runs and avoid
@@ -184,12 +186,13 @@ for i, param_file in enumerate(sources):
                        grid_lines = False,
                        plot_zenith = False,
                        dpi = 300,
-                       save_plot = True, save_dir = "maps",
+                       save_plot = True,
+                       save_dir = output_path / "maps",
                        save_name = f"{prefix}_map.png")
 
         n_live_pix = save_moc_map(m_llrs, m_pix,
                                   out_nside = 64,
-                                  save_dir = "maps",
+                                  save_dir = output_path / "maps",
                                   save_name = f"{prefix}_map.txt")
 
         imax = np.argmax(m_llrs)
