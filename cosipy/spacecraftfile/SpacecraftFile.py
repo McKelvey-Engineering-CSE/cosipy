@@ -233,21 +233,40 @@ class SpacecraftFile():
 
     @classmethod
     def open(cls, filename, frame='galactic'):
+        """
+        Read orientation data from file and construct a
+        SpacecraftFile object.  Dispatch to the appropriate
+        reader based on file extension.
+
+        Parameters
+        ----------
+        filename : str
+            The file path to the FITS file
+        frame : str, optional
+            Frame of returned SpacecraftFile object (default:
+            galactic)
+
+        Returns
+        -------
+        cosipy.spacecraftfile.SpacecraftFile
+            The SpacecraftFile object
+
+        """
 
         filename = Path(filename)
 
         if filename.suffix == ".fits" or filename.suffixes[-2:] == [".fits", ".gz"]:
-            return cls.read_fits(filename, frame)
+            return cls._open_fits(filename, frame)
         elif filename.suffix == ".ori":
-            return cls.parse_from_file(filename, frame)
+            return cls._open_ori(filename, frame)
         else:
             raise ValueError(
-                "Unsupported file format. Only .ori and .fits extensions are supported.")
+                "Unsupported file format. Only .ori and .fits/.fits.gz extensions are supported.")
 
     @classmethod
-    def read_fits(cls, filename, frame):
+    def _open_fits(cls, filename, frame):
         """
-        Read orientation data from a FITS file and constructs a
+        Read orientation data from a FITS file and construct a
         SpacecraftFile object.  The FITS file is assumed to contain
         an Astropy QTable produced by the write_fits() method.
         Astropy supports .fits.gz natively, so this function
@@ -257,9 +276,8 @@ class SpacecraftFile():
         ----------
         filename : str
             The file path to the FITS file
-        frame : str, optional
-            Frame of returned SpacecraftFile object (default: "galactic",
-            which matches how the data is stored)
+        frame : str
+            Frame of returned SpacecraftFile object
 
         Returns
         -------
@@ -311,22 +329,24 @@ class SpacecraftFile():
                    frame = frame)
 
     @classmethod
-    def parse_from_file(cls, file, frame='galactic'):
+    def _open_ori(cls, file, frame):
 
         """
-        Parses timestamps, axis positions from file and returns to __init__.
+        Read orientation data from an .ori file and construct a
+        SpacecraftFile object.
 
         Parameters
         ----------
-        file : str
-            The file path of the pointings.
-        frame : str, optional
-            Frame of returned SpacecraftFile object (default: "galactic",
-            which matches how the data is stored)
+        filename : str
+            The file path to the FITS file
+        frame : str
+            Frame of returned SpacecraftFile object
+
         Returns
         -------
         cosipy.spacecraftfile.SpacecraftFile
-            The SpacecraftFile object.
+            The SpacecraftFile object
+
         """
 
         orientation_file = np.loadtxt(file,
