@@ -306,7 +306,7 @@ for i, burst in enumerate([bursts[-1]] * n_warmup + bursts):
                        plot_zenith = False,
                        dpi = 300,
                        save_plot = True,
-                       save_dir = output_dir / "maps",
+                       save_dir = output_dir / "maps_dc3",
                        save_name = "ts_map_" + burst + ".png")
 
         #save_moc_map(m_llrs, m_pix,
