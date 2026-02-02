@@ -802,7 +802,7 @@ class SpacecraftFile():
 
     def get_exposure(self, base, theta, phi=None,
                      lonlat=False, interp=True,
-                     source = None):
+                     source=None, dtype=np.float64):
         """
         Compute the set of exposed HEALPix pixels relative to a
         HealpixBase arising from a sequence of spacecraft-frame
@@ -866,7 +866,7 @@ class SpacecraftFile():
         unique_pixels, unique_weights = \
             self._sparse_sum_duplicates(pixels.ravel(),
                                         weighted_duration.ravel(),
-                                        dtype=np.float32)
+                                        dtype=dtype)
 
         return unique_pixels, unique_weights
 

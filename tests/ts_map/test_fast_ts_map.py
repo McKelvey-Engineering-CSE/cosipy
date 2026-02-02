@@ -30,7 +30,8 @@ def test_ts_fit():
     response = FullDetectorResponse.open(response_path)
     ts = FastTSMap(response = response,
                    orientation = ori,
-                   cds_frame = "local")
+                   cds_frame = "local",
+                   max_cache_size = 10)
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -48,8 +49,7 @@ def test_ts_fit():
     ts_results = ts.fit(nside = 1,
                         data = src_bkg,
                         bkg_model = bkg,
-                        spectral_flux = spectral_flux,
-                        max_cache_size = 10)
+                        spectral_flux = spectral_flux)
 
     assert np.allclose(ts_results,
                        [134.70412297, 0.,           0.,
@@ -58,12 +58,17 @@ def test_ts_fit():
                         0.,           0.,           135.37111622])
 
 
+    ts = FastTSMap(response = response,
+                   orientation = ori,
+                   cds_frame = "local",
+                   energy_channel = [2,3],
+                   max_cache_size = 10)
+
 
     ts_results = ts.fit(nside = 1,
                         data = src_bkg,
                         bkg_model = bkg,
                         spectral_flux = spectral_flux,
-                        energy_channel = [2,3],
                         cpu_cores = 1)
 
     assert np.allclose(ts_results,
@@ -94,7 +99,8 @@ def test_ts_fit_galactic():
     response = GalacticResponse.open(response_path)
     ts = FastTSMap(response = response,
                    orientation = None,
-                   cds_frame = "galactic")
+                   cds_frame = "galactic",
+                   energy_channel = [2,3])
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -112,7 +118,6 @@ def test_ts_fit_galactic():
     ts_results = ts.fit(nside = 1,
                         data = src_bkg,
                         bkg_model = bkg,
-                        energy_channel = [2,3],
                         spectral_flux = spectral_flux)
 
     assert np.allclose(ts_results,
@@ -136,7 +141,8 @@ def test_moc_ts_fit():
     response = FullDetectorResponse.open(response_path)
     ts = MOCTSMap(response = response,
                   orientation = ori,
-                  cds_frame = "local")
+                  cds_frame = "local",
+                  energy_channel = [2,3])
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -156,7 +162,6 @@ def test_moc_ts_fit():
                         data = src_bkg,
                         bkg_model = bkg,
                         spectral_flux = spectral_flux,
-                        energy_channel = [2,3],
                         cpu_cores = 1)
 
     ts_values, pixels = ts_results
@@ -198,7 +203,6 @@ def test_moc_ts_fit():
                         data = src_bkg,
                         bkg_model = bkg,
                         spectral_flux = spectral_flux,
-                        energy_channel = [2,3],
                         strategy=MOCTSMap.ContainmentStrategy(0.9))
 
     ts_values, pixels = ts_results
@@ -227,7 +231,6 @@ def test_moc_ts_fit():
                         data = src_bkg,
                         bkg_model = bkg,
                         spectral_flux = spectral_flux,
-                        energy_channel = [2,3],
                         strategy=MOCTSMap.PaddingStrategy(
                             MOCTSMap.ContainmentStrategy(0.5)))
 

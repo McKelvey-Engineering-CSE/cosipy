@@ -21,7 +21,10 @@ class MOCTSMap(FastTSMap):
 
     def __init__(self, response,
                  orientation = None,
-                 cds_frame = "local"):
+                 cds_frame = "local",
+                 energy_channel = None,
+                 max_cache_size = None,
+                 response_in_memory = False):
         """
         Initialize the instance of a TS map fit.
 
@@ -36,12 +39,24 @@ class MOCTSMap(FastTSMap):
             frame of directions used for PsiChi axis of CDS.  One of
             "local" (frame attached to spacecraft) or "galactic".
             Default is local.
+        energy_channel : 2-element list, of form
+                         [lower_channel, upper_channel], optional
+            Energy (Em) channels to use in fitting (Python range
+            lower_channel:upper_channel). If not specified, use all
+            Em channels.
+        max_cache_size : int, optional
+            Maximum number of entries to store in PSRCache; if None,
+            no limit
 
         """
 
         super().__init__(response,
                          orientation = orientation,
-                         cds_frame = cds_frame)
+                         cds_frame = cds_frame,
+                         energy_channel = energy_channel,
+                         max_cache_size = max_cache_size,
+                         response_in_memory = response_in_memory)
+
 
     class Strategy:
         """
@@ -142,8 +157,7 @@ class MOCTSMap(FastTSMap):
 
     def fit(self, data, bkg_model, spectral_flux,
             max_nside = 16, init_nside = 1, strategy = None,
-            energy_channel = None, cpu_cores = None,
-            max_cache_size = None):
+            cpu_cores = None):
         """
         Construct a multi-resolution map of ts statistics, selectively
         refining the highest-scoring pixels.
@@ -164,16 +178,8 @@ class MOCTSMap(FastTSMap):
         strategy : MOCTSMap.Strategy subclass, optional
           strategy to use in selecting pixels to refine. If None,
           default to TopKStrategy with k=8
-        energy_channel : 2-element list, of form
-                         [lower_channel, upper_channel], optional
-            Energy (Em) channels to use in fitting (Python range
-            lower_channel:upper_channel). If not specified, use all
-            Em channels.
         cpu_cores : int, optional
           number of processors to use (default: do not restrict)
-        max_cache_size : int, optional
-            Maximum number of entries to store in PSRCache; if None,
-            no limit
 
         Returns
         -------
@@ -209,8 +215,7 @@ class MOCTSMap(FastTSMap):
             numba.set_num_threads(cpu_cores)
 
         data_cds_array, bkg_model_cds_array, psr_cache = \
-            self._prepare_inputs(data, bkg_model, energy_channel,
-                                 spectral_flux, max_cache_size)
+            self._prepare_inputs(data, bkg_model, spectral_flux)
 
         all_pix = []
         all_ts = []
@@ -260,8 +265,7 @@ class MOCTSMap(FastTSMap):
 
     def fit_unbinned(self, ts, te, events, bkg_model, spectral_flux,
                      max_nside = 16, init_nside = 1, strategy = None,
-                     energy_channel = None, cpu_cores = None,
-                     max_cache_size = None):
+                     cpu_cores = None):
         """
         Construct a multi-resolution map of ts statistics, selectively
         refining the highest-scoring pixels.
@@ -285,16 +289,8 @@ class MOCTSMap(FastTSMap):
         strategy : MOCTSMap.Strategy subclass, optional
           strategy to use in selecting pixels to refine. If None,
           default to TopKStrategy with k=8
-        energy_channel : 2-element list, of form
-                         [lower_channel, upper_channel], optional
-            Energy (Em) channels to use in fitting (Python range
-            lower_channel:upper_channel). If not specified, use all
-            Em channels.
         cpu_cores : int, optional
           number of processors to use (default: do not restrict)
-        max_cache_size : int, optional
-            Maximum number of entries to store in PSRCache; if None,
-            no limit
 
         Returns
         -------
@@ -336,8 +332,7 @@ class MOCTSMap(FastTSMap):
             orientation = None
 
         data_cds_array, bkg_model_cds_array, psr_cache = \
-            self._prepare_inputs_unbinned(events, bkg_model, energy_channel,
-                                          spectral_flux, max_cache_size)
+            self._prepare_inputs_unbinned(events, bkg_model, spectral_flux)
 
         all_pix = []
         all_ts = []

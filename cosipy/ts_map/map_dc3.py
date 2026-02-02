@@ -229,7 +229,7 @@ print("Opening detector response...")
 response = FullDetectorResponse.open(response_path, dtype=np.float32)
 
 # create mapping object
-mapper = MOCTSMap(response, orientations)
+mapper = MOCTSMap(response, orientations, response_in_memory = False)
 map_nside = 64
 
 moc_strategy = \
@@ -286,7 +286,8 @@ for i, burst in enumerate([bursts[-1]] * n_warmup + bursts):
     #llrs = mapper.fit_unbinned(ts, te, events, bkg_model, spectral_flux,
     #                           nside = map_nside, cpu_cores = num_cpus)
 
-    m_llrs, m_pix = mapper.fit_unbinned(ts, te, events, bkg_model, spectral_flux,
+    m_llrs, m_pix = mapper.fit_unbinned(ts, te, events, bkg_model,
+                                        spectral_flux,
                                         max_nside = map_nside,
                                         strategy = moc_strategy,
                                         cpu_cores = num_cpus)

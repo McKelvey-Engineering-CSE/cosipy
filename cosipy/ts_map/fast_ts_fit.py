@@ -28,7 +28,11 @@ class FastTSMap():
 
     def __init__(self, response,
                  orientation = None,
-                 cds_frame = "local"):
+                 cds_frame = "local",
+                 energy_channel = None,
+                 max_cache_size = None,
+                 response_in_memory = False):
+
         """
         Initialize the instance of a TS map fit.
 
@@ -43,6 +47,14 @@ class FastTSMap():
             frame of directions used for PsiChi axis of CDS.  One of
             "local" (frame attached to spacecraft) or "galactic".
             Default is local.
+        energy_channel : 2-element list, of form
+                         [lower_channel, upper_channel], optional
+            Energy (Em) channels to use in fitting (Python range
+            lower_channel:upper_channel). If not specified, use all
+            Em channels.
+        max_cache_size : int, optional
+            Maximum number of entries to store in PSRCache; if None,
+            no limit
 
         """
 
@@ -63,7 +75,24 @@ class FastTSMap():
                 raise TypeError(f"Unrecognized frame {cds_frame}, "
                                 "must be 'local' or 'galactic'")
 
+        if energy_channel is None:
+            self._em_slice = slice(None)
+        else:
+            self._em_slice = slice(energy_channel[0], energy_channel[1])
+
         self._response = response
+
+        # set correct callback for computing PSRs based on
+        # whether we're caching the full response in memory
+        self.response_in_memory = response_in_memory
+        if response_in_memory:
+            self.get_psr = self.get_psr_in_mem
+
+            # preload the full response
+            self._psrs, self._psr_sums = \
+                self._preload_response(response, self._em_slice)
+        else:
+            self.get_psr = self.get_psr_out_mem
 
         labels = self._response.axes.labels
 
@@ -82,6 +111,8 @@ class FastTSMap():
             raise ValueError("Response CDS axes must be Em/Phi/PsiChi")
 
         self._fnf = fnf(max_iter=1000)
+
+        self._max_cache_size = max_cache_size
 
     @staticmethod
     def _get_hypothesis_coords(nside, pixels = None,
@@ -185,7 +216,8 @@ class FastTSMap():
                                          theta = colats,
                                          phi = lons,
                                          lonlat = False,
-                                         source = source)
+                                         source = source,
+                                         dtype = self._response.dtype)
 
         else: # galactic frame
 
@@ -199,29 +231,42 @@ class FastTSMap():
                 self._response.get_interp_weights(theta = colat,
                                                   phi = lon,
                                                   lonlat = False)
+            exposures = exposures.astype(self._response.dtype, copy=False)
 
         if len(pixels) > 0:
-            # sum the PSRs for each NuLambda pixel according to their
-            # exposure weights
-            ei_cds_array = np.zeros(psr_cache.shape, psr_cache.dtype)
-            ei_sum = psr_cache.dtype.type(0.)
-
-            for p, exposure in zip(pixels, exposures):
-                psr, psr_sum = psr_cache.get_psr(p)
-                ei_cds_array += psr * exposure
-                ei_sum += psr_sum * exposure
+            ei_cds_array, ei_sum = \
+                self.get_psr(psr_cache, pixels, exposures)
 
             return self._fnf.solve(data_cds_array, bkg_model_cds_array,
                                    ei_cds_array, ei_sum)
         else:
             return (0., 0., 0., False)
 
-    def _prepare_inputs(self, data, bkg_model, energy_channel,
-                        spectral_flux, max_cache_size):
+    @classmethod
+    def get_psr_in_mem(cls, psr_cache, pixels, exposures):
+        rsp, rsp_sum = psr_cache
+        return cls._get_psr_in_mem(rsp, rsp_sum, pixels, exposures)
+
+    @staticmethod
+    def get_psr_out_mem(psr_cache, pixels, exposures):
+        # sum the PSRs for each NuLambda pixel according to their
+        # exposure weights
+        ei_cds_array = np.zeros(psr_cache.shape, psr_cache.dtype)
+        ei_sum = psr_cache.dtype.type(0.)
+
+        for p, exposure in zip(pixels, exposures):
+            psr, psr_sum = psr_cache.get_psr(p)
+            ei_cds_array += psr * exposure
+            ei_sum += psr_sum * exposure
+
+        return ei_cds_array, ei_sum
+
+    def _prepare_inputs(self, data, bkg_model, spectral_flux):
         """
         Prepare the data and background arrays for ts fitting, and get ready
         to read and cache PSRs for different source directions.  The shape
         and contents of the arrays and PSRs depends on the data reductions
+
         implied by the energy channel and spectrum.
 
         Parameters
@@ -231,13 +276,8 @@ class FastTSMap():
             background.
         bkg_model : histpy.Histogram
             Model used to estimate background counts in observed data.
-        energy_channel : 2-element list [lower_channel, upper_channel]
-            Energy (Em) channels to use in fitting (Python range
-            lower_channel:upper_channel)
         spectral_flux : np.ndarray of float
             Integrated spectral flux of source in response's Ei bins
-        max_cache_size : int or None
-            Maximum number of entries to store in PSRCache (None = no limit)
 
         Returns
         -------
@@ -251,18 +291,13 @@ class FastTSMap():
 
         """
 
-        if energy_channel is None:
-            em_slice = slice(None)
-        else:
-            em_slice = slice(energy_channel[0], energy_channel[1])
-
         # make sure data and background CDS are ordered to match response
-        data = data.todense().project(self.cds_order).astype(self._response.dtype)
-        bkg_model = bkg_model.todense().project(self.cds_order).astype(self._response.dtype)
+        data = data.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
+        bkg_model = bkg_model.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
 
         # get the flattened data and background CDS arrays
-        data_cds_array = self._get_cds_array(data, em_slice)
-        bkg_model_cds_array = self._get_cds_array(bkg_model, em_slice)
+        data_cds_array = self._get_cds_array(data, self._em_slice)
+        bkg_model_cds_array = self._get_cds_array(bkg_model, self._em_slice)
 
         # eliminate CDS cells with no counts in data (due to data
         # sparsity) or in bkg model (lack of pseudocounts in bkg model
@@ -274,14 +309,20 @@ class FastTSMap():
         data_cds_array = data_cds_array[valid_cells]
         bkg_model_cds_array = bkg_model_cds_array[valid_cells]
 
-        psr_cache = PSRCache(self._response, em_slice, valid_cells,
-                             spectral_flux, maxSize = max_cache_size)
+        if self.response_in_memory:
+            psr_cache = self.reduce_response(self._psrs, self._psr_sums,
+                                             valid_cells, spectral_flux)
+        else:
+            psr_cache = PSRCache(self._response,
+                                 self._em_slice,
+                                 valid_cells,
+                                 spectral_flux,
+                                 max_size = self._max_cache_size)
 
         return data_cds_array, bkg_model_cds_array, psr_cache
 
 
-    def _prepare_inputs_unbinned(self, events, bkg_model, energy_channel,
-                                 spectral_flux, max_cache_size):
+    def _prepare_inputs_unbinned(self, events, bkg_model, spectral_flux):
         """
         Prepare the observed events and background model for ts fitting,
         and get ready to read and cache PSRs for different source
@@ -295,13 +336,8 @@ class FastTSMap():
             Observed events for transient and background combined.
         bkg_model : histpy.Histogram
             Model used to estimate background counts in observed data.
-        energy_channel : 2-element list [lower_channel, upper_channel]
-            Energy (Em) channels to use in fitting (Python range
-            lower_channel:upper_channel)
         spectral_flux : np.ndarray of float
             Integrated spectral flux of source in response's Ei bins
-        max_cache_size : int or None
-            Maximum number of entries to store in PSRCache (None = no limit)
 
         Returns
         -------
@@ -315,14 +351,9 @@ class FastTSMap():
 
         """
 
-        if energy_channel is None:
-            em_slice = slice(None)
-        else:
-            em_slice = slice(energy_channel[0], energy_channel[1])
-
         # get the flattened background CDS array
-        bkg_model = bkg_model.todense().project(self.cds_order).astype(self._response.dtype)
-        bkg_model_cds_array = self._get_cds_array(bkg_model, em_slice)
+        bkg_model = bkg_model.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
+        bkg_model_cds_array = self._get_cds_array(bkg_model, self._em_slice)
 
         cds_axes = self._response.axes[self.cds_order]
 
@@ -339,9 +370,11 @@ class FastTSMap():
 
             event_bins.append(bins)
 
-        if energy_channel is not None:
+        if self._em_slice != slice(None):
             # apply energy channel filter to events
-            e_lo, e_hi = energy_channel
+            e_lo, e_hi = self._em_slice.start, self._em_slice.stop
+            e_lo = 0 if e_lo is None else e_lo
+            e_hi = em_axis.nbins if e_hi is None else e_hi
             em_axis = cds_axes.label_to_index("Em")
             ev_mask = ((event_bins[em_axis] >= e_lo) &
                        (event_bins[em_axis] < e_hi))
@@ -362,15 +395,20 @@ class FastTSMap():
         # nonzero
         bkg_model_cds_array = bkg_model_cds_array[valid_cells]
 
-        psr_cache = PSRCache(self._response, em_slice, valid_cells,
-                             spectral_flux, maxSize = max_cache_size)
+        if self.response_in_memory:
+            psr_cache = self.reduce_response(self._psrs, self._psr_sums,
+                                             valid_cells, spectral_flux)
+        else:
+            psr_cache = PSRCache(self._response,
+                                 self._em_slice,
+                                 valid_cells,
+                                 spectral_flux,
+                                 max_size = self._max_cache_size)
 
         return data_cds_array, bkg_model_cds_array, psr_cache
 
-
     def fit(self, data, bkg_model, spectral_flux,
-            nside = 16, energy_channel = None,
-            cpu_cores = None, max_cache_size = None):
+            nside = 16, cpu_cores = None):
         """
         Produce a ts map of specified resolution.
 
@@ -387,16 +425,8 @@ class FastTSMap():
             Integrated spectral flux of source in response's Ei bins
         nside : int, optional
             HEALPix nside of ts map to produce (default 16)
-        energy_channel : 2-element list, of form
-                         [lower_channel, upper_channel], optional
-            Energy (Em) channels to use in fitting (Python range
-            lower_channel:upper_channel). If not specified, use all
-            Em channels.
         cpu_cores : int, optional
             Number of processors to use (default: do not restrict)
-        max_cache_size : int, optional
-            Maximum number of entries to store in PSRCache; if None,
-            no limit
 
         Returns
         -------
@@ -409,8 +439,7 @@ class FastTSMap():
             numba.set_num_threads(cpu_cores)
 
         data_cds_array, bkg_model_cds_array, psr_cache = \
-            self._prepare_inputs(data, bkg_model, energy_channel,
-                                 spectral_flux, max_cache_size)
+            self._prepare_inputs(data, bkg_model, spectral_flux)
 
         hypothesis_coords = self._get_hypothesis_coords(nside)
 
@@ -426,8 +455,7 @@ class FastTSMap():
         return np.array(results)
 
     def fit_unbinned(self, ts, te, events, bkg_model, spectral_flux,
-                     nside = 16, energy_channel = None,
-                     cpu_cores = None, max_cache_size = None):
+                     nside = 16, cpu_cores = None):
         """
         Produce a ts map of specified resolution from unbinned events.
 
@@ -447,16 +475,8 @@ class FastTSMap():
             Integrated spectral flux of source in response's Ei bins
         nside : int, optional
             HEALPix nside of ts map to produce (default 16)
-        energy_channel : 2-element list, of form
-                         [lower_channel, upper_channel], optional
-            Energy (Em) channels to use in fitting (Python range
-            lower_channel:upper_channel). If not specified, use all
-            Em channels.
         cpu_cores : int, optional
             Number of processors to use (default: do not restrict)
-        max_cache_size : int, optional
-            Maximum number of entries to store in PSRCache; if None,
-            no limit
 
         Returns
         -------
@@ -475,8 +495,7 @@ class FastTSMap():
             orientation = None
 
         data_cds_array, bkg_model_cds_array, psr_cache = \
-            self._prepare_inputs_unbinned(events, bkg_model, energy_channel,
-                                          spectral_flux, max_cache_size)
+            self._prepare_inputs_unbinned(events, bkg_model, spectral_flux)
 
         hypothesis_coords = self._get_hypothesis_coords(nside)
 
@@ -590,6 +609,102 @@ class FastTSMap():
         return chi2.ppf(containment, df=2)
 
 
+    def _preload_response(self, response, em_slice):
+
+        # read the entire response matrix into memory
+        rsp = response.to_dr()
+
+        # keep just requested slice on Em axis (if this becomes
+        # important, we can hack to_dr() to only load the requested
+        # slice from disk)
+        if em_slice is not slice(None):
+            rsp = rsp.slice[{"Em" : em_slice}]
+
+        # reduce to bare array
+        rsp = rsp.contents.value
+
+        # linearize all but NuLambda and Ei dimensions
+        rsp = rsp.reshape(response.shape[:2] + (-1,))
+
+        return rsp, np.sum(rsp, axis=-1)
+
+    def reduce_response(self, rsp, rsp_sum, valid_cells, spectral_flux):
+        flux = spectral_flux.contents.value.astype(rsp.dtype, copy=False)
+        rsp = self.selmul(rsp, valid_cells, flux)
+        rsp_sum = rsp_sum @ flux
+
+        return rsp, rsp_sum
+
+    @staticmethod
+    @numba.jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    def selmul(response, bins, weights):
+        """
+        Compute the equivalent of
+            rsp = weights @ response[:,:,bins]
+        That is, we compute
+             rsp[i,k] = sum_j weights[j] * response[i, j, bins[k]]
+
+        Doing this directly in Numba and parallelizing it across cores
+        is faster than first doing the selection of bins, then using
+        OpenBLAS to do the multiply.  It also avoids an intermediate
+        copy of the response during selection.
+
+        """
+
+        rsp = np.zeros(shape=(response.shape[0], len(bins)),
+                       dtype=response.dtype)
+
+        for i in numba.prange(response.shape[0]):
+            for j in range(response.shape[1]):
+                w = weights[j]
+                for k, p in enumerate(bins):
+                    rsp[i,k] += response[i,j,p] * w
+
+        return rsp
+
+    @staticmethod
+    @numba.jit(nopython=True, nogil=True, fastmath=True)
+    def _get_psr_in_mem(rsp, rsp_sum, pixels, pix_weights):
+        """
+        Compute a point-source response as a sum of response slices for
+        each instrument-frame pixel exposed to the source, werighted
+        by the length of its exposure.
+
+        We implement in Numba to avoid intermediate copies of response
+        slices when weighting and summing to get the PSR.  Ideally,
+        we'd use a dot product call, but we know of no Numpy idiom to
+        perform dot while skipping the slicing/multiplication when the
+        weight is zero, and anything else creates an intermediate copy
+        of each slice when multiplying by w.
+
+        Parameters
+        ----------
+          rsp: 2D ndarray of size (n response pixels) x (CDS space size)
+            The image response
+          pix_weights: 1D ndarray of size (n response pixels)
+            The exposure-time weight of each pixel
+
+        Returns
+        -------
+          - 1D ndarray of (CDS space size) with computed PSR
+          - sum over *all* CDS bins (whether in sparse CDS space or
+            not) in PSR
+
+        """
+
+        n_cds_bins = rsp.shape[-1]
+        psr = np.zeros(n_cds_bins, dtype = rsp.dtype)
+        psr_sum = rsp.dtype.type(0)
+
+        for i, w in zip(pixels, pix_weights):
+            psr_sum += rsp_sum[i] * w
+            rspi = rsp[i]
+            for j in range(n_cds_bins):
+                psr[j] += rspi[j] * w
+
+        return psr, psr_sum
+
+
 class PSRCache:
     """
     A cached reader for PSR data from a response file, designed for
@@ -610,7 +725,7 @@ class PSRCache:
     """
 
     def __init__(self, response, em_slice, valid_cells, flux,
-                 maxSize = None):
+                 max_size = None):
         """
         Create a new PSRCache, providing the information needed
         to fetch and reduce PSRs from the response file on demand.
@@ -626,7 +741,7 @@ class PSRCache:
           used in in the ts_map computation
         flux : Histogram
           Integrated spectral flux, binned according to response's Ei axis
-        maxSize: int (optional)
+        max_size: int (optional)
           If not None, maximum number of NuLambda pixels for which we will
           cache PSRs.  The cache is managed according to an LRU policy.
 
@@ -635,7 +750,7 @@ class PSRCache:
         from collections import OrderedDict
 
         self.cache = OrderedDict()
-        self.maxSize = maxSize
+        self.max_size = max_size
 
         self.response = response
         self.em_axis = response.axes.label_to_index("Em") - 1 # for NuLambda
@@ -692,11 +807,11 @@ class PSRCache:
             self.cache[p] = v
 
             # implement LRU policy if requested
-            if self.maxSize is not None and len(self.cache) > self.maxSize:
+            if self.max_size is not None and len(self.cache) > self.max_size:
                 self.cache.popitem(last=False)
         else:
             # move MRU value to end to support LRU policy if requested
-            if self.maxSize is not None:
+            if self.max_size is not None:
                 self.cache.move_to_end(p)
 
         return v
@@ -709,7 +824,7 @@ class PSRCache:
 
         missRate = 0. if self.nLookups == 0 else self.nMisses/self.nLookups
 
-        print(f"Cache size: {len(self.cache)} (out of {self.maxSize})")
+        print(f"Cache size: {len(self.cache)} (out of {self.max_size})")
         print(f"Misses: {self.nMisses} / {self.nLookups} = {missRate:0.3f}")
     '''
 
