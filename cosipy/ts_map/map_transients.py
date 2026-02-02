@@ -4,6 +4,8 @@ import sys
 
 import numpy as np
 
+from astropy.table import Table
+
 import mhealpy as hp
 
 from cosipy import SpacecraftFile, FastTSMap, MOCTSMap
@@ -20,7 +22,7 @@ from cosipy.ts_map.read_dc3_data import (
 from sphdist import moc_expected_angdist
 
 def save_moc_map(llrs, uniq_pix, out_nside, save_name,
-                 save_dir = "", live_threshold=1e-3):
+                 save_dir, live_threshold=1e-3):
 
     CUTOFF = 1e-8
 
@@ -42,27 +44,24 @@ def save_moc_map(llrs, uniq_pix, out_nside, save_name,
     pix = np.concatenate(allpix)
     probs = np.concatenate(allprobs)
 
-    #nsides, pix = hp.uniq2nest(uniq_pix)
-
     live = (probs >= CUTOFF)
     probs = probs[live]
     pix = pix[live]
 
     lons, lats = hp.pix2ang(out_nside, pix, nest=True, lonlat=True)
 
-    with open(save_dir + "/" + save_name, "w") as f:
-
-        print(f"# nside {out_nside} NEST", file=f)
-        print("# pix_id lat lon prob", file=f)
-        for pix, lat, lon, prob in zip(pix, lats, lons, probs):
-            print(f"{pix} {lat:.3f} {lon:.3f} {prob}", file=f)
+    tbl = Table((pix, lats, lons, probs),
+                names=("pixel","lat","lon","probability"))
+    tbl.write(save_dir / (save_name + ".h5"), overwrite=True)
 
     return np.sum(probs >= live_threshold)
 
-data_dir = Path("/project/cassini/cosidata/dc3")
-#data_dir = Path("/home/jbuhler/dc3")
+data_dir = Path("/home/jbuhler/dc3")
 
-output_dir = Path("/project/cassini/cosidata/ts_map")
+output_dir = Path("/home/jbuhler/ts_map_data")
+
+output_path = output_dir / "maps"
+output_path.mkdir(parents=True, exist_ok=True)
 
 grb_dir = data_dir / "grb"
 
@@ -107,7 +106,8 @@ print("Opening detector response...", file=sys.stderr)
 response = FullDetectorResponse.open(response_path, dtype=np.float32)
 
 # create mapping object
-mapper = MOCTSMap(response, orientations)
+mapper = MOCTSMap(response, orientations,
+                  response_in_memory = True)
 map_nside = 64
 
 moc_strategy = \
@@ -133,7 +133,7 @@ for i, param_file in enumerate(sources):
     # extract source info from name
     fields = param_file.name.split("_")
     n_events = int(fields[1])
-    transient_len = float(fields[2])
+    transient_len = float(fields[2].replace("-","."))
     transient_id = int(fields[3])
     prefix = f"sim_{n_events}_{int(transient_len)}_{transient_id}"
 
@@ -181,25 +181,26 @@ for i, param_file in enumerate(sources):
     t = t_end - t_start
 
     if i >= n_warmup:
+        '''
         mapper.plot_ts(m_llrs, m_pix,
                        skycoord = true_src_loc,
                        grid_lines = False,
                        plot_zenith = False,
                        dpi = 300,
                        save_plot = True,
-                       save_dir = output_path / "maps",
+                       save_dir = output_path,
                        save_name = f"{prefix}_map.png")
+        '''
 
         n_live_pix = save_moc_map(m_llrs, m_pix,
                                   out_nside = 64,
-                                  save_dir = output_path / "maps",
-                                  save_name = f"{prefix}_map.txt")
+                                  save_dir = output_path,
+                                  save_name = f"{prefix}_map")
 
         imax = np.argmax(m_llrs)
         pmax = m_pix[imax]
 
         err = moc_angular_error(pmax, true_src_loc)
-
 
         max_llr = np.max(m_llrs)
         m_probs = np.exp(m_llrs - max_llr)
@@ -210,26 +211,4 @@ for i, param_file in enumerate(sources):
                                            m_pix, m_probs)
         exp_angdist = np.rad2deg(exp_angdist)
 
-        # want to save n_events,transient_len,transient_id,err,t
-
-        #results.append((n_events, transient_len, transient_id, err, exp_angdist, t))
         print(f"{n_events},{transient_len:.1f},{transient_id},{n_live_pix},{err:.3f},{exp_angdist:.3f},{t:.3f}", flush=True)
-    #else:
-    #    print(f"WARMUP {i+1}/{n_warmup}")
-
-'''
-err_avg = 0.
-t_avg = 0.
-for r in results:
-
-    _, err, t = r
-
-    err_avg += err
-    t_avg += t
-
-n = n_sources
-err_avg /= n
-t_avg /= n
-
-print(f"\nAVG {err_avg:.3f} {t_avg:.3f}")
-'''
