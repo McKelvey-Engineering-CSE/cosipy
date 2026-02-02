@@ -123,7 +123,7 @@ class FastTSMap():
     @staticmethod
     def _get_cds_array(hist, em_slice):
         """
-        Convert a CDS histogram to a flattened array, projecting over
+        Convert a CDS histogram to a flattened array, keeping
         just the selected channels of the Em dimension.
 
         Parameters
@@ -142,7 +142,6 @@ class FastTSMap():
 
         hist_cds_sliced = hist.slice[{"Em" : em_slice}]
         hist_cds = hist_cds_sliced
-        #hist_cds = hist_cds_sliced.project_out("Em")
 
         cds_array = hist_cds.contents
         if hist_cds.unit is not None:

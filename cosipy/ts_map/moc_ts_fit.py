@@ -432,7 +432,7 @@ class MOCTSMap(FastTSMap):
         if containment is not None:
             axMoll.set_title(f"Containment {100*containment}%")
 
-            critical = FasterTSMap.get_chi_critical_value(containment)
+            critical = FastTSMap.get_chi_critical_value(containment)
             min_ts = max_ts - critical
 
         else:
