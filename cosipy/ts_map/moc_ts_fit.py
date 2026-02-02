@@ -101,8 +101,12 @@ class MOCTSMap(FastTSMap):
             self.k = k
 
         def __call__(self, ts, pixels, nside):
-            top_ts_indices = np.argpartition(ts, -self.k)[-self.k:]
-            hi_idx = top_ts_indices[-self.k:]
+            # eliminate pixels with zero ts, which are not worth
+            # expanding and can tickle implementation-specific
+            # behavior around ties in the kth highest ts score
+            k = np.minimum(self.k, np.count_nonzero(ts) - 1)
+
+            hi_idx = np.argpartition(ts, -k)[-k:]
             hi_mask = np.zeros(len(ts), dtype=bool)
             hi_mask[hi_idx] = True
 

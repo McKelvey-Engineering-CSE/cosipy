@@ -157,7 +157,11 @@ def test_moc_ts_fit():
     spectral_flux = get_integrated_spectral_model(spectrum,
                                                   response.axes["Ei"])
 
-    # test default top-k strategy
+    # test default top-k strategy.  Note that this test can
+    # fail if the "top-k" method breaks ties differently than
+    # it did when the test-case output was originally collected!
+    # So this test might not be very reproducible, in contrast
+    # to the threshold-based tests below.
     ts_results = ts.fit(max_nside = 2,
                         data = src_bkg,
                         bkg_model = bkg,
@@ -167,25 +171,19 @@ def test_moc_ts_fit():
     ts_values, pixels = ts_results
 
     assert all(pixels == [
-        5,  6,  10, 11, 16,
-        28, 32, 36, 48, 52,
-        56, 60, 17, 29, 33,
-        37, 49, 53, 57, 61,
-        18, 30, 34, 38, 50,
-        54, 58, 62, 19, 31,
-        35, 39, 51, 55, 59,
-        63
+        5,  6,  9,  10, 11, 13,
+        14, 16, 28, 32, 48, 60,
+        17, 29, 33, 49, 61, 18,
+        30, 34, 50, 62, 19, 31,
+        35, 51, 63
     ])
 
     assert np.allclose(ts_values, [
-        0.,          0.,          0.,          0.,          40.31750178,
-        39.78630473, 40.39347595, 40.10805456, 40.14551663, 0.,
-        0.,          40.07420191, 40.07720833, 40.19657905, 40.41047826,
-        0.,          40.28032052, 0.,          0.,          39.90376762,
-        40.20425492, 39.07431592, 40.3217545,  40.19353339, 40.41652632,
-        0.,          0.,          40.09740223, 39.81314166, 39.65452286,
-        39.940159,   39.61014067, 40.65108076, 0.,          0.,
-        40.2989865
+        0.,          0.,          39.86762314,  0.,          0.,          0.,
+        0.,          40.31750179, 39.78630473, 40.39347596, 40.14551663, 40.07420192,
+        40.07720833, 40.19657905, 40.41047825, 40.2803205,  39.90376762, 40.20425492,
+        39.07431591, 40.3217545,  40.41652632, 40.09740223, 39.81314166, 39.65452285,
+        39.940159,   40.65108076, 40.2989865
     ])
 
     ts.plot_ts(*ts_results,
