@@ -596,14 +596,15 @@ def extract_bg(group, bg_time, tstart, tend, outfile):
 
 #####################################################################
 
-data_dir = Path("/project/cassini/cosidata/dc3")
-output_dir = Path("/project/cassini/cosidata/ts_map")
+data_dir = Path("/home/jbuhler/dc3")
+output_dir = Path("/home/jbuhler/ts_map_data")
 
 orientation_path = data_dir / "orientation.fits"
 
 response_path = data_dir / "response.h5"
 
 output_path = output_dir / "transients"
+output_path.mkdir(parents=True, exist_ok=True)
 
 print("Reading orientations...")
 orientations = SpacecraftFile.open(orientation_path)
@@ -625,7 +626,9 @@ spectrum = get_spectrum()
 n_transients = int(sys.argv[1])
 nSourceSamples = int(sys.argv[2])
 transient_len = float(sys.argv[3]) #seconds
-output_prefix = f"sim_{nSourceSamples}_{int(transient_len)}"
+
+tlstr = str(transient_len).replace(".","-")
+output_prefix = f"sim_{nSourceSamples}_{tlstr}"
 
 np.random.seed(1957)
 
