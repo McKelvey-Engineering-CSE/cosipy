@@ -65,7 +65,8 @@ def test_point_source_spectral_fit():
 
     like = JointLikelihood(model, plugins, verbose = False)
 
-    like.fit(compute_covariance = False) # avoid sampling-related threeML crashes
+    # avoid output- and sampling-related threeML crashes
+    like.fit(quiet=True, compute_covariance = False)
 
     sp = source.spectrum.main.Band
 
