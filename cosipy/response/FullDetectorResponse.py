@@ -433,7 +433,7 @@ class FullDetectorResponse(HealpixBase):
         -------
         :py:class:`PointSourceResponse` or tuple of same
             Inertial-frame point-source response for each source
-            coordinate; tuple if more than one coordinate provided
+            coordinate
 
         """
 
@@ -571,8 +571,8 @@ class FullDetectorResponse(HealpixBase):
                 # map each local-frame PsiChi pixel dir to its nearest HEALPix
                 # pixel. TODO: this could be interpolated to map each dir to
                 # multiple pixels + weights
-                loc_psichi_pixels = sf_psichi_axis.find_bin(theta = loc_psichi_colat,
-                                                            phi   = loc_psichi_lon)
+                loc_psichi_pixels = psr_axes['PsiChi'].find_bin(theta = loc_psichi_colat,
+                                                                phi   = loc_psichi_lon)
 
                 if has_pol:
 

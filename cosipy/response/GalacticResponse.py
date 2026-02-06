@@ -73,11 +73,6 @@ class GalacticResponse(HealpixBase):
 
         new._contents = new._file['hist/contents']
 
-        # NB: old galactic response files were stored as histograms
-        # with overflow tracking on.  Make sure we handle that
-        # when reading them!
-        new._has_overflow = (new._contents.shape != new._axes.shape)
-
         # dummy effective area correction; "counts" in Histogram
         # have already had the effective area correction applied.
         dtype = new._contents.dtype if dtype is None else dtype
