@@ -67,7 +67,7 @@ class FullDetectorResponse(HealpixBase):
             return cls._open_h5(filename, dtype, pa_convention, cache_size)
         else:
             raise ValueError(
-                "Unsupported file format. Only .h5 and .rsp.gz extensions are supported.")
+                "Unsupported file format. Only .h5 extension is supported.")
 
     @classmethod
     def _open_h5(cls, filename, dtype=None, pa_convention=None, cache_size=None):
