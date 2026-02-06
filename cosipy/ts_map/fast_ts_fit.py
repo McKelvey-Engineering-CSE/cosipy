@@ -441,7 +441,7 @@ class FastTSMap():
         data_cds_array, bkg_model_cds_array, psr_cache = \
             self._prepare_inputs(data, bkg_model, spectral_flux)
 
-        if self._cds_frame == Frame.LOCAL:
+        if self._cds_frame == FastTSMap.Frame.LOCAL:
             # compute possible source dirs in same frame
             # we will use to translate them to local-frame paths
             hyp_frame = self._orientation.frame
@@ -499,13 +499,19 @@ class FastTSMap():
         if self._cds_frame == FastTSMap.Frame.LOCAL:
             orientation = self._orientation.source_interval(Time(ts, format="unix"),
                                                             Time(te, format="unix"))
+            # compute possible source dirs in same frame
+            # we will use to translate them to local-frame paths
+            hyp_frame = self._orientation.frame
         else:
+            # galactic frame
             orientation = None
+            hyp_frame = "galactic"
 
         data_cds_array, bkg_model_cds_array, psr_cache = \
             self._prepare_inputs_unbinned(events, bkg_model, spectral_flux)
 
-        hypothesis_coords = self._get_hypothesis_coords(nside)
+        hypothesis_coords = self._get_hypothesis_coords(nside,
+                                                        coordsys=hyp_frame)
 
         results = [
             self._fit_one_direction(source,
