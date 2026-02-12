@@ -50,7 +50,7 @@ class FullDetectorResponse(HealpixBase):
         Parameters
         ----------
         filename : str, :py:class:`~pathlib.Path`
-             Path to the response file (.h5 or .rsp.gz)
+             Path to the response file
         dtype : numpy dtype or None
              Dtype of values to be returned when accessing response
              contents. If None, use the type stored in the file
@@ -265,7 +265,7 @@ class FullDetectorResponse(HealpixBase):
         single source pixel on the NuLambda axis, optionally
         weighting the result by a given weight.
 
-         Specifying the weight as an argument lets us apply it to the
+        Specifying the weight as an argument lets us apply it to the
         eff_area, rather than to the entire slice of counts, for
         greater efficiency.
 
@@ -533,33 +533,27 @@ class FullDetectorResponse(HealpixBase):
             # output PSR accumulator
             sf_psr = np.zeros(psr_axes.shape, dtype=self.dtype)
 
-            if len(scatt_map.attitudes) > 0:
-                attitudes = scatt_map.attitudes
-                frame = attitudes.frame
+            attitudes = scatt_map.attitudes
+            frame = attitudes.frame
 
-                # rotation from source frame to local spacecraft frame
-                rots = attitudes.rot.inv().as_matrix()
+            # rotation from source frame to local spacecraft frame
+            rots = attitudes.rot.inv().as_matrix()
 
-                # compute cartesian forms of source and PsiChi pixel dirs,
-                # using coord system matching Attitudes that will be
-                # used to rotate them
-                src_cart = source.transform_to(frame).cartesian.xyz.value
-                sf_psichi_dirs_cart = sf_psichi_dirs.transform_to(frame).cartesian.xyz.value
+            # compute cartesian forms of source and PsiChi pixel dirs,
+            # using coord system matching Attitudes that will be
+            # used to rotate them
+            src_cart = source.transform_to(frame).cartesian.xyz.value
+            sf_psichi_dirs_cart = sf_psichi_dirs.transform_to(frame).cartesian.xyz.value
 
-                # rotate source dir from source frame to local spacecraft
-                # frame
-                loc_src_colat, loc_src_lon = rotate_coords(src_cart, rots)
+            # rotate source dir from source frame to local spacecraft
+            # frame
+            loc_src_colat, loc_src_lon = rotate_coords(src_cart, rots)
 
-                # map source dir in local spacecraft frame to its nearest
-                # HEALPix pixel. TODO: this could be interpolated to map
-                # dir to multiple pixels + weights
-                loc_src_pixels = self._axes['NuLambda'].find_bin(theta = loc_src_colat,
-                                                                 phi   = loc_src_lon)
-            else:
-                # scatt_map is empty
-                attitudes = []
-                rots = []
-                loc_src_pixels = []
+            # map source dir in local spacecraft frame to its nearest
+            # HEALPix pixel. TODO: this could be interpolated to map
+            # dir to multiple pixels + weights
+            loc_src_pixels = self._axes['NuLambda'].find_bin(theta = loc_src_colat,
+                                                             phi   = loc_src_lon)
 
             for att, rot, loc_src_pixel, exposure in \
                 zip(attitudes, rots, loc_src_pixels, scatt_map.weights):

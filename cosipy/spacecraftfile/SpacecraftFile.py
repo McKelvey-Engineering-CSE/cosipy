@@ -331,7 +331,6 @@ class SpacecraftFile():
 
     @classmethod
     def _open_ori(cls, file, frame):
-
         """
         Read orientation data from an .ori file and construct a
         SpacecraftFile object.
@@ -387,7 +386,6 @@ class SpacecraftFile():
                    frame = frame)
 
     def get_time(self):
-
         """
         Return the array of pointing times as a astropy.Time object.
 
@@ -400,7 +398,6 @@ class SpacecraftFile():
         return self._time
 
     def get_time_delta(self):
-
         """
         Return an array of the differences between neighbouring time points.
 
@@ -415,7 +412,6 @@ class SpacecraftFile():
         return time_delta
 
     def get_altitude(self):
-
         """
         Return the array of Earth altitude.
 
@@ -428,6 +424,13 @@ class SpacecraftFile():
         return self._altitude
 
     def get_attitude(self):
+        """
+        Return an array of the attitudes assumed at each time point.
+
+        Returns
+        -------
+        Attitude array
+        """
 
         return self._attitude
 
@@ -668,7 +671,7 @@ class SpacecraftFile():
         Parameters
         ----------
         src_vec : 3D Cartesian vector
-          galactic-frame source direction
+          source direction, assumed to be in frame of orientation data
 
         Returns
         -------
@@ -708,6 +711,11 @@ class SpacecraftFile():
 
         return is_occluded
 
+    """
+    Caching for source-independent parts of earth occultation
+    calculation, to make it go faster for each new source.
+    """
+
     @property
     def cache_earth_occ(self):
         return self._cache_earth_occ
@@ -744,6 +752,7 @@ class SpacecraftFile():
 
         if earth_occ:
             if isinstance(source, SkyCoord):
+                source.transform_to(self.frame)
                 source = source.cartesian.xyz.value
 
             # get pointings that are occluded by Earth
@@ -756,9 +765,7 @@ class SpacecraftFile():
         else:
             return self.livetime
 
-
     def get_target_in_sc_frame(self, target_coord):
-
         """
         Convert a target coordinate in an inertial frame to the path of
         the source in the spacecraft frame.  The target coordinate may
@@ -768,7 +775,9 @@ class SpacecraftFile():
         Parameters
         ----------
         target_coord : astropy.coordinates.SkyCoord or Cartesian 3-vector
-            The coordinates of the target object.
+            The coordinates of the target object.  If a 3-vector, assumed
+            to be in coordinate frame of orientation data
+
         Returns
         -------
         astropy.coordinates.SkyCoord or pair of np.ndarrays
@@ -822,7 +831,7 @@ class SpacecraftFile():
         theta : np.ndarray or SkyCoord
            if phi is None, a vector SkyCoord
            if phi is not none, a vector of angles
-        colat: np.ndarray, optional
+        phi : np.ndarray, optional
            a vector of angles
         interp : bool, optional
            If True, interpolate the weights onto the HEALPix grid;
@@ -830,13 +839,15 @@ class SpacecraftFile():
         source : 3-vector or SkyCoord, optional
            Source location; if None, do not consider earth
            occultation when computing exposure
+        dtype : numpy datatype, optional
+           Type of returned exposure weights (default: double)
 
         Returns
         -------
         pixels : np.ndarray (int)
-          all HEALPix pixels in the grid with nonzero exposure time
-        exposures: np.ndarray (float)
-          exposure time for each pixel
+          all HEALPix pixels in the grid with nonzero exposure weight
+        exposures: np.ndarray (dtype)
+          exposure weight for each pixel
 
         """
 
@@ -872,7 +883,6 @@ class SpacecraftFile():
         return unique_pixels, unique_weights
 
     def get_dwell_map(self, base, src_path, interp = True):
-
         """
         Generate a dwell-time map from a source's time-weighted
         path in local coordinates.  Interpolate the path's time
@@ -917,7 +927,6 @@ class SpacecraftFile():
                       target_coord = None,
                       earth_occ = True,
                       angle_nbins = None):
-
         """
         Bin the spacecraft attitude history into a list of discretized
         attitudes with associated time weights.  Discretization is
