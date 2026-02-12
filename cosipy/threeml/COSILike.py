@@ -106,13 +106,6 @@ class COSILike(PluginPrototype):
         self._data = prepare_binned(data, cds_order)
         self._bkg  = prepare_binned(bkg, cds_order)
 
-        # Precomputed image response for extended
-        # sources
-        if precomputed_psr_file is not None:
-            logger.info("... loading the pre-computed image response ...")
-            self.image_response = ExtendedSourceResponse.open(precomputed_psr_file)
-            logger.info("--> done")
-
         try:
             data_frame = data.axes["PsiChi"].coordsys.name
             bkg_frame  = bkg.axes["PsiChi"].coordsys.name
