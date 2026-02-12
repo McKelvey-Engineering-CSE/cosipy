@@ -40,7 +40,6 @@ class SpacecraftFile():
                  altitude = None,
                  livetime = None,
                  frame = "galactic"):
-
         """
         Handles the spacecraft orientation. Calculates the dwell time
         map and point source response over a certain orientation
@@ -724,7 +723,7 @@ class SpacecraftFile():
     def cache_earth_occ(self, value):
         if value is False:
             # delete any cached data if present
-            if hasattr(self, _min_angle_cos):
+            if hasattr(self, "_min_angle_cos"):
                 del self._min_angle_cos
                 del self._ez_cart
 
