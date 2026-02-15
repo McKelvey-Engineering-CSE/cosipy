@@ -15,7 +15,7 @@ energy_edges = 10**np.linspace(2, 4, 10 + 1) # ten bins from 100 to 10000 KeV
 
 def test_ori_to_fits(tmp_path):
 
-    ori_path = test_data.path / "20280301_first_10sec.ori"
+    ori_path = test_data.path / "20280301_first_10sec.fits"
 
     ori = SpacecraftFile.open(ori_path)
 
@@ -144,7 +144,7 @@ def test_get_attitude():
 
 def test_get_target_in_sc_frame():
 
-    ori_path = test_data.path / "20280301_first_10sec.fits"
+    ori_path = test_data.path / "20280301_first_10sec.ori"
     ori = SpacecraftFile.open(ori_path)
 
     target_name = "Crab"
