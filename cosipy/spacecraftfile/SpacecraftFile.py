@@ -1487,7 +1487,7 @@ class SpacecraftFile():
         ax.set_ylabel(r"Effective area [$cm^2$]")
         ax.set_xscale("log")
         fig.savefig(f"Effective_area_for_{save_name}.png", bbox_inches = "tight", pad_inches=0.1, dpi=dpi)
-
+        plt.close(fig)
 
     def plot_rmf(self, file_name = None, save_name = None, dpi = 300):
 
