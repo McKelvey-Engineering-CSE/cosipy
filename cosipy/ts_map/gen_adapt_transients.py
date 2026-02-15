@@ -150,7 +150,7 @@ for src_dir in ring_dir.glob("*"):
 
     for i in range(NBursts_per_src_dir):
 
-        # determine how
+        # determine how many source events this burst contains
         n_src_events = np.random.poisson(src_mean)
 
         src_ds = src_ps.sample_events(n_src_events)
