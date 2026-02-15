@@ -8,15 +8,16 @@ from astropy.table import Table
 
 import mhealpy as hp
 
-from cosipy import SpacecraftFile, FastTSMap, MOCTSMap
-from cosipy.response import FullDetectorResponse
+from histpy import Histogram
+
+from cosipy import FastTSMap, MOCTSMap
+from cosipy.response import GalacticResponse
 from cosipy.response.functions import get_integrated_spectral_model
 
 from cosipy.ts_map.read_dc3_data import (
     read_burst_params,
     read_unbinned_events,
     combine_unbinned_events,
-    get_local_bkg_model,
 )
 
 from sphdist import moc_expected_angdist
@@ -56,20 +57,21 @@ def save_moc_map(llrs, uniq_pix, out_nside, save_name,
 
     return np.sum(probs >= live_threshold)
 
-data_dir = Path("/home/jbuhler/dc3")
 
-output_dir = Path("/home/jbuhler/ts_map_data")
+data_dir = Path("/project/cassini/adapt_grbs")
 
-output_path = output_dir / "maps"
+transient_path = data_dir / "adapt_transients"
+
+output_dir = Path("/project/cassini/adapt_grbs")
+
+output_path = output_dir / "adapt_maps"
 output_path.mkdir(parents=True, exist_ok=True)
 
-grb_dir = data_dir / "grb"
+model_dir = Path("/project/cassini/adapt_grbs")
 
-bkg_model_path = data_dir / "bg" / "binned_bg.hdf5"
+bkg_model_path = model_dir / "adapt_bkg_model.h5"
 
-orientation_path = data_dir / "orientation.fits"
-
-response_path = data_dir / "response.h5"
+response_path = model_dir / "adapt_response_w_area.h5"
 
 num_cpus = 8
 
@@ -98,15 +100,12 @@ def moc_angular_error(pmax, true_src_loc):
 
 np.random.seed(1957)
 
-# get the orientation history of the detector
-print("Reading orientation history...", file=sys.stderr)
-orientations = SpacecraftFile.open(orientation_path)
-
 print("Opening detector response...", file=sys.stderr)
-response = FullDetectorResponse.open(response_path, dtype=np.float32)
+response = GalacticResponse.open(response_path, dtype=np.float32)
 
 # create mapping object
-mapper = MOCTSMap(response, orientations,
+mapper = MOCTSMap(response,
+                  cds_frame="galactic",
                   response_in_memory = True)
 map_nside = 64
 
@@ -115,8 +114,7 @@ moc_strategy = \
         MOCTSMap.ContainmentStrategy(0.99)
     )
 
-transient_path = output_dir / "transients"
-sources = list(transient_path.glob("sim_*_params.txt"))
+sources = list(transient_path.glob("adapt_*_source.h5"))
 
 # Run a few warmup iterations to make sure the JIT runs and avoid
 # other startup transients.  Empirically, 5 is the minimum number of
@@ -125,54 +123,59 @@ sources = list(transient_path.glob("sim_*_params.txt"))
 n_warmup = 3
 sources = [sources[0]]*n_warmup + sources
 
-print("n_events,transient_len,transient_id,n_live_pix,err,exp_angdist,time", flush=True)
+print("alt,az,transient_id,n_src,n_bkg,err,exp_angdist,time", flush=True)
 
 results = []
-for i, param_file in enumerate(sources):
+for i, signal_file in enumerate(sources):
 
     # extract source info from name
-    fields = param_file.name.split("_")
-    n_events = int(fields[1])
-    transient_len = float(fields[2].replace("-","."))
-    transient_id = int(fields[3])
-    prefix = f"sim_{n_events}_{int(transient_len)}_{transient_id}"
+    fields = signal_file.name.split("_")
+    p = int(fields[1][1:])
+    a = int(fields[2][1:])
+    inst = fields[3]
+    prefix = f"adapt_p{p}_a{a}_{inst}"
 
-    params_path = transient_path / f"{prefix}_params.txt"
-    spectrum, true_src_loc, endpts = read_burst_params(params_path)
-    ts, te = endpts
+    params_path = transient_path / f"adapt_p{p}_a{a}_params.txt"
+    spectrum, true_src_loc = read_burst_params(params_path)
+
+    ts = 1580000000. # arbitrary value used by generator script
+    te = ts + 1.  # CHEAT: we use the real burst length, not an estimate
 
     # retrieve the unbinned burst events
-    signal_path = transient_path / f"{prefix}_source.h5"
-    background_path = transient_path / f"{prefix}_bkg.h5"
+    signal_path = signal_file
+    background_path = transient_path / f"{prefix}_background.h5"
+
     signal_events = read_unbinned_events(signal_path)
+    n_src = len(signal_events["time"])
     bkg_events = read_unbinned_events(background_path)
+    n_bkg = len(bkg_events["time"])
     events = combine_unbinned_events(signal_events, bkg_events)
 
-    # get background
-    prior_background_path = transient_path / f"{prefix}_bkg_prior.h5"
+    # CHEAT: we use the actual instead of the prior estimated background
+    bkg_rate = len(bkg_events["time"]) / (te - ts)
 
-    # get_local_bkg_model returns expected RATE of bkg events / sec in
-    # each CDS bin during burst
-    bkg_model = get_local_bkg_model(bkg_model_path,
-                                    prior_background_path)
+    bkg_model = Histogram.open(bkg_model_path)
+    bkg_model = bkg_model.project(("Em", "Phi", "PsiChi"))
+    bkg_model *= bkg_rate
 
     # compute total expected bkg fluence during transient
     bkg_model *= te - ts
 
+    # CHEAT: we use the real spectrum, not a guess
     spectral_flux = get_integrated_spectral_model(spectrum,
                                                   response.axes["Ei"])
+
     t_start = time.time()
 
-    # Note that FastTSMap expects the response *path* because we're not
-    # reading the whole thing into memory now.  We could still alter
-    # the fitting code to take the events and bkg_model instead of
-    # passing them to init(), so that we only have to open the response
-    # once.
+    #m_llrs = mapper.fit_unbinned(ts, te, events, bkg_model,
+    #                             spectral_flux,
+    #                             nside = map_nside,
+    #                             cpu_cores = num_cpus)
+    #m_pix = hp.nest2uniq(nside=map_nside,
+    #                     ipix=np.arange(len(m_llrs), dtype=int))
 
-    #llrs = mapper.fit_unbinned(ts, te, events, bkg_model, spectral_flux,
-    #                           nside = map_nside, cpu_cores = num_cpus)
-
-    m_llrs, m_pix = mapper.fit_unbinned(ts, te, events, bkg_model, spectral_flux,
+    m_llrs, m_pix = mapper.fit_unbinned(ts, te, events, bkg_model,
+                                        spectral_flux,
                                         max_nside = map_nside,
                                         strategy = moc_strategy,
                                         cpu_cores = num_cpus)
@@ -190,12 +193,12 @@ for i, param_file in enumerate(sources):
                        save_plot = True,
                        save_dir = output_path,
                        save_name = f"{prefix}_map.png")
-        '''
 
         n_live_pix = save_moc_map(m_llrs, m_pix,
                                   out_nside = 64,
                                   save_dir = output_path,
                                   save_name = f"{prefix}_map")
+        '''
 
         imax = np.argmax(m_llrs)
         pmax = m_pix[imax]
@@ -211,4 +214,4 @@ for i, param_file in enumerate(sources):
                                            m_pix, m_probs)
         exp_angdist = np.rad2deg(exp_angdist)
 
-        print(f"{n_events},{transient_len:.1f},{transient_id},{n_live_pix},{err:.3f},{exp_angdist:.3f},{t:.3f}", flush=True)
+        print(f"{90-p},{a},{inst},{n_src},{n_bkg},{err:.3f},{exp_angdist:.3f},{t:.3f}", flush=True)

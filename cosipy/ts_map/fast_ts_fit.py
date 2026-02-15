@@ -237,10 +237,12 @@ class FastTSMap():
             ei_cds_array, ei_sum = \
                 self.get_psr(psr_cache, pixels, exposures)
 
-            return self._fnf.solve(data_cds_array, bkg_model_cds_array,
-                                   ei_cds_array, ei_sum)
-        else:
-            return (0., 0., 0., False)
+            if ei_sum > 0: # some pixels may have no data in response
+                return self._fnf.solve(data_cds_array, bkg_model_cds_array,
+                                       ei_cds_array, ei_sum)
+
+        # default: return nothing
+        return (0., 0., 0., False)
 
     @classmethod
     def get_psr_in_mem(cls, psr_cache, pixels, exposures):
@@ -597,7 +599,7 @@ class FastTSMap():
         if save_plot:
             fig.savefig(Path(save_dir)/save_name, dpi = dpi)
 
-        plt.close()
+        plt.close(fig)
 
     @staticmethod
     def get_chi_critical_value(containment = 0.90):
