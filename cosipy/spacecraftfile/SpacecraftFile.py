@@ -330,6 +330,7 @@ class SpacecraftFile():
 
     @classmethod
     def _open_ori(cls, file, frame):
+
         """
         Read orientation data from an .ori file and construct a
         SpacecraftFile object.
