@@ -133,7 +133,7 @@ def plot_fit(sou, cts_exp, figname):
     ax[1].set_ylabel("Obs-Model/Err")
     ax[1].set_xlabel("Energy (keV)")
     #
-    # plt.show()
     plt.savefig(figname)
+    # plt.show()
     plot.close(fig)
     return ()
