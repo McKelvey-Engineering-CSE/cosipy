@@ -10,7 +10,12 @@ from cosipy.response import (
     FullDetectorResponse,
     ExtendedSourceResponse
 )
-from cosipy.polarization.conventions import IAUPolarizationConvention, MEGAlibRelativeX, MEGAlibRelativeY, MEGAlibRelativeZ
+from cosipy.polarization.conventions import (
+    IAUPolarizationConvention,
+    MEGAlibRelativeX,
+    MEGAlibRelativeY,
+    MEGAlibRelativeZ
+)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -50,8 +55,8 @@ class COSILike(PluginPrototype):
     earth_occ : bool, optional
         Option to include Earth occultation in fit (default is True).
     response_pa_convention : str, optional
-        Polarization reference convention of response ('RelativeX', 
-        'RelativeY', or 'RelativeZ'). Required if response contains 
+        Polarization reference convention of response ('RelativeX',
+        'RelativeY', or 'RelativeZ'). Required if response contains
         polarization angle axis
 
     """
@@ -139,12 +144,13 @@ class COSILike(PluginPrototype):
         if 'Pol' in self._dr.axes.labels:
             self._response_pa_convention = response_pa_convention
             if self._coordsys == 'spacecraftframe':
+                att = self._sc_orientation.get_attitude()[0]
                 if self._response_pa_convention == 'RelativeX':
-                    self._pa_convention = MEGAlibRelativeX(attitude=self._sc_orientation.get_attitude()[0])
+                    self._pa_convention = MEGAlibRelativeX(attitude=att)
                 elif self._response_pa_convention == 'RelativeY':
-                    self._pa_convention = MEGAlibRelativeY(attitude=self._sc_orientation.get_attitude()[0])
+                    self._pa_convention = MEGAlibRelativeY(attitude=att)
                 elif self._response_pa_convention == 'RelativeZ':
-                    self._pa_convention = MEGAlibRelativeZ(attitude=self._sc_orientation.get_attitude()[0])
+                    self._pa_convention = MEGAlibRelativeZ(attitude=att)
                 else:
                     raise RuntimeError("Response convention must be 'RelativeX', 'RelativeY', or 'RelativeZ'")
             elif self._coordsys == 'galactic':
@@ -294,7 +300,7 @@ class COSILike(PluginPrototype):
                         total_expectation = this_expectation
                     else:
                         total_expectation += this_expectation
-                    
+
                     component_counter += 1
 
             # Save expected counts for each source,
@@ -387,8 +393,7 @@ class COSILike(PluginPrototype):
         src_path = self._sc_orientation.get_target_in_sc_frame(coord)
         dwell_time_map = \
             self._sc_orientation.get_dwell_map(base = self._dr,
-                                               src_path = src_path,
-                                               pa_convention = self._response_pa_convention)
+                                               src_path = src_path)
 
         return dwell_time_map
 
