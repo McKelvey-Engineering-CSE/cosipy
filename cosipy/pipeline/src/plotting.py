@@ -135,5 +135,5 @@ def plot_fit(sou, cts_exp, figname):
     #
     plt.savefig(figname)
     # plt.show()
-    plot.close(fig)
+    plt.close(fig)
     return ()
