@@ -596,8 +596,8 @@ def extract_bg(group, bg_time, tstart, tend, outfile):
 
 #####################################################################
 
-data_dir = Path("/home/jbuhler/dc3")
-output_dir = Path("/home/jbuhler/ts_map_data")
+data_dir = Path("/project/cassini/cosidata/dc3")
+output_dir = Path("/project/cassini/cosi-mapping")
 
 orientation_path = data_dir / "orientation.fits"
 

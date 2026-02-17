@@ -8,6 +8,8 @@ from astropy.table import Table
 
 import mhealpy as hp
 
+import h5py as h5
+
 from histpy import Histogram
 
 from cosipy import FastTSMap, MOCTSMap
@@ -51,9 +53,17 @@ def save_moc_map(llrs, uniq_pix, out_nside, save_name,
 
     lons, lats = hp.pix2ang(out_nside, pix, nest=True, lonlat=True)
 
-    tbl = Table((pix, lats, lons, probs),
-                names=("pixel","lat","lon","probability"))
-    tbl.write(save_dir / (save_name + ".h5"), path = "likelihood_map", overwrite=True)
+    with h5.File(save_dir / (save_name + ".h5"), "w") as f:
+        f.attrs["source"] = np.array([true_src_loc.b.deg, true_src_loc.l.deg])
+
+        f.create_dataset("pixel",       data=pix,
+                         dtype=int, compression="gzip")
+        f.create_dataset("latitude",    data=lats,
+                         dtype=np.float32, compression="gzip")
+        f.create_dataset("longitude",   data=lons,
+                         dtype=np.float32, compression="gzip")
+        f.create_dataset("probability", data=probs,
+                         dtype=np.float32, compression="gzip")
 
     return np.sum(probs >= live_threshold)
 
@@ -193,12 +203,12 @@ for i, signal_file in enumerate(sources):
                        save_plot = True,
                        save_dir = output_path,
                        save_name = f"{prefix}_map.png")
-
+        '''
         n_live_pix = save_moc_map(m_llrs, m_pix,
                                   out_nside = 64,
                                   save_dir = output_path,
                                   save_name = f"{prefix}_map")
-        '''
+
 
         imax = np.argmax(m_llrs)
         pmax = m_pix[imax]
