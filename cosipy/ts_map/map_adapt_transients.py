@@ -3,6 +3,7 @@ import time
 import sys
 
 import numpy as np
+from scipy.stats import chi2
 
 from astropy.table import Table
 
@@ -27,9 +28,11 @@ from sphdist import moc_expected_angdist
 def save_moc_map(llrs, uniq_pix, out_nside, save_name,
                  save_dir, live_threshold=1e-3):
 
-    CUTOFF = 1e-8
-
     max_llr = np.max(llrs)
+    min_diff = chi2.ppf(0.999, df=2)
+    min_prob = np.exp(-min_diff)
+    CUTOFF = min_prob
+
     probs = np.exp(llrs - max_llr)
     probs = probs / np.sum(probs) # normalize to sum to 1
 
@@ -81,7 +84,7 @@ model_dir = Path("/project/cassini/adapt_grbs")
 
 bkg_model_path = model_dir / "adapt_bkg_model.h5"
 
-response_path = model_dir / "adapt_response_w_area.h5"
+response_path = model_dir / "adapt_response_w_area-nn.h5"
 
 num_cpus = 8
 
@@ -121,7 +124,7 @@ map_nside = 64
 
 moc_strategy = \
     MOCTSMap.PaddingStrategy(
-        MOCTSMap.ContainmentStrategy(0.99)
+        MOCTSMap.ContainmentStrategy(0.999)
     )
 
 sources = list(transient_path.glob("adapt_*_source.h5"))
@@ -133,7 +136,7 @@ sources = list(transient_path.glob("adapt_*_source.h5"))
 n_warmup = 3
 sources = [sources[0]]*n_warmup + sources
 
-print("alt,az,transient_id,n_src,n_bkg,err,exp_angdist,time", flush=True)
+print("alt,az,transient_id,n_src,n_bkg,err,exp_angdist,conf,time", flush=True)
 
 results = []
 for i, signal_file in enumerate(sources):
@@ -194,7 +197,7 @@ for i, signal_file in enumerate(sources):
     t = t_end - t_start
 
     if i >= n_warmup:
-        '''
+
         mapper.plot_ts(m_llrs, m_pix,
                        skycoord = true_src_loc,
                        grid_lines = False,
@@ -203,19 +206,25 @@ for i, signal_file in enumerate(sources):
                        save_plot = True,
                        save_dir = output_path,
                        save_name = f"{prefix}_map.png")
-        '''
+
         n_live_pix = save_moc_map(m_llrs, m_pix,
                                   out_nside = 64,
                                   save_dir = output_path,
                                   save_name = f"{prefix}_map")
 
-
         imax = np.argmax(m_llrs)
         pmax = m_pix[imax]
+
+        b = hp.HealpixBase(uniq=m_pix, scheme="NUNIQ", coordsys="G")
+        p_true = b.ang2pix(theta=np.pi/2 - true_src_loc.b.rad,
+                           phi=true_src_loc.l.rad)
+        p_llr = m_llrs[p_true]
 
         err = moc_angular_error(pmax, true_src_loc)
 
         max_llr = np.max(m_llrs)
+        conf =  chi2.cdf(max_llr - p_llr, df=2)
+
         m_probs = np.exp(m_llrs - max_llr)
         m_probs = m_probs / np.sum(m_probs) # normalize to sum to 1
 
@@ -224,4 +233,4 @@ for i, signal_file in enumerate(sources):
                                            m_pix, m_probs)
         exp_angdist = np.rad2deg(exp_angdist)
 
-        print(f"{90-p},{a},{inst},{n_src},{n_bkg},{err:.3f},{exp_angdist:.3f},{t:.3f}", flush=True)
+        print(f"{90-p},{a},{inst},{n_src},{n_bkg},{err:.3f},{exp_angdist:.3f},{conf:.4f},{t:.3f}", flush=True)

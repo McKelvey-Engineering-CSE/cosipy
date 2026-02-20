@@ -3,6 +3,7 @@ import time
 import sys
 
 import numpy as np
+from scipy.stats import chi2
 
 from astropy.table import Table
 
@@ -141,7 +142,7 @@ sources = list(transient_path.glob("sim_*_params.txt"))
 n_warmup = 0 # 3
 sources = [sources[0]]*n_warmup + sources
 
-print("n_events,transient_len,transient_id,err,exp_angdist,time", flush=True)
+print("n_events,transient_len,transient_id,err,exp_angdist,conf,time", flush=True)
 
 results = []
 for i, param_file in enumerate(sources):
@@ -228,12 +229,11 @@ for i, param_file in enumerate(sources):
                             nest=True)
         p_llr = m_llrs[p_true]
 
-
         err = moc_angular_error(pmax, true_src_loc)
 
         max_llr = np.max(m_llrs)
 
-        print(p_llr - max_llr)
+        conf = chi2.cdf(max_llr - p_llr, df=2)
 
         m_probs = np.exp(m_llrs - max_llr)
         m_probs = m_probs / np.sum(m_probs) # normalize to sum to 1
@@ -249,5 +249,5 @@ for i, param_file in enumerate(sources):
         # need to compute whether source is within the containment region
 
         # maybe also the direction vector from ML pixel to true source?
-        print(f"{n_events},{transient_len:.1f},{transient_id},{err:.3f},{exp_angdist:.3f},{t:.3f}",
+        print(f"{n_events},{transient_len:.1f},{transient_id},{err:.3f},{exp_angdist:.3f},{conf:.4f},{t:.3f}",
               flush=True)
