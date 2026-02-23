@@ -84,7 +84,7 @@ model_dir = Path("/project/cassini/adapt_grbs")
 
 bkg_model_path = model_dir / "adapt_bkg_model.h5"
 
-response_path = model_dir / "adapt_response_w_area-nn.h5"
+response_path = model_dir / "adapt_response_w_area.h5"
 
 num_cpus = 8
 
@@ -197,7 +197,7 @@ for i, signal_file in enumerate(sources):
     t = t_end - t_start
 
     if i >= n_warmup:
-
+        '''
         mapper.plot_ts(m_llrs, m_pix,
                        skycoord = true_src_loc,
                        grid_lines = False,
@@ -211,7 +211,7 @@ for i, signal_file in enumerate(sources):
                                   out_nside = 64,
                                   save_dir = output_path,
                                   save_name = f"{prefix}_map")
-
+        '''
         imax = np.argmax(m_llrs)
         pmax = m_pix[imax]
 
