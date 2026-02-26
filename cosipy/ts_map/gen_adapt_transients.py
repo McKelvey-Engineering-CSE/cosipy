@@ -1,5 +1,15 @@
+#
+# USAGE:
+# gen_adapt_transients <fluence> <length> <nbursts_per_source_dir> <output>
+#
+#  fluence: fluence of burst in MeV/cm^2
+#  length : length of burst in seconds
+#  nbursts_per_source_dir : number of bursts to generate per source direction
+#  output : directory to write output files (created if not present)
+
 from pathlib import Path
 import re
+import sys
 
 import numpy as np
 
@@ -56,17 +66,26 @@ class ParticleSet():
             })
         self.df.set_index("eventid", inplace=True)
 
+    def observed_event_fraction(self):
+        # number of rings observed per raw event
+        return len(self.df) / self.id_range
 
-    def sample_events(self, n_raw_events):
+    def estimate_sample_size(self, n_raw_events):
 
-        # First, determine how many of n_raw_events random samples
-        # from the range [0, self.id_range) *without replacement*
-        # would fall among the events actually present in the file.
+        # Determine how many of n_raw_events random samples from the
+        # range [0, self.id_range) *without replacement* would fall
+        # among the events actually present in the file.
 
         n_events_present = len(self.event_ids)
         n_events = np.random.hypergeometric(n_events_present,
                                             self.id_range - n_events_present,
                                             n_raw_events)
+
+        return n_events
+
+    def sample_events(self, n_raw_events):
+
+        n_events = self.estimate_sample_size(n_raw_events)
 
         # Next, select that many events from the list of events in the
         # file without replacement
@@ -80,7 +99,7 @@ class ParticleSet():
         return self.df.loc[self.df.index.isin(event_ids)]
 
 
-def write_sample(df, output_file):
+def write_sample(df, output_file, prior = None):
     # write unbinned event format expected by cosipy
     with h5.File(output_file, "w") as f:
         f.create_dataset("time", data=df.time.values)
@@ -89,6 +108,9 @@ def write_sample(df, output_file):
         f.create_dataset("Psi", data=df.Psi.values)
         f.create_dataset("Chi", data=df.Chi.values)
 
+        # if supplied, write the prior bg event rate estimate
+        if prior is not None:
+            f.attrs["bg_prior"] = prior
 
 np.random.seed(1957)
 
@@ -97,13 +119,15 @@ data_dir = Path("/project/cassini/adapt_grbs")
 bg_dir   = Path("/project/cassini/adapt_grbs/source/bg")
 #bg_dir   = Path("/project/starkiller/scratch0/geant_adapt_background/500_seed")
 
-output_dir = data_dir / "adapt_transients"
+src_fluence = float(sys.argv[1]) # source fluence in MeV/cm^2
+bg_time     = float(sys.argv[2]) # seconds of bg time
+n_bursts_per_src_dir = int(sys.argv[3])   # number of bursts per source direction
+output_dir  = Path(sys.argv[4])  # where to write output bursts
+
 output_dir.mkdir(parents=True, exist_ok=True)
 
-bg_time = 1.     # seconds of bg time
-src_mean = 44600 # mean number of events expected -- 1 MeV/cm^2 fluence
-
-NBursts_per_src_dir = 100 # generate this many bursts per source direction
+# expected number of events -- base value is for 1 MeV/cm^2 fluence
+src_mean = 44600 * src_fluence
 
 # names of all background components, number of generated events, and
 # number of events to sample for a 1 second burst
@@ -126,35 +150,54 @@ for c in bg_components:
     print(f"Reading {bg_file}")
     bg_data[c] = ParticleSet(bg_file, bg_components[c][0])
 
+# number of *observed* events expected from each bg component in 10 minutes
+bg_prior_time = 10*600.
+bg_prior_observed_means = np.array([
+    bg_ps.observed_event_fraction() * bg_components[c][1] * bg_prior_time
+    for bg_ps, c
+    in zip(bg_data.values(), bg_components)
+])
 
 # enumerate all the source directions in the subdir
 rexp = re.compile(r"p([0-9]+)_a([0-9]+)")
+src_dirs = list(ring_dir.glob("*"))
+src_dirs.sort()
 
-for src_dir in ring_dir.glob("*"):
-    name = src_dir.name
-    print(name)
+sf = str(src_fluence).replace(".","-")
+bt = str(bg_time).replace(".","-")
 
-    m = re.match(rexp, name)
+for src_dir in src_dirs:
+    src_name = src_dir.name
+    out_name = f"{sf}_{bt}_{src_name}"
+
+    print(out_name)
+
+    m = re.match(rexp, src_name)
     alt = 90 - int(m.group(1))
     az  = int(m.group(2))
 
-    with open(output_dir / f"adapt_{name}_params.txt", "w") as f:
+    with open(output_dir / f"adapt_{out_name}_params.txt", "w") as f:
         print(f"location {alt} {az}", file=f)
         print("spectrum Band 30 30000 -0.5 -2.35 490", file=f)
 
-    ring_file = src_dir / f"circles_{name}.txt"
+    ring_file = src_dir / f"circles_{src_name}.txt"
 
     # events (unique eventids) generated per source file
     n_generated_events = 10000000
     src_ps = ParticleSet(ring_file, n_generated_events)
 
-    for i in range(NBursts_per_src_dir):
+    for i in range(n_bursts_per_src_dir):
 
         # determine how many source events this burst contains
         n_src_events = np.random.poisson(src_mean)
 
         src_ds = src_ps.sample_events(n_src_events)
-        write_sample(src_ds, output_dir / f"adapt_{name}_{i}_source.h5")
+        write_sample(src_ds, output_dir / f"adapt_{out_name}_{i}_source.h5")
+
+        # compute the rate we'd estimate for the background from
+        # bg_prior_time seconds' worth of observations
+        n_prior_bg_events = np.random.poisson(bg_prior_observed_means)
+        bg_prior_rate = np.sum(n_prior_bg_events) / bg_prior_time
 
         # determine how many event IDs to sample from each bg type,
         # allowing for variation about the means
@@ -165,7 +208,8 @@ for src_dir in ring_dir.glob("*"):
             for bg_ps, n_ev
             in zip(bg_data.values(), n_bg_events)
         ]
-
         bg_ds_combined = pd.concat(bg_all_ds)
+
         write_sample(bg_ds_combined,
-                     output_dir / f"adapt_{name}_{i}_background.h5")
+                     output_dir / f"adapt_{out_name}_{i}_background.h5",
+                     prior = bg_prior_rate)
