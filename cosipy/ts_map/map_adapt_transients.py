@@ -80,19 +80,17 @@ def save_moc_map(llrs, uniq_pix, out_nside,
                          dtype=np.float32, compression="gzip")
 
 
-data_dir = Path("/project/cassini/adapt_grbs")
-
 transient_path = Path(sys.argv[1])
 output_dir = Path(sys.argv[2])
 
-output_path = output_dir / "adapt_maps"
+output_path = output_dir
 output_path.mkdir(parents=True, exist_ok=True)
 
 model_dir = Path("/project/cassini/adapt_grbs")
 
 bkg_model_path = model_dir / "adapt_bkg_model.h5"
 
-response_path = model_dir / "adapt_response_w_area.h5"
+response_path = model_dir / "adapt_response_w_area_nn200000.h5"
 
 num_cpus = 8
 
@@ -233,14 +231,15 @@ for i, signal_file in enumerate(sources):
                        save_plot = True,
                        save_dir = output_path,
                        save_name = f"{prefix}_map.png")
+
+        save_moc_map(m_llrs, m_pix,
+                    out_nside = 64,
+                     true_src_loc = true_src_loc,
+                     n_src_events = n_src,
+                    n_bkg_events = n_bkg,
+                     save_dir = output_path,
+                     save_name = f"{prefix}_map")
         '''
-        n_live_pix = save_moc_map(m_llrs, m_pix,
-                                  out_nside = 64,
-                                  true_src_loc = true_src_loc,
-                                  n_src_events = n_src,
-                                  n_bkg_events = n_bkg,
-                                  save_dir = output_path,
-                                  save_name = f"{prefix}_map")
 
         imax = np.argmax(m_llrs)
         pmax = m_pix[imax]
