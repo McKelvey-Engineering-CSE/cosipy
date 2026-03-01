@@ -90,7 +90,7 @@ model_dir = Path("/project/cassini/adapt_grbs")
 
 bkg_model_path = model_dir / "adapt_bkg_model.h5"
 
-response_path = model_dir / "adapt_response_w_area_nn200000.h5"
+response_path = model_dir / "adapt_response_w_area.h5"
 
 num_cpus = 8
 
@@ -240,7 +240,6 @@ for i, signal_file in enumerate(sources):
                      save_dir = output_path,
                      save_name = f"{prefix}_map")
         '''
-
         imax = np.argmax(m_llrs)
         pmax = m_pix[imax]
 
