@@ -146,7 +146,7 @@ sources.sort(reverse=True)
 n_warmup = 3
 sources = [sources[0]]*n_warmup + sources
 
-print("fluence,length,alt,az,transient_id,n_src,n_bkg,err,exp_angdist,conf,time", flush=True)
+print("fluence,length,alt,az,transient_id,n_src,n_bkg,lat_ml,lon_ml,err,exp_angdist,conf,time", flush=True)
 
 results = []
 for i, signal_file in enumerate(sources):
@@ -222,16 +222,16 @@ for i, signal_file in enumerate(sources):
     t = t_end - t_start
 
     if i >= n_warmup:
-        '''
+
         mapper.plot_ts(m_llrs, m_pix,
                        skycoord = true_src_loc,
-                       grid_lines = False,
+                       grid_lines = True,
                        plot_zenith = False,
                        dpi = 300,
                        save_plot = True,
                        save_dir = output_path,
                        save_name = f"{prefix}_map.png")
-
+        '''
         save_moc_map(m_llrs, m_pix,
                     out_nside = 64,
                      true_src_loc = true_src_loc,
@@ -261,4 +261,9 @@ for i, signal_file in enumerate(sources):
                                            m_pix, m_probs)
         exp_angdist = np.rad2deg(exp_angdist)
 
-        print(f"{fluence},{length},{90-p},{a},{inst},{n_src},{n_bkg},{err:.3f},{exp_angdist:.3f},{conf:.4f},{t:.3f}", flush=True)
+        #from astropy.coordinates import SkyCoord
+        #lon, lat = b.pix2ang(imax, lonlat=True)
+        #ml_loc = SkyCoord(l=lon, b=lat, unit=u.deg, frame="galactic")
+        #print("SEP:", ml_loc.separation(true_src_loc).deg)
+
+        print(f"{fluence},{length},{90-p},{a},{inst},{n_src},{n_bkg},{lat:.3f},{lon:.3f},{err:.3f},{exp_angdist:.3f},{conf:.4f},{t:.3f}", flush=True)

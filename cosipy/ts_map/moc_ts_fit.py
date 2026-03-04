@@ -442,7 +442,9 @@ class MOCTSMap(FastTSMap):
         fig = plt.figure(dpi=dpi)
         axMoll = fig.add_subplot(1,1,1, projection="mollview")
 
-        max_ts = np.max(moc_ts)
+        max_idx = np.argmax(moc_ts)
+        max_pix = moc_uniq[max_idx]
+        max_ts = moc_ts[max_idx]
 
         # plot the ts map, with containment region if specified
         if containment is not None:
@@ -476,6 +478,16 @@ class MOCTSMap(FastTSMap):
                            label = f"True location at l={lon}, b={lat}",
                            color = "fuchsia",
                            transform = axMoll.get_transform('world'))
+
+
+        # mark ML pixel in galactic coords
+
+        lon, lat = moc_map.pix2ang(max_idx, lonlat=True)
+        axMoll.scatter(lon, lat, marker = ".", s=10, linewidths = 0.1,
+                       label = f"True location at l={lon}, b={lat}",
+                       color = "red",
+                       transform = axMoll.get_transform('world'))
+
 
         if plot_zenith:
             # mark zenith in galactic coords
