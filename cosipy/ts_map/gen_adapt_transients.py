@@ -98,19 +98,48 @@ class ParticleSet():
 
         return self.df.loc[self.df.index.isin(event_ids)]
 
+def write_sample_src(df, output_file, length, fluence):
 
-def write_sample(df, output_file, prior = None):
+    # make up times according to Gaussian light curve.
+    # mean time is length/2; start at 0, end at length
+    # have brightness +- 2 sdevs down from mean
+
+    times = np.random.normal(loc=length/2, scale=(length/2)/2,
+                             size=2*len(df))
+    times = times[(times >= 0) & (times <= length)]
+    assert len(times) >= len(df)
+    times = times[:len(df)]
+
+    times = np.sort(times)
+
     # write unbinned event format expected by cosipy
     with h5.File(output_file, "w") as f:
-        f.create_dataset("time", data=df.time.values)
+        f.create_dataset("time", data=times)
         f.create_dataset("Em", data=df.Em.values)
         f.create_dataset("Phi", data=df.Phi.values)
         f.create_dataset("Psi", data=df.Psi.values)
         f.create_dataset("Chi", data=df.Chi.values)
 
-        # if supplied, write the prior bg event rate estimate
-        if prior is not None:
-            f.attrs["bg_prior"] = prior
+        f.attrs["length"] = length
+        f.attrs["fluence"] = fluence
+
+def write_sample_bg(df, output_file, length, prior):
+
+    # make up times according to uniform light curve
+    times = np.random.rand(len(df)) * length
+
+    times = np.sort(times)
+
+    # write unbinned event format expected by cosipy
+    with h5.File(output_file, "w") as f:
+        f.create_dataset("time", data=times)
+        f.create_dataset("Em", data=df.Em.values)
+        f.create_dataset("Phi", data=df.Phi.values)
+        f.create_dataset("Psi", data=df.Psi.values)
+        f.create_dataset("Chi", data=df.Chi.values)
+
+        f.attrs["length"] = length
+        f.attrs["bg_prior"] = prior
 
 np.random.seed(1957)
 
@@ -121,7 +150,7 @@ bg_dir   = Path("/project/cassini/adapt_grbs/source/bg")
 
 src_fluence = float(sys.argv[1]) # source fluence in MeV/cm^2
 bg_time     = float(sys.argv[2]) # seconds of bg time
-n_bursts_per_src_dir = int(sys.argv[3])   # number of bursts per source direction
+n_bursts_per_src_dir = int(sys.argv[3]) # number of bursts per source direction
 output_dir  = Path(sys.argv[4])  # where to write output bursts
 
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -192,7 +221,9 @@ for src_dir in src_dirs:
         n_src_events = np.random.poisson(src_mean)
 
         src_ds = src_ps.sample_events(n_src_events)
-        write_sample(src_ds, output_dir / f"adapt_{out_name}_{i}_source.h5")
+        write_sample_src(src_ds,
+                         output_dir / f"adapt_{out_name}_{i}_source.h5",
+                         length = bg_time, fluence = src_fluence)
 
         # compute the rate we'd estimate for the background from
         # bg_prior_time seconds' worth of observations
@@ -210,6 +241,7 @@ for src_dir in src_dirs:
         ]
         bg_ds_combined = pd.concat(bg_all_ds)
 
-        write_sample(bg_ds_combined,
-                     output_dir / f"adapt_{out_name}_{i}_background.h5",
-                     prior = bg_prior_rate)
+        write_sample_bg(bg_ds_combined,
+                        output_dir / f"adapt_{out_name}_{i}_background.h5",
+                        length = bg_time,
+                        prior = bg_prior_rate)

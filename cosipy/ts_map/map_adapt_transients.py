@@ -222,7 +222,7 @@ for i, signal_file in enumerate(sources):
     t = t_end - t_start
 
     if i >= n_warmup:
-
+        '''
         mapper.plot_ts(m_llrs, m_pix,
                        skycoord = true_src_loc,
                        grid_lines = True,
@@ -231,7 +231,7 @@ for i, signal_file in enumerate(sources):
                        save_plot = True,
                        save_dir = output_path,
                        save_name = f"{prefix}_map.png")
-        '''
+
         save_moc_map(m_llrs, m_pix,
                     out_nside = 64,
                      true_src_loc = true_src_loc,
@@ -261,8 +261,9 @@ for i, signal_file in enumerate(sources):
                                            m_pix, m_probs)
         exp_angdist = np.rad2deg(exp_angdist)
 
+        lon, lat = b.pix2ang(imax, lonlat=True)
+
         #from astropy.coordinates import SkyCoord
-        #lon, lat = b.pix2ang(imax, lonlat=True)
         #ml_loc = SkyCoord(l=lon, b=lat, unit=u.deg, frame="galactic")
         #print("SEP:", ml_loc.separation(true_src_loc).deg)
 
