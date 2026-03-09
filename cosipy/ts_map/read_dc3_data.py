@@ -10,7 +10,7 @@ from histpy import Histogram
 from scoords import Attitude
 from astromodels import Band_grbm, Powerlaw, Cutoff_powerlaw_Ep
 
-def read_burst_params(params_path):
+def read_transient_params(params_path):
     """
     Read the true source location and spectral parameters of a burst
     (i.e., the ground truth) from the parameters file that we extracted
@@ -35,7 +35,7 @@ def read_burst_params(params_path):
     with open(params_path, "r") as params:
         locline = params.readline().strip().split(" ")
         specline = params.readline().strip().split(" ")
-        times = params.readline().strip().split(" ")
+        light_curve = params.readline().strip().split(" ")
 
         true_src_loc = SkyCoord(b = float(locline[1]),
                                 l = float(locline[2]),
@@ -86,13 +86,12 @@ def read_burst_params(params_path):
         spectrum.piv.value = spec_params["piv"]
         spectrum.piv.unit = u.keV
 
-        if times[0] != "": # has times
-            ts = float(times[1])
-            te = float(times[2])
-            src_ival = (ts, te)
-            return spectrum, true_src_loc, src_ival
-        else:
-            return spectrum, true_src_loc
+        # read light curve info for transient
+        ts      = float(light_curve[1])
+        src_len = float(light_curve[2])
+        fluence = float(light_curve[3])
+        src_ival = (ts, ts + src_len)
+        return spectrum, true_src_loc, src_ival, fluence
 
 
 def read_unbinned_events(data_path, max_events = None):

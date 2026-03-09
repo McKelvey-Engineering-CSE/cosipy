@@ -559,9 +559,9 @@ def write_transient_params(output_path, source_loc, light_curve, spectrum):
 
     with open(output_path, "wt") as outfile:
 
-        lon = source_loc.b.deg
-        lat = source_loc.l.deg
-        print(f"location {lon} {lat}",
+        lat = source_loc.b.deg
+        lon = source_loc.l.deg
+        print(f"location {lat} {lon}",
               file = outfile)
 
         alpha = spectrum.alpha.value

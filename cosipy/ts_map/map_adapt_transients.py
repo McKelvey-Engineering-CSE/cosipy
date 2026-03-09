@@ -26,24 +26,58 @@ from cosipy.response import GalacticResponse
 from cosipy.response.functions import get_integrated_spectral_model
 
 from cosipy.ts_map.read_dc3_data import (
-    read_burst_params,
+    read_transient_params,
     read_unbinned_events,
     combine_unbinned_events,
 )
 
 from sphdist import moc_expected_angdist
 
+def moc_llr_to_prob(llrs, uniq_pix):
+
+    # Let i* be the ML pixel. We want to compute
+    # Pr(src in i | data) for each pixel i.
+    #
+    # We get LLR(i) =
+    #  log( Pr(data | src in i) / Pr(data | bg) )
+    #
+    # So we can compute
+    #
+    # Pr(src in i | data)
+    #   propto Pr(data | src in i) * Pr(src in i)
+    #   propto exp(LLR(i)) * Pr(src in i)
+    #   propto exp(LLR(i) - LLR(i*)) * Pr(src in i)
+    #
+    # and we can normalize the last term to sum to over all pixels.
+    # The -LLR(i*) prevents us from working with very small numbers.
+
+    max_llr = np.max(llrs)
+    scaled_likelihood = np.exp(llrs - max_llr)
+
+    # prior Pr(src in i) is proportional to the fraction
+    # of the sphere occupied by pixel i.  In a multires
+    # map, these priors need not be the same for all pixels!
+    prior_prob = 1. / hp.nside2npix(hp.uniq2nside(uniq_pix))
+
+    probs = scaled_likelihood * prior_prob
+    probs /= np.sum(probs) # normalize to sum to 1
+
+    return probs
+
 def save_moc_map(llrs, uniq_pix, out_nside,
                  true_src_loc, n_src_events, n_bkg_events,
                  save_name, save_dir):
 
-    max_llr = np.max(llrs)
-    min_diff = chi2.ppf(0.999, df=2)
-    min_prob = np.exp(-min_diff)
-    CUTOFF = min_prob
+    probs = moc_llr_to_prob(llrs, uniq_pix)
 
-    probs = np.exp(llrs - max_llr)
-    probs = probs / np.sum(probs) # normalize to sum to 1
+    # Save only the 99.9% confidence region, i.e.,
+    # all pixels whose llr score is no more than
+    # max_diff below the max llr
+    max_diff = chi2.ppf(0.999, df=2)
+    save_mask = (llrs >= np.max(llrs) - max_diff)
+
+    uniq_pix = uniq_pix[save_mask]
+    probs    = probs[save_mask]
 
     # Expand each multiresolution pixel to the maximum
     # nside.  Divide the probability equally among all
@@ -58,10 +92,6 @@ def save_moc_map(llrs, uniq_pix, out_nside,
         allprobs.append(np.full(npix, pnew))
     pix = np.concatenate(allpix)
     probs = np.concatenate(allprobs)
-
-    live = (probs >= CUTOFF)
-    probs = probs[live]
-    pix = pix[live]
 
     lons, lats = hp.pix2ang(out_nside, pix, nest=True, lonlat=True)
 
@@ -94,28 +124,28 @@ response_path = model_dir / "adapt_response_w_area.h5"
 
 num_cpus = 8
 
-def angular_error(nside, pmax, true_src_loc):
+def angular_error(nside, ml_pix, true_src_loc):
 
-    pmax_center = hp.pix2vec(ipix=pmax, nside=nside, nest=True)
-    true_loc    = true_src_loc.cartesian.xyz.value
+    ml_center = np.array(hp.pix2vec(ipix=ml_pix, nside=nside, nest=True))
+    src_loc   = true_src_loc.cartesian.xyz.value # unit vector
 
-    best_src_dist = np.rad2deg(np.arccos(np.dot(pmax_center, true_loc)))
-
-    return best_src_dist
-
-def moc_angular_error(pmax, true_src_loc):
-
-    pmax_nside, pmax_nest = hp.uniq2nest(pmax)
-
-    pmax_center = hp.pix2vec(ipix=pmax_nest, nside=pmax_nside, nest=True)
-    true_loc    = true_src_loc.cartesian.xyz.value
-
-    best_src_dist = np.rad2deg(np.arccos(np.dot(pmax_center, true_loc)))
+    best_src_dist = np.rad2deg(np.arccos(np.dot(ml_center, src_loc)))
 
     return best_src_dist
 
-def get_bkg_prior_rate(bkg_file):
-    with h5.File(bkg_file, "r") as f:
+def moc_angular_error(ml_pix, true_src_loc):
+
+    ml_nside, ml_nest = hp.uniq2nest(ml_pix)
+
+    ml_center = np.array(hp.pix2vec(ipix=ml_nest, nside=ml_nside, nest=True))
+    src_loc   = true_src_loc.cartesian.xyz.value # unit vector
+
+    best_src_dist = np.rad2deg(np.arccos(np.dot(ml_center, src_loc)))
+
+    return best_src_dist
+
+def get_bkg_prior_rate(bkg_path):
+    with h5.File(bkg_path, "r") as f:
         return f.attrs["bg_prior"]
 
 ###############################################################
@@ -146,53 +176,48 @@ sources.sort(reverse=True)
 n_warmup = 3
 sources = [sources[0]]*n_warmup + sources
 
-print("fluence,length,alt,az,transient_id,n_src,n_bkg,lat_ml,lon_ml,err,exp_angdist,conf,time", flush=True)
+print("fluence,length,alt,az,transient_id,n_src,n_bkg,alt_ml,az_ml,err,exp_angdist,conf,time", flush=True)
 
 results = []
-for i, signal_file in enumerate(sources):
+for i, signal_path in enumerate(sources):
 
     # extract source info from name
-    fields = signal_file.name.split("_")
-    fluence_str = fields[1]
-    fluence = float(fluence_str.replace("-","."))
-    length_str  = fields[2]
-    length = float(length_str.replace("-","."))
-    p = int(fields[3][1:])
-    a = int(fields[4][1:])
+    # expected name: adapt_{fluence}_{length}_p{polar}_a{azimuthal}_{inst}_...
+    fields = signal_path.name.split("_")
     inst = fields[5]
 
-    prefix = f"adapt_{fluence_str}_{length_str}_p{p}_a{a}_{inst}"
+    prefix = "_".join(fields[:6])
+    params_path = transient_path / f"{prefix}_params.txt"
 
-    params_path = transient_path / f"adapt_{fluence_str}_{length_str}_p{p}_a{a}_params.txt"
-    spectrum, true_src_loc = read_burst_params(params_path)
+    # WARNING: do not use any of these values (except maybe ts)
+    # in mapping! Doing so is "cheating"
+    _, true_src_loc, (ts, te), fluence = read_transient_params(params_path)
 
-    ts = 1580000000. # arbitrary value used by generator script
-    te = ts + length  # CHEAT: we use the real burst length, not an estimate
-
-    # retrieve the unbinned burst events
-    signal_path = signal_file
     background_path = transient_path / f"{prefix}_background.h5"
 
-    signal_events = read_unbinned_events(signal_path)
-    n_src = len(signal_events["time"])
-    bkg_events = read_unbinned_events(background_path)
-    n_bkg = len(bkg_events["time"])
-    events = combine_unbinned_events(signal_events, bkg_events)
-
-    # CHEAT: we use the actual instead of the prior estimated background
-    #bkg_rate = len(bkg_events["time"]) / (te - ts)
+    # get estimate of background rate from prior data
     bkg_rate = get_bkg_prior_rate(background_path)
 
+    # scale background model to estimated rate
     bkg_model = Histogram.open(bkg_model_path)
     bkg_model = bkg_model.project(("Em", "Phi", "PsiChi"))
     bkg_model *= bkg_rate
 
-    # compute total expected bkg fluence during transient
-    bkg_model *= te - ts
+    # retrieve and combine the unbinned events
+    signal_events = read_unbinned_events(signal_path)
+    bkg_events = read_unbinned_events(background_path)
+    events = combine_unbinned_events(signal_events, bkg_events)
 
-    # CHEAT: we use the real spectrum, not a guess
-    #spectral_flux = get_integrated_spectral_model(spectrum,
-    #                                              response.axes["Ei"])
+    # CHEAT: keep only events during the transient
+    save_idx = (events["time"] <= te*u.s)
+    events["time"] = events["time"][save_idx]
+    events["Em"]   = events["Em"][save_idx]
+    events["Phi"]  = events["Phi"][save_idx]
+    events["PsiChi"] = events["PsiChi"][:,save_idx]
+
+    # compute total expected bg fluence during transient
+    # based on estimated end time
+    bkg_model *= te - ts
 
     # compute (rough!) Ei spectral flux approximation as a histogram of the
     # Em values in the observed events
@@ -222,6 +247,13 @@ for i, signal_file in enumerate(sources):
     t = t_end - t_start
 
     if i >= n_warmup:
+
+        # deduce actual numbers of signal and bg events in transient
+        # -- requires knowledge of at least one of signal, bg labels
+        src_mask = (signal_events["time"] <= te * u.s)
+        n_src = np.count_nonzero(src_mask)
+        n_bkg = len(events["time"]) - n_src
+
         '''
         mapper.plot_ts(m_llrs, m_pix,
                        skycoord = true_src_loc,
@@ -236,35 +268,37 @@ for i, signal_file in enumerate(sources):
                     out_nside = 64,
                      true_src_loc = true_src_loc,
                      n_src_events = n_src,
-                    n_bkg_events = n_bkg,
+                     n_bkg_events = n_bkg,
                      save_dir = output_path,
                      save_name = f"{prefix}_map")
         '''
-        imax = np.argmax(m_llrs)
-        pmax = m_pix[imax]
 
+
+        # maximum likelihood pixel and LLR
+        ml_idx = np.argmax(m_llrs)
+        ml_pix = m_pix[ml_idx]
+        ml_llr = m_llrs[ml_idx]
+
+        # source pixel and LLR
         b = hp.HealpixBase(uniq=m_pix, scheme="NUNIQ", coordsys="G")
-        p_true = b.ang2pix(theta=np.pi/2 - true_src_loc.b.rad,
-                           phi=true_src_loc.l.rad)
-        p_llr = m_llrs[p_true]
+        src_pix = b.vec2pix(*true_src_loc.cartesian.xyz.value)
+        src_llr = m_llrs[src_pix]
 
-        err = moc_angular_error(pmax, true_src_loc)
+        # angular distance from ML pixel center to true source
+        err = moc_angular_error(ml_pix, true_src_loc)
 
-        max_llr = np.max(m_llrs)
-        conf =  chi2.cdf(max_llr - p_llr, df=2)
-
-        m_probs = np.exp(m_llrs - max_llr)
-        m_probs = m_probs / np.sum(m_probs) # normalize to sum to 1
-
+        # expected angular distance from *all* pixels to true source
+        m_probs = moc_llr_to_prob(m_llrs, m_pix)
         exp_angdist = moc_expected_angdist(np.pi/2 - true_src_loc.b.rad, # src colatitude
                                            true_src_loc.l.rad,           # src longitude
                                            m_pix, m_probs)
         exp_angdist = np.rad2deg(exp_angdist)
 
-        lon, lat = b.pix2ang(imax, lonlat=True)
+        # confidence (containment) score of source pixel
+        conf = chi2.cdf(np.max(m_llrs) - src_llr, df=2)
 
-        #from astropy.coordinates import SkyCoord
-        #ml_loc = SkyCoord(l=lon, b=lat, unit=u.deg, frame="galactic")
-        #print("SEP:", ml_loc.separation(true_src_loc).deg)
+        ml_az, ml_alt = b.pix2ang(ml_idx, lonlat=True)
+        true_alt = true_src_loc.b.deg
+        true_az  = true_src_loc.l.deg
 
-        print(f"{fluence},{length},{90-p},{a},{inst},{n_src},{n_bkg},{lat:.3f},{lon:.3f},{err:.3f},{exp_angdist:.3f},{conf:.4f},{t:.3f}", flush=True)
+        print(f"{fluence:.1f},{(te - ts):.1f},{true_alt:.3f},{true_az:.3f},{inst},{n_src},{n_bkg},{ml_alt:.3f},{ml_az:.3f},{err:.3f},{exp_angdist:.3f},{conf:.4f},{t:.3f}", flush=True)
