@@ -699,6 +699,7 @@ class SpacecraftFile():
             # Simplify this calculation to avoid arcsin/cos.
             min_angle_cos = -np.sqrt(1 - sin_earth_angle**2)
             ez_cart = self.earth_zenith.cartesian.xyz.value
+            ez_cart /= np.linalg.norm(ez_cart, axis=0)
 
             if self._cache_earth_occ:
                 # cache intermediates in case we need to use them
@@ -752,7 +753,7 @@ class SpacecraftFile():
 
         if earth_occ:
             if isinstance(source, SkyCoord):
-                source.transform_to(self.frame)
+                source = source.transform_to(self.frame)
                 source = source.cartesian.xyz.value
 
             # get pointings that are occluded by Earth
