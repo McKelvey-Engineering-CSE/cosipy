@@ -31,6 +31,8 @@ from cosipy.ts_map.read_dc3_data import (
     combine_unbinned_events,
 )
 
+from cosipy.ts_map.mapping_time import trim_events
+
 from sphdist import moc_expected_angdist
 
 def moc_llr_to_prob(llrs, uniq_pix):
@@ -176,7 +178,7 @@ sources.sort(reverse=True)
 n_warmup = 3
 sources = [sources[0]]*n_warmup + sources
 
-print("alt,az,transient_id,n_src,n_bkg,alt_ml,az_ml,err,exp_angdist,conf,time", flush=True)
+print("fluence,length,alt,az,transient_id,est_length,n_src,n_bkg,alt_ml,az_ml,err,exp_angdist,conf,wait_time,mapping_time", flush=True)
 
 results = []
 for i, signal_path in enumerate(sources):
@@ -191,7 +193,8 @@ for i, signal_path in enumerate(sources):
 
     # WARNING: do not use any of these values (except maybe ts)
     # in mapping! Doing so is "cheating"
-    _, true_src_loc, (ts, te), _ = read_transient_params(params_path)
+    _, true_src_loc, (ts, true_te), fluence = \
+        read_transient_params(params_path)
 
     background_path = transient_path / f"{prefix}_background.h5"
 
@@ -208,12 +211,32 @@ for i, signal_path in enumerate(sources):
     bkg_events = read_unbinned_events(background_path)
     events = combine_unbinned_events(signal_events, bkg_events)
 
+    # set up input to trim_events.  We use true_te to form counts
+    # per second, but these are processed one second at a time
+    # by trim_events, which does not know true_te
+
+    edges = ts + np.arange(np.ceil(events["time"][-1].value) - ts + 1, step=1)
+    events_per_sec, _ = np.histogram(events["time"].value, edges)
+
+    # we leave compute time to determine te outside our timing
+    # region, assuming that cost to determine it is negligible
+    # compared to the wait time we incur before we choose it
+
+    '''
     # CHEAT: keep only events during the transient
-    save_idx = (events["time"] <= te*u.s)
-    events["time"] = events["time"][save_idx]
-    events["Em"]   = events["Em"][save_idx]
-    events["Phi"]  = events["Phi"][save_idx]
-    events["PsiChi"] = events["PsiChi"][:,save_idx]
+    te = true_te
+    wait_time = 0
+
+    e_end = np.searchsorted(events["time"].value, te, side='right')
+    events["time"] = events["time"][:e_end]
+    events["Em"]   = events["Em"][:e_end]
+    events["Phi"]  = events["Phi"][:e_end]
+    events["PsiChi"] = events["PsiChi"][:,:e_end]
+    '''
+
+    te, wait_time = trim_events(events, ts, bkg_rate, events_per_sec)
+
+    timer_start = time.time()
 
     # compute total expected bg fluence during transient
     # based on estimated end time
@@ -228,8 +251,6 @@ for i, signal_path in enumerate(sources):
                               unit=1/(u.s * u.cm**2),
                               dtype=np.float32)
 
-    t_start = time.time()
-
     #m_llrs = mapper.fit_unbinned(ts, te, events, bkg_model,
     #                             spectral_flux,
     #                             nside = map_nside,
@@ -242,9 +263,9 @@ for i, signal_path in enumerate(sources):
                                         max_nside = map_nside,
                                         strategy = moc_strategy,
                                         cpu_cores = num_cpus)
-    t_end = time.time()
+    timer_end = time.time()
 
-    t = t_end - t_start
+    mapping_time = timer_end - timer_start
 
     if i >= n_warmup:
 
@@ -264,7 +285,6 @@ for i, signal_path in enumerate(sources):
                        save_dir = output_path,
                        save_name = f"{prefix}_map.png")
         '''
-
         save_moc_map(m_llrs, m_pix,
                     out_nside = 64,
                      true_src_loc = true_src_loc,
@@ -300,4 +320,4 @@ for i, signal_path in enumerate(sources):
         true_alt = true_src_loc.b.deg
         true_az  = true_src_loc.l.deg
 
-        print(f"{true_alt:.3f},{true_az:.3f},{inst},{n_src},{n_bkg},{ml_alt:.3f},{ml_az:.3f},{err:.3f},{exp_angdist:.3f},{conf:.4f},{t:.3f}", flush=True)
+        print(f"{fluence:.3f},{(true_te - ts):.3f},{true_alt:.3f},{true_az:.3f},{inst},{(te - ts):.1f},{n_src},{n_bkg},{ml_alt:.3f},{ml_az:.3f},{err:.3f},{exp_angdist:.3f},{conf:.4f},{wait_time:.3f},{mapping_time:.3f}", flush=True)
