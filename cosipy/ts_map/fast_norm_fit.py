@@ -16,8 +16,8 @@ class FastNormFit:
 
         TS(N) = 2 \\sum_i \\left( \\frac{\\log P(d_i; b_i+N e_i)}{\\log P(d_i; b_i)} \\right)
 
-    where :math:`P(d; \lambda)` is the Poisson probability of
-    obtaining :math:`d` count where :math:`\lambda` is expected on
+    where :math:`P(d; \\lambda)` is the Poisson probability of
+    obtaining :math:`d` count where :math:`\\lambda` is expected on
     average; :math:`b` is the estimated number of background counts;
     :math:`N` is the normalization; and :math:`e` is the expected
     excess -i.e. signal- per normalization unit -i.e. the number of
