@@ -222,7 +222,6 @@ for i, signal_path in enumerate(sources):
     # region, assuming that cost to determine it is negligible
     # compared to the wait time we incur before we choose it
 
-    '''
     # CHEAT: keep only events during the transient
     te = true_te
     wait_time = 0
@@ -232,9 +231,8 @@ for i, signal_path in enumerate(sources):
     events["Em"]   = events["Em"][:e_end]
     events["Phi"]  = events["Phi"][:e_end]
     events["PsiChi"] = events["PsiChi"][:,:e_end]
-    '''
 
-    te, wait_time = trim_events(events, ts, bkg_rate, events_per_sec)
+    #te, wait_time = trim_events(events, ts, bkg_rate, events_per_sec)
 
     timer_start = time.time()
 
