@@ -67,8 +67,12 @@ class ParticleSet():
         self.df.set_index("eventid", inplace=True)
 
     def observed_event_fraction(self):
-        # number of rings observed per raw event
-        return len(self.df) / self.id_range
+        # number of observed events per incident event
+        return len(self.event_ids) / self.id_range
+
+    def avg_rings_per_event(self):
+        # mean number of rings per observed event
+        return len(self.df)/len(self.event_ids)
 
     def estimate_sample_size(self, n_raw_events):
 
@@ -94,9 +98,14 @@ class ParticleSet():
                                      size=n_events,
                                      replace=False)
 
-        # Finally, return all rings corresponding to the selected events.
+        # Sort event IDs so we can quickly locate the index of each
+        # ring's event in this array later
 
-        return self.df.loc[self.df.index.isin(event_ids)]
+        event_ids = np.sort(event_ids)
+
+        # Finally, return the list of selected event IDs, along with
+        # all rings corresponding to these selected events.
+        return event_ids, self.df.loc[self.df.index.isin(event_ids)]
 
 def write_sample_src(df, output_file):
 
@@ -171,8 +180,8 @@ bg_means = np.array([
 # number of *observed* events expected from each bg component in 10
 # minutes
 bg_prior_time = 10*600.
-bg_prior_observed_means = np.array([
-    bg_components[c][1] * bg_ps.observed_event_fraction()
+bg_prior_observed_ring_means = np.array([
+    bg_components[c][1] * bg_ps.observed_event_fraction() * bg_ps.avg_rings_per_event()
     for c, bg_ps in bg_data.items()
 ]) * bg_prior_time
 
@@ -211,40 +220,49 @@ for src_dir in src_dirs:
         # determine how many source events this burst contains
         n_src_events = np.random.poisson(src_mean)
 
-        src_ds = src_ps.sample_events(n_src_events)
+        src_event_ids, src_ds = src_ps.sample_events(n_src_events)
 
-        # generate source event times according to Gaussian light
-        # curve.  mean time is length/2; start at 0, end at length
-        # have brightness +- 2 sdevs down from mean
+        # generate times for each source event according to Gaussian
+        # light curve.  mean time is length/2; start at 0, end at
+        # length have brightness +- 2 sdevs down from mean
         times = np.random.normal(loc=src_length/2, scale=(src_length/2)/2,
                                  size=2*len(src_ds))
         times = times[(times >= 0.) & (times <= src_length)]
-        assert len(times) >= len(src_ds)
-        times = times[:len(src_ds)] + start_offset
-        src_ds["times"] = np.sort(times)
+        assert len(times) >= len(src_event_ids)
+        times = times[:len(src_event_ids)] + start_offset
+
+        # for each event ID, set all rings with that ID to
+        # corresponding time
+        indices = np.searchsorted(src_event_ids, src_ds.index.values)
+        src_ds["times"] = times[indices]
+        src_ds.sort_values(by="times")
 
         write_sample_src(src_ds,
                          output_dir / f"adapt_{out_name}_{i}_source.h5")
 
-        # compute the rate we'd estimate for the background from
-        # bg_prior_time seconds' worth of observations
-        n_prior_bg_events = np.random.poisson(bg_prior_observed_means)
-        bg_prior_rate = np.sum(n_prior_bg_events) / bg_prior_time
+        # compute the rate (rings/sec) we'd estimate for the
+        # background from bg_prior_time seconds' worth of observations
+        n_prior_bg_rings = np.random.poisson(bg_prior_observed_ring_means)
+        bg_prior_rate = np.sum(n_prior_bg_rings) / bg_prior_time
 
         # determine how many event IDs to sample from each bg type,
         # allowing for variation about the means
         n_bg_events = np.random.poisson(bg_means)
 
-        bg_all_ds = [
-            bg_ps.sample_events(n_ev)
-            for bg_ps, n_ev
-            in zip(bg_data.values(), n_bg_events)
-        ]
-        bg_ds_combined = pd.concat(bg_all_ds)
+        bg_all_ds = []
+        for bg_ps, n_ev in zip(bg_data.values(), n_bg_events):
+            # generate times uniformly within bg length
+            bg_event_ids, bg_ds = bg_ps.sample_events(n_ev)
+            times = np.random.rand(len(bg_event_ids)) * bg_length + start_offset
+            # for each event ID, set all rings with that ID to
+            # corresponding time
+            indices = np.searchsorted(bg_event_ids, bg_ds.index.values)
+            bg_ds["times"] = times[indices]
 
-        # generate times uniformly within bg length
-        times = np.random.rand(len(bg_ds_combined)) * bg_length + start_offset
-        bg_ds_combined["times"] = np.sort(times)
+            bg_all_ds.append(bg_ds)
+
+        bg_ds_combined = pd.concat(bg_all_ds)
+        bg_ds_combined.sort_values(by="times")
 
         write_sample_bg(bg_ds_combined,
                         output_dir / f"adapt_{out_name}_{i}_background.h5",

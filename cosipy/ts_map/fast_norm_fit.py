@@ -37,7 +37,7 @@ class FastNormFit:
     .. note::
 
         Because of the Poisson probability, :math:`TS(N)` is only
-        well-defined for :math:`N \geq 1`. By default,
+        well-defined for :math:`N \\geq 1`. By default,
         underfluctuations are set to :math:`TS(N=0) = 0`. For cases
         when there is benefit in letting the normalization float to
         negative values, you can use `allow_negative`, but in that
