@@ -128,10 +128,11 @@ def write_sample_bg(df, output_file, prior):
         f.attrs["bg_prior"] = prior
 
 
-ring_dir = Path("/project/starkiller/scratch0/nn_geant_adapt_10m/0_seed")
+ring_dir = Path("/project/starkiller/scratch0/response_geant_adapt_nside4_10m/0_seed")
+#ring_dir = Path("/project/starkiller/scratch0/nn_geant_adapt_10m/0_seed")
 data_dir = Path("/project/cassini/adapt_grbs")
-bg_dir   = Path("/project/cassini/adapt_grbs/source/bg")
-#bg_dir   = Path("/project/starkiller/scratch0/geant_adapt_background/500_seed")
+bg_dir   = Path("/project/cassini/adapt_grbs/bg_for_testing") # seed 700
+
 bg_length   = float(sys.argv[1]) # length of bg to generate in seconds
 n_bursts_per_src_dir = int(sys.argv[2]) # number of bursts per source direction
 output_dir  = Path(sys.argv[3])  # where to write output bursts
@@ -159,7 +160,7 @@ bg_components = {
 # load data sets for each bg component
 bg_data = {}
 for c in bg_components:
-    bg_file = bg_dir / c / "circles.parquet"
+    bg_file = bg_dir / f"{c}_{bg_components[c][0]}" / "circles.parquet"
     print(f"Reading {bg_file}")
 
     bg_data[c] = ParticleSet(bg_file, bg_components[c][0])
@@ -182,7 +183,7 @@ bg_prior_observed_ring_means = np.array([
 
 # enumerate all the source directions in the subdir
 rexp = re.compile(r"p([0-9-]+)_a([0-9-]+)")
-src_dirs = list(ring_dir.glob("*"))
+src_dirs = list(ring_dir.glob("p*_a*"))
 src_dirs.sort()
 
 for src_dir in src_dirs:
