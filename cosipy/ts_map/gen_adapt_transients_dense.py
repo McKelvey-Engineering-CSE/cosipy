@@ -181,7 +181,7 @@ bg_prior_observed_ring_means = np.array([
 ]) * bg_prior_time
 
 # enumerate all the source directions in the subdir
-rexp = re.compile(r"p([0-9]+)_a([0-9]+)")
+rexp = re.compile(r"p([0-9-]+)_a([0-9-]+)")
 src_dirs = list(ring_dir.glob("*"))
 src_dirs.sort()
 
@@ -192,8 +192,8 @@ for src_dir in src_dirs:
     print(out_name)
 
     m = re.match(rexp, src_name)
-    alt = 90. - float(m.group(1))
-    az  = float(m.group(2))
+    alt = 90. - float(m.group(1).replace("-","."))
+    az  = float(m.group(2).replace("-","."))
 
     ring_file = src_dir / f"circles_{src_name}.txt"
 

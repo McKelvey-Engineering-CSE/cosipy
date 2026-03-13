@@ -131,7 +131,7 @@ def write_sample_bg(df, output_file, prior):
         f.attrs["bg_prior"] = prior
 
 
-ring_dir = Path("/project/starkiller/scratch0/nn_geant_adapt_10m/0_seed")
+ring_dir = Path("/project/starkiller/scratch0/response_geant_adapt_nside4_10m/0_seed")
 data_dir = Path("/project/cassini/adapt_grbs")
 bg_dir   = Path("/project/cassini/adapt_grbs/source/bg")
 #bg_dir   = Path("/project/starkiller/scratch0/geant_adapt_background/500_seed")
@@ -186,7 +186,7 @@ bg_prior_observed_ring_means = np.array([
 ]) * bg_prior_time
 
 # enumerate all the source directions in the subdir
-rexp = re.compile(r"p([0-9]+)_a([0-9]+)")
+rexp = re.compile(r"p([0-9-]+)_a([0-9-]+)")
 src_dirs = list(ring_dir.glob("*"))
 src_dirs.sort()
 
@@ -200,8 +200,8 @@ for src_dir in src_dirs:
     print(out_name)
 
     m = re.match(rexp, src_name)
-    alt = 90. - float(m.group(1))
-    az  = float(m.group(2))
+    alt = 90. - float(m.group(1).replace("-","."))
+    az  = float(m.group(2).replace("-","."))
 
     ring_file = src_dir / f"circles_{src_name}.txt"
 
