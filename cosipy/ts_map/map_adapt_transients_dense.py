@@ -99,18 +99,23 @@ def save_moc_map(llrs, uniq_pix, out_nside,
     lons, lats = hp.pix2ang(out_nside, pix, nest=True, lonlat=True)
 
     with h5.File(save_dir / (save_name + ".h5"), "w") as f:
-        f.attrs["source"] = np.array([true_src_loc.b.deg, true_src_loc.l.deg])
+        f.attrs["source"] = np.array([true_src_loc.b.deg, true_src_loc.l.deg],
+                                     dtype=np.float32)
         f.attrs["n_src_events"] = n_src_events
         f.attrs["n_bkg_events"] = n_bkg_events
 
         f.create_dataset("pixel",       data=pix,
-                         dtype=int, compression="gzip")
+                         dtype=np.int32,
+                         compression=hdf5plugin.Bitshuffle())
         f.create_dataset("latitude",    data=lats,
-                         dtype=np.float32, compression="gzip")
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
         f.create_dataset("longitude",   data=lons,
-                         dtype=np.float32, compression="gzip")
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
         f.create_dataset("probability", data=probs,
-                         dtype=np.float32, compression="gzip")
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
 
 
 transient_path = Path(sys.argv[1])
