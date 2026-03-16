@@ -45,8 +45,8 @@ class DetectorResponse(Histogram):
 
         return new
 
-    def _write(self, file, group_name):
-        group = super()._write(file, group_name)
+    def _write(self, file, group_name, **kwargs):
+        group = super()._write(file, group_name, **kwargs)
 
         # do not write _spec and _aeff, as they
         # can be recomputed after load later on
