@@ -18,6 +18,7 @@ import astropy.units as u
 import mhealpy as hp
 
 import h5py as h5
+import hdf5plugin # for compressed response
 
 from histpy import Histogram
 
