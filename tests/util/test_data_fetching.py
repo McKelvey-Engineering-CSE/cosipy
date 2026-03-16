@@ -15,18 +15,18 @@ def test_fetch_wasabi_file():
         # Using output
         output = Path(tmpdir)/"test_file.txt"
         fetch_wasabi_file(filename, output = output)
-        
+
         f = open(output)
-        
+
         assert f.read() == 'Small file used for testing purposes.\n'
 
         # Current directory default and overite
         os.chdir(tmpdir)
-        
+
         fetch_wasabi_file(filename, overwrite= True)
-        
+
         f = open(output)
-        
+
         assert f.read() == 'Small file used for testing purposes.\n'
 
         # Test error when file exists, is different, and no overwrite
@@ -69,8 +69,10 @@ def test_fetch_wasabi_file():
         fetch_wasabi_file(filename + ".gz", unzip=True, checksum = 'c29015230d84e5e44e773c51c99b5911', overwrite = True)
 
         # For multipart uploaded files
-        fetch_wasabi_file('test_files/test_multipart_file.txt')
-        fetch_wasabi_file('test_files/test_multipart_file.txt') # Already exists, but it's the same file, so it should succeed
+        fetch_wasabi_file('test_files/test_multipart_file.txt',
+                          f"{tmpdir}/test_multipart_file.txt")
+        fetch_wasabi_file('test_files/test_multipart_file.txt',
+                          f"{tmpdir}/test_multipart_file.txt") # Already exists, but it's the same file, so it should succeed
 
         # Fetch only header
         hdr = fetch_wasabi_file_header(filename)
