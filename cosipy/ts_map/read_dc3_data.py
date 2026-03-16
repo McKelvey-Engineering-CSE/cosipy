@@ -130,6 +130,9 @@ def read_unbinned_events(data_path, max_events = None):
     events = { field : np.array(data[field])
                for field in ("time", "Em", "Phi", "Psi", "Chi") }
 
+    events["time"] = \
+        events["time"].astype(np.float64) + data.attrs["time_offset"]
+
     data.close()
 
     # Convert Phi to degrees

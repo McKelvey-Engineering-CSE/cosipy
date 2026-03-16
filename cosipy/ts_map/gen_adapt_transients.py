@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 
 import h5py as h5
+import hdf5plugin
 
 class ParticleSet():
 
@@ -47,7 +48,7 @@ class ParticleSet():
         # extract relevant columns and convert to desired format
         Em   = df["energy"].values * 511 # keV
         phi  = np.acos(df["eta"].values) # rad
-        phi[phi == np.pi] -= 1e-12 # prevent out-of-range value for Phi axis
+        phi[phi == np.pi] -= 1e-7 # prevent out-of-range value for Phi axis, even in single precision
 
         x = df["c0"].values
         y = df["c1"].values
@@ -109,23 +110,51 @@ class ParticleSet():
 
 def write_sample_src(df, output_file):
 
+    time_offset = np.min(df.times.values)
+
     # write unbinned event format expected by cosipy
     with h5.File(output_file, "w") as f:
-        f.create_dataset("time", data=df.times.values)
-        f.create_dataset("Em", data=df.Em.values)
-        f.create_dataset("Phi", data=df.Phi.values)
-        f.create_dataset("Psi", data=df.Psi.values)
-        f.create_dataset("Chi", data=df.Chi.values)
+        f.create_dataset("time", data=df.times.values - time_offset,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+        f.create_dataset("Em", data=df.Em.values,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+        f.create_dataset("Phi", data=df.Phi.values,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+        f.create_dataset("Psi", data=df.Psi.values,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+        f.create_dataset("Chi", data=df.Chi.values,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+
+        f.attrs["time_offset"] = time_offset
 
 def write_sample_bg(df, output_file, prior):
 
+    time_offset = np.min(df.times.values)
+
     # write unbinned event format expected by cosipy
     with h5.File(output_file, "w") as f:
-        f.create_dataset("time", data=df.times.values)
-        f.create_dataset("Em", data=df.Em.values)
-        f.create_dataset("Phi", data=df.Phi.values)
-        f.create_dataset("Psi", data=df.Psi.values)
-        f.create_dataset("Chi", data=df.Chi.values)
+        f.create_dataset("time", data=df.times.values - time_offset,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+        f.create_dataset("Em", data=df.Em.values,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+        f.create_dataset("Phi", data=df.Phi.values,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+        f.create_dataset("Psi", data=df.Psi.values,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+        f.create_dataset("Chi", data=df.Chi.values,
+                         dtype=np.float32,
+                         compression=hdf5plugin.Bitshuffle())
+
+        f.attrs["time_offset"] = time_offset
 
         # record prior estimate of background rate
         f.attrs["bg_prior"] = prior
