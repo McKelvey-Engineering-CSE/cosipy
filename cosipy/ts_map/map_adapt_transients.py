@@ -217,17 +217,12 @@ for i, signal_path in enumerate(sources):
     bkg_events = read_unbinned_events(background_path)
     events = combine_unbinned_events(signal_events, bkg_events)
 
-    # set up input to trim_events.  We use true_te to form counts
-    # per second, but these are processed one second at a time
-    # by trim_events, which does not know true_te
-
-    edges = ts + np.arange(np.ceil(events["time"][-1].value) - ts + 1, step=1)
-    events_per_sec, _ = np.histogram(events["time"].value, edges)
 
     # we leave compute time to determine te outside our timing
     # region, assuming that cost to determine it is negligible
     # compared to the wait time we incur before we choose it
 
+    '''
     # CHEAT: keep only events during the transient
     te = true_te
     wait_time = 0
@@ -237,8 +232,9 @@ for i, signal_path in enumerate(sources):
     events["Em"]   = events["Em"][:e_end]
     events["Phi"]  = events["Phi"][:e_end]
     events["PsiChi"] = events["PsiChi"][:,:e_end]
+    '''
 
-    # te, wait_time = trim_events(events, ts, bkg_rate, events_per_sec)
+    te, wait_time = trim_events(events, ts, bkg_rate)
 
     timer_start = time.time()
 
