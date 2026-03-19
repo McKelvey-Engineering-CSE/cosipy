@@ -36,6 +36,46 @@ from cosipy.ts_map.mapping_time import trim_events
 
 from sphdist import moc_expected_angdist
 
+###################################
+# CONFIG
+
+model_dir = Path("/project/cassini/adapt_grbs")
+
+bkg_model_path = model_dir / "adapt_bkg_model.h5"
+
+response_path = model_dir / "adapt_response_w_area.h5"
+
+# draw a sample of this size from the source set
+# set to None to use entire source set
+SAMPLE_SIZE = 5000
+
+# number of CPU cores to use in mapping
+NUM_CPUS = 8
+
+# max resolution of map
+MAP_NSIDE = 64
+
+# seed for Numpy randomization
+RANDOM_SEED = 1957
+
+# use "cheating" burst endpoint detection (ground truth)
+# rather than estimating
+ENDPOINT_CHEAT = False
+
+# overall deadline to use for endpoint detection estimation
+ENDPOINT_DEADLINE = 100
+
+# time resolution to use for endpoint detection estimation
+ENDPOINT_RESOLUTION = 1
+
+# produce an image for each map
+GEN_MAP_IMAGE = False
+
+# produce a data file for each map
+GEN_MAP_DATA = False
+
+###################################
+
 def moc_llr_to_prob(llrs, uniq_pix):
 
     # Let i* be the ML pixel. We want to compute
@@ -118,20 +158,6 @@ def save_moc_map(llrs, uniq_pix, out_nside,
                          compression=hdf5plugin.Bitshuffle())
 
 
-transient_path = Path(sys.argv[1])
-output_dir = Path(sys.argv[2])
-
-output_path = output_dir
-output_path.mkdir(parents=True, exist_ok=True)
-
-model_dir = Path("/project/cassini/adapt_grbs")
-
-bkg_model_path = model_dir / "adapt_bkg_model.h5"
-
-response_path = model_dir / "adapt_response_w_area.h5"
-
-num_cpus = 8
-
 def angular_error(nside, ml_pix, true_src_loc):
 
     ml_center = np.array(hp.pix2vec(ipix=ml_pix, nside=nside, nest=True))
@@ -158,7 +184,14 @@ def get_bkg_prior_rate(bkg_path):
 
 ###############################################################
 
-np.random.seed(1957)
+np.random.seed(RANDOM_SEED)
+
+transient_path = Path(sys.argv[1])
+
+if GEN_MAP_IMAGE or GEN_MAP_DATA:
+    output_dir = Path(sys.argv[2])
+    output_path = output_dir
+    output_path.mkdir(parents=True, exist_ok=True)
 
 print("Opening detector response...", file=sys.stderr)
 response = GalacticResponse.open(response_path, dtype=np.float32)
@@ -167,7 +200,6 @@ response = GalacticResponse.open(response_path, dtype=np.float32)
 mapper = MOCTSMap(response,
                   cds_frame="galactic",
                   response_in_memory = True)
-map_nside = 64
 
 moc_strategy = \
     MOCTSMap.PaddingStrategy(
@@ -175,7 +207,13 @@ moc_strategy = \
     )
 
 sources = list(transient_path.glob("adapt_*_source.h5"))
-sources.sort(reverse=True)
+
+if SAMPLE_SIZE is not None:
+    sources = [sources[i]
+               for i in np.random.choice(len(sources),
+                                         size=SAMPLE_SIZE,
+                                         replace=False)]
+sources.sort()
 
 # Run a few warmup iterations to make sure the JIT runs and avoid
 # other startup transients.  Empirically, 5 is the minimum number of
@@ -221,19 +259,20 @@ for i, signal_path in enumerate(sources):
     # region, assuming that cost to determine it is negligible
     # compared to the wait time we incur before we choose it
 
-    '''
-    # CHEAT: keep only events during the transient
-    te = true_te
-    wait_time = 0
+    if ENDPOINT_CHEAT:
+        # CHEAT: keep only events during the transient
+        te = np.ceil(true_te)
+        wait_time = 0
 
-    e_end = np.searchsorted(events["time"].value, te, side='right')
-    events["time"] = events["time"][:e_end]
-    events["Em"]   = events["Em"][:e_end]
-    events["Phi"]  = events["Phi"][:e_end]
-    events["PsiChi"] = events["PsiChi"][:,:e_end]
-    '''
-
-    te, wait_time = trim_events(events, ts, bkg_rate)
+        e_end = np.searchsorted(events["time"].value, te, side='right')
+        events["time"] = events["time"][:e_end]
+        events["Em"]   = events["Em"][:e_end]
+        events["Phi"]  = events["Phi"][:e_end]
+        events["PsiChi"] = events["PsiChi"][:,:e_end]
+    else:
+        te, wait_time = trim_events(events, ts, bkg_rate,
+                                    ENDPOINT_DEADLINE,
+                                    ENDPOINT_RESOLUTION)
 
     timer_start = time.time()
 
@@ -252,16 +291,16 @@ for i, signal_path in enumerate(sources):
 
     #m_llrs = mapper.fit_unbinned(ts, te, events, bkg_model,
     #                             spectral_flux,
-    #                             nside = map_nside,
-    #                             cpu_cores = num_cpus)
-    #m_pix = hp.nest2uniq(nside=map_nside,
+    #                             nside = MAP_NSIDE,
+    #                             cpu_cores = NUM_CPUS,
+    #m_pix = hp.nest2uniq(nside=MAP_NSIDE,
     #                     ipix=np.arange(len(m_llrs), dtype=int))
 
     m_llrs, m_pix = mapper.fit_unbinned(ts, te, events, bkg_model,
                                         spectral_flux,
-                                        max_nside = map_nside,
+                                        max_nside = MAP_NSIDE,
                                         strategy = moc_strategy,
-                                        cpu_cores = num_cpus)
+                                        cpu_cores = NUM_CPUS)
     timer_end = time.time()
 
     mapping_time = timer_end - timer_start
@@ -274,23 +313,24 @@ for i, signal_path in enumerate(sources):
         n_src = np.count_nonzero(src_mask)
         n_bkg = len(events["time"]) - n_src
 
-        '''
-        mapper.plot_ts(m_llrs, m_pix,
-                       skycoord = true_src_loc,
-                       grid_lines = True,
-                       plot_zenith = False,
-                       dpi = 300,
-                       save_plot = True,
-                       save_dir = output_path,
-                       save_name = f"{prefix}_map.png")
-        '''
-        save_moc_map(m_llrs, m_pix,
-                    out_nside = 64,
-                     true_src_loc = true_src_loc,
-                     n_src_events = n_src,
-                     n_bkg_events = n_bkg,
-                     save_dir = output_path,
-                     save_name = f"{prefix}_map")
+        if GEN_MAP_IMAGE:
+            mapper.plot_ts(m_llrs, m_pix,
+                           skycoord = true_src_loc,
+                           grid_lines = True,
+                           plot_zenith = False,
+                           dpi = 300,
+                           save_plot = True,
+                           save_dir = output_path,
+                           save_name = f"{prefix}_map.png")
+
+        if GEN_MAP_DATA:
+            save_moc_map(m_llrs, m_pix,
+                         out_nside = 64,
+                         true_src_loc = true_src_loc,
+                         n_src_events = n_src,
+                         n_bkg_events = n_bkg,
+                         save_dir = output_path,
+            save_name = f"{prefix}_map")
 
         # maximum likelihood pixel and LLR
         ml_idx = np.argmax(m_llrs)

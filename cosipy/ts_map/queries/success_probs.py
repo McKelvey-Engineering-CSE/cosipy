@@ -1,13 +1,20 @@
 import numpy as np
+from scipy.stats import beta
 
 class ECDF:
     """
     Empirical CDF from an array-like of values.
     """
 
-    def __init__(self, values):
+    def __init__(self, values, conf = None):
         self.values = np.sort(values)
-        self.scale = 0. if len(self.values) == 0 else 1./len(self.values)
+
+        if conf is None:
+            self.alpha = None
+            self.scale = 0. if len(self.values) == 0 else 1./len(self.values)
+        else:
+            self.alpha = 1. - conf
+
 
     def __call__(self, v):
         """
@@ -15,7 +22,16 @@ class ECDF:
         return 0.
         """
         i = np.searchsorted(self.values, v, side="right")
-        return i * self.scale
+
+        if self.alpha is None:
+            # Implied empirical sucess probability
+            return i * self.scale
+        else:
+            # Clopper-Person lower bound on success probability
+            # given the sample
+            return 0. if i == 0 else beta.ppf(self.alpha, i,
+                                              len(self.values) - i + 1)
+
 
 class SuccessProbs:
     """
@@ -47,7 +63,8 @@ class SuccessProbs:
     map.
 
     """
-    def __init__(self, csv_path, nbins_e, nbins_b, min_bin_count):
+    def __init__(self, csv_path, nbins_e, nbins_b, min_bin_count,
+                 conf = None):
         """
         Parameters
         ----------
@@ -117,12 +134,12 @@ class SuccessProbs:
                     # pessimistic estimate of the ECDF instead
                     if j == nbins_b - 1:
                         # ECDF always returns 0
-                        self.ecdfs[i,j] = ECDF(np.array([]))
+                        self.ecdfs[i,j] = ECDF(np.array([]), conf)
                     else:
                         # use next higher (more pessimistic) 'b' bin
                         self.ecdfs[i,j] = self.ecdfs[i,j+1]
                 else:
-                    self.ecdfs[i,j] = ECDF(cost_ij)
+                    self.ecdfs[i,j] = ECDF(cost_ij, conf)
 
     def _get_e_bin(self, n_total):
         """

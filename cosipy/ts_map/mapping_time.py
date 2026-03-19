@@ -5,8 +5,8 @@ from scipy.stats import poisson
 from queries.mapping_time_query import MapTimeQueryEngine
 from queries.success_probs      import SuccessProbs
 
-DEADLINE_OVERALL = 100 # overall deadline in secs
 time_quantile = 0.95   # quantile of mapping time used to estimate utility
+success_conf  = 0.95   # quantile for success prob confidence lower bound
 
 mapping_time_data = "queries/emsoft.csv"
 success_prob_data = "queries/search_result_5.36x4.5_tiling.csv"
@@ -20,9 +20,11 @@ mapping_time = MapTimeQueryEngine(csv_path = mapping_time_data,
 success_prob = SuccessProbs(csv_path = success_prob_data,
                             nbins_e = 20,
                             nbins_b = 20,
-                            min_bin_count = 20)
+                            min_bin_count = 20,
+                            conf = success_conf)
 
-def choose_mapping_start_time(events_per_sec, bkg_rate):
+def choose_mapping_start_time(events_per_time_step, delta_t, bkg_rate,
+                              deadline_overall):
     """
     Determine the *last* time at which we begin to compute a
     likelihood map given observations of the total number of events
@@ -46,11 +48,15 @@ def choose_mapping_start_time(events_per_sec, bkg_rate):
 
     Parameters
     ----------
-    events_per_sec : array of int
-      number of new events (source + bkg) arriving each second after
+    events_per_time_step : array of int
+      number of new events (source + bkg) arriving each time step after
       the start of the burst, for some sufficiently long period.
+    delta_t : float
+      length of one time step in seconds
     bkg_rate : float
       estimated mean number of background events arriving per second
+    deadline_overall : float
+      time by which we must find the transient in order to succeed
 
     Returns
     -------
@@ -64,17 +70,18 @@ def choose_mapping_start_time(events_per_sec, bkg_rate):
     """
 
     # compute total events seen after each second
-    total_events = np.cumsum(events_per_sec)
+    total_events = np.cumsum(events_per_time_step)
 
     Uavg = np.zeros(len(total_events))
 
     # compute utilities at end of each second
-    for t in range(1, len(total_events) + 1): # end time
-        e = total_events[t-1]
+    for j in range(1, len(total_events) + 1): # end time
+        t_wait = j * delta_t
+        e = total_events[j-1]
 
         b_edges = success_prob.get_b_edges(e)
         if b_edges is None: # too few total events
-            Uavg[t-1] = 0.
+            Uavg[j-1] = 0.
         else:
             # Because binning by total events combines several 'e'
             # values in one bin, the highest 'b' value that can occur
@@ -92,8 +99,8 @@ def choose_mapping_start_time(events_per_sec, bkg_rate):
             # [0..e].
 
             w_pois = \
-                np.diff(poisson.cdf(b_edges - 1, bkg_rate * t)) / \
-                poisson.cdf(e, bkg_rate * t)
+                np.diff(poisson.cdf(b_edges - 1, bkg_rate * t_wait)) / \
+                poisson.cdf(e, bkg_rate * t_wait)
 
             # add utility contributions of each 'b' bin
 
@@ -116,14 +123,14 @@ def choose_mapping_start_time(events_per_sec, bkg_rate):
                 # ensure that success_prob returns same utility for
                 # every 'b' in this bin.  WLOG we use the largest 'b'
                 # value in the bin.
-                sp = success_prob(deadline = DEADLINE_OVERALL - t - t_mapping,
+                sp = success_prob(deadline = deadline_overall - t_wait - t_mapping,
                                   n_total = e, n_bkg = bh)
 
                 # Because we get only 100qth %ile mapping time, we
                 # must assume that with probability 1 - q, that time
                 # is arbitarily large, exceeding our overall deadline
-                # D and leading to failure.
-                utility = time_quantile * sp
+                # and leading to failure.
+                utility = time_quantile * success_conf * sp
 
                 # if utility goes to 0 for some 'b' bin, it will be 0
                 # for all higher 'b' bins. Don't add 0's to the
@@ -131,10 +138,16 @@ def choose_mapping_start_time(events_per_sec, bkg_rate):
                 if utility == 0:
                     break
 
-                Uavg[t-1] += utility * w_pois[i]
+                Uavg[j-1] += utility * w_pois[i]
+
+            # if *zero* utility at current time step, assume utility
+            # will be zero for all later time steps becaue the input
+            # WHP has too much background for us to predict utility > 0.
+            if Uavg[j-1] == 0.:
+                break
 
     # pick end of time period with greatest utility
-    t_max = np.argmax(Uavg) + 1
+    t_max = (np.argmax(Uavg) + 1) * delta_t
 
     # This method never "backs up" to an earlier end time for the
     # transient, so the end time is always the same as the time at
@@ -144,7 +157,9 @@ def choose_mapping_start_time(events_per_sec, bkg_rate):
     return float(t_max), float(t_max)
 
 
-def trim_events(events, t_start, bkg_rate):
+def trim_events(events, t_start, bkg_rate, deadline_overall,
+                delta_t = 1):
+
     """
     Trim a set of Compton events with associated time stamps to
     just the range we want to use for mapping.  The decision
@@ -159,6 +174,11 @@ def trim_events(events, t_start, bkg_rate):
     bkg_rate : float
       Estimated mean arrival rate (events/sec) for background Compton
       rings
+    deadline_overall : float
+      Time by which we must find the transient to succeed
+    delta_t : float, optional
+      Length of time steps into which we divide events for end time
+      determination
 
     Returns
     -------
@@ -176,13 +196,14 @@ def trim_events(events, t_start, bkg_rate):
     # compute the total number of events arriving each second
     edges = \
         t_start + np.arange(np.ceil(events["time"][-1].value) - t_start + 1,
-                            step=1)
-    events_per_sec, _ = np.histogram(events["time"].value, edges)
+                            step=delta_t)
+    events_per_time_step, _ = np.histogram(events["time"].value, edges)
 
     # determine burst length
-    length, mapping_time = choose_mapping_start_time(events_per_sec,
-                                                     bkg_rate)
-
+    length, mapping_time = choose_mapping_start_time(events_per_time_step,
+                                                     delta_t,
+                                                     bkg_rate,
+                                                     deadline_overall)
     t_end = t_start + length
 
     # keep only events occurring before t_end
