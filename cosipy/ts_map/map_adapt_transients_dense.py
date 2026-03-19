@@ -261,7 +261,7 @@ for i, signal_path in enumerate(sources):
 
     if ENDPOINT_CHEAT:
         # CHEAT: keep only events during the transient
-        te = np.ceil(true_te)
+        te = true_te
         wait_time = 0
 
         e_end = np.searchsorted(events["time"].value, te, side='right')
