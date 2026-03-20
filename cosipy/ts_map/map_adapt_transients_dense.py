@@ -48,6 +48,7 @@ response_path = model_dir / "adapt_response_w_area.h5"
 # draw a sample of this size from the source set
 # set to None to use entire source set
 SAMPLE_SIZE = 5000
+#SAMPLE_SIZE = None
 
 # number of CPU cores to use in mapping
 NUM_CPUS = 8
@@ -63,7 +64,7 @@ RANDOM_SEED = 1957
 ENDPOINT_CHEAT = False
 
 # overall deadline to use for endpoint detection estimation
-ENDPOINT_DEADLINE = 100
+ENDPOINT_DEADLINE = 30 # 30 # 100
 
 # time resolution to use for endpoint detection estimation
 ENDPOINT_RESOLUTION = 1

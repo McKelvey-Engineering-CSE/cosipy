@@ -8,6 +8,8 @@ from queries.success_probs      import SuccessProbs
 time_quantile = 0.95   # quantile of mapping time used to estimate utility
 success_conf  = 0.95   # quantile for success prob confidence lower bound
 
+UTILITY_TOL = 1e-5     # how large a change in utility actually matters?
+
 mapping_time_data = "queries/emsoft.csv"
 success_prob_data = "queries/search_result_5.36x4.5_tiling.csv"
 
@@ -69,20 +71,21 @@ def choose_mapping_start_time(events_per_time_step, delta_t, bkg_rate,
 
     """
 
-    # compute total events seen after each second
+    # compute total events seen after each time step
     total_events = np.cumsum(events_per_time_step)
 
-    Uavg = np.zeros(len(total_events))
+    Uavg_best = -1
+    j_best = -1
 
-    # compute utilities at end of each second
-    for j in range(1, len(total_events) + 1): # end time
-        t_wait = j * delta_t
-        e = total_events[j-1]
+    # compute utility at end of each time step
+    for j in range(len(total_events)):
+        t_wait = (j+1) * delta_t
+        e = total_events[j]
+
+        Uavg = 0.
 
         b_edges = success_prob.get_b_edges(e)
-        if b_edges is None: # too few total events
-            Uavg[j-1] = 0.
-        else:
+        if b_edges is not None: # bin for e exists
             # Because binning by total events combines several 'e'
             # values in one bin, the highest 'b' value that can occur
             # in an 'e' bin can can exceed some actual total event
@@ -97,13 +100,13 @@ def choose_mapping_start_time(events_per_time_step, delta_t, bkg_rate,
             #
             # Weights are normalized to sum to 1 for b in the range
             # [0..e].
-
             w_pois = \
                 np.diff(poisson.cdf(b_edges - 1, bkg_rate * t_wait)) / \
                 poisson.cdf(e, bkg_rate * t_wait)
 
-            # add utility contributions of each 'b' bin
+            prev_utility = 1.
 
+            # add utility contributions of each 'b' bin
             nbins_b = len(b_edges) - 1
             for i in range(nbins_b):
 
@@ -130,7 +133,7 @@ def choose_mapping_start_time(events_per_time_step, delta_t, bkg_rate,
                 # must assume that with probability 1 - q, that time
                 # is arbitarily large, exceeding our overall deadline
                 # and leading to failure.
-                utility = time_quantile * success_conf * sp
+                utility = time_quantile * (1 if success_conf is None else success_conf) * sp
 
                 # if utility goes to 0 for some 'b' bin, it will be 0
                 # for all higher 'b' bins. Don't add 0's to the
@@ -138,16 +141,28 @@ def choose_mapping_start_time(events_per_time_step, delta_t, bkg_rate,
                 if utility == 0:
                     break
 
-                Uavg[j-1] += utility * w_pois[i]
+                # enforce that utility is monotonically non-increasing
+                # as 'b' goes up
+
+                utility = np.minimum(utility, prev_utility)
+                prev_utility = utility
+
+                Uavg += utility * w_pois[i]
+
+            # have we found a new maximum-utility time? If so,
+            # save it
+            if Uavg - Uavg_best >= UTILITY_TOL:
+                Uavg_best = Uavg
+                j_best = j
 
             # if *zero* utility at current time step, assume utility
             # will be zero for all later time steps becaue the input
             # WHP has too much background for us to predict utility > 0.
-            if Uavg[j-1] == 0.:
+            if Uavg == 0.:
                 break
 
     # pick end of time period with greatest utility
-    t_max = (np.argmax(Uavg) + 1) * delta_t
+    t_max = (j_best + 1) * delta_t
 
     # This method never "backs up" to an earlier end time for the
     # transient, so the end time is always the same as the time at

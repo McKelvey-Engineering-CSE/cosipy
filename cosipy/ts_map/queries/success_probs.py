@@ -8,25 +8,38 @@ class ECDF:
 
     def __init__(self, values, conf = None):
         self.values = np.sort(values)
+        self.scale = 0. if len(self.values) == 0 else 1./len(self.values)
 
         if conf is None:
             self.alpha = None
-            self.scale = 0. if len(self.values) == 0 else 1./len(self.values)
         else:
             self.alpha = 1. - conf
 
+    def size(self):
+        return len(self.values)
+
+    def raw_prob(self, v):
+        """
+        Point estimate of ECDF
+        """
+
+        i = np.searchsorted(self.values, v, side="right")
+
+        # quantiles near 1 are unreliable, so
+        # conservatively squash them down to 0.95
+        return np.minimum(i * self.scale, 0.95)
 
     def __call__(self, v):
         """
         Return fraction of input values <= v.  If values is empty,
         return 0.
         """
-        i = np.searchsorted(self.values, v, side="right")
-
         if self.alpha is None:
             # Implied empirical sucess probability
-            return i * self.scale
+            return self.raw_prob(v)
         else:
+            i = np.searchsorted(self.values, v, side="right")
+
             # Clopper-Person lower bound on success probability
             # given the sample
             return 0. if i == 0 else beta.ppf(self.alpha, i,
@@ -105,8 +118,8 @@ class SuccessProbs:
         self.e_edges = np.ceil(self.e_edges).astype(int)
 
         # storage for 'b' edges and ECDFs
-        self.b_edges = np.empty((nbins_e, nbins_b + 1), dtype=int)
-        self.ecdfs   = np.empty((nbins_e, nbins_b), dtype=object)
+        self.b_edges = np.empty((nbins_e, nbins_b + 3), dtype=int)
+        self.ecdfs   = np.empty((nbins_e, nbins_b + 2), dtype=object)
 
         for i in range(nbins_e):
             # select maps in this 'e' bin
@@ -118,11 +131,18 @@ class SuccessProbs:
             # compute 'b' edges for this bin
             b_edges = np.linspace(n_bkg_i.min(), n_bkg_i.max() + 1,
                                   nbins_b + 1)
-            self.b_edges[i] = np.ceil(b_edges).astype(int)
+
+            # make sure we have 'b' bins covering the entire range of
+            # 'b' between 0 and the max possible 'e'.  Their ECDFs
+            # will be set pessimistically below.
+            b_edges = np.ceil(b_edges).astype(int)
+            self.b_edges[i] = np.concatenate([[0],
+                                              b_edges,
+                                              [self.e_edges[i+1] - 1]])
 
             # collect maps for each 'b' bin in descending order by 'b',
             # to support filtering out of too-small bins
-            for j in reversed(range(nbins_b)):
+            for j in reversed(range(nbins_b + 2)):
 
                 # select maps in this (e,b) bin
                 bmask = ((n_bkg_i >= self.b_edges[i,j]) &
@@ -132,7 +152,7 @@ class SuccessProbs:
                 if len(cost_ij) < min_bin_count:
                     # too little data for a valid ECDF; use a
                     # pessimistic estimate of the ECDF instead
-                    if j == nbins_b - 1:
+                    if j == nbins_b + 1:
                         # ECDF always returns 0
                         self.ecdfs[i,j] = ECDF(np.array([]), conf)
                     else:
