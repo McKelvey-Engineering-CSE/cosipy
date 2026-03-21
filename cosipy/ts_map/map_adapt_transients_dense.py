@@ -215,10 +215,13 @@ else:
     print(f"Found {len(sources)} sources at {transient_path}", file=sys.stderr)
 
 if SAMPLE_SIZE is not None:
-    sources = [sources[i]
-               for i in np.random.choice(len(sources),
-                                         size=SAMPLE_SIZE,
-                                         replace=False)]
+    if SAMPLE_SIZE >= len(sources):
+        print(f"WARNING: sample size {SAMPLE_SIZE} >= {len(sources)}; using all sources", file=sys.stderr)
+    else:
+        sources = [sources[i]
+                   for i in np.random.choice(len(sources),
+                                             size=SAMPLE_SIZE,
+                                             replace=False)]
 sources.sort()
 
 if N_WARMUP < 1:

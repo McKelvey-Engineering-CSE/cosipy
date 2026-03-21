@@ -174,7 +174,7 @@ def choose_mapping_start_time_utility(events_per_time_step, delta_t, bkg_rate,
 
 def choose_mapping_start_time_nodeadline(events_per_time_step,
                                          delta_t, bkg_rate,
-                                         quantile = 0.9):
+                                         quantile = 0.95):
     """
     Baseline method after ICRC 2025
 
@@ -189,7 +189,8 @@ def choose_mapping_start_time_nodeadline(events_per_time_step,
 
     ppois = poisson.cdf(events_rest, mu=bkg_rate * delta_t)
     low_steps = np.nonzero(ppois < quantile)[0]
-    if len(low_steps) == 0:
+
+    if len(low_steps) == 0: # all later steps significant
         rest_steps = len(events_rest)
     else:
         rest_steps = low_steps[0]
