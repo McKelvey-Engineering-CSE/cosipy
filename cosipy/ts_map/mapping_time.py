@@ -169,8 +169,34 @@ def choose_mapping_start_time(events_per_time_step, delta_t, bkg_rate,
     # which we start mapping.  We could add a guess at this method's
     # compute time to t_max, but it's so small (<< 1 s) as to be
     # negligible.
-    return float(t_max), float(t_max)
+    return t_max, t_max
 
+
+def choose_mapping_start_time_nodeadline(events_per_time_step,
+                                         delta_t, bkg_rate,
+                                         quantile = 0.9):
+    """
+    Baseline method after ICRC 2025
+
+    Whenever we reach a new maximum total event count, terminate
+    the burst and compute a map after the first time step after the
+    maximum step at which the total count is not significantly
+    above the background intensity.
+    """
+
+    max_step = np.argmax(events_per_time_step)
+    events_rest = events_per_time_step[max_step + 1:]
+
+    ppois = poisson.cdf(events_rest, mu=bkg_rate * delta_t)
+    low_steps = np.nonzero(ppois < quantile)[0]
+    if len(low_steps) == 0:
+        rest_steps = len(events_rest)
+    else:
+        rest_steps = low_steps[0]
+
+    t_end = (max_step + 1 + rest_steps + 1) * delta_t
+
+    return t_end, t_end
 
 def trim_events(events, t_start, bkg_rate, deadline_overall,
                 delta_t = 1):
@@ -219,6 +245,11 @@ def trim_events(events, t_start, bkg_rate, deadline_overall,
                                                      delta_t,
                                                      bkg_rate,
                                                      deadline_overall)
+    #length, mapping_time = \
+    #    choose_mapping_start_time_nodeadline(events_per_time_step,
+    #                                         delta_t,
+    #                                         bkg_rate)
+
     t_end = t_start + length
 
     # keep only events occurring before t_end

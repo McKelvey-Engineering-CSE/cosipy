@@ -64,7 +64,7 @@ RANDOM_SEED = 1957
 ENDPOINT_CHEAT = False
 
 # overall deadline to use for endpoint detection estimation
-ENDPOINT_DEADLINE = 30 # 30 # 100
+ENDPOINT_DEADLINE = 30
 
 # time resolution to use for endpoint detection estimation
 ENDPOINT_RESOLUTION = 1
@@ -189,8 +189,15 @@ np.random.seed(RANDOM_SEED)
 
 transient_path = Path(sys.argv[1])
 
+ed = sys.argv[2]
+if ed == "gt":
+    ENDPOINT_CHEAT = True
+else:
+    ENDPOINT_CHEAT = False
+    ENDPOINT_DEADLINE = float(ed)
+
 if GEN_MAP_IMAGE or GEN_MAP_DATA:
-    output_dir = Path(sys.argv[2])
+    output_dir = Path(sys.argv[3])
     output_path = output_dir
     output_path.mkdir(parents=True, exist_ok=True)
 
