@@ -25,8 +25,8 @@ success_prob = SuccessProbs(csv_path = success_prob_data,
                             min_bin_count = 20,
                             conf = success_conf)
 
-def choose_mapping_start_time(events_per_time_step, delta_t, bkg_rate,
-                              deadline_overall):
+def choose_mapping_start_time_utility(events_per_time_step, delta_t, bkg_rate,
+                                      deadline_overall):
     """
     Determine the *last* time at which we begin to compute a
     likelihood map given observations of the total number of events
@@ -198,13 +198,12 @@ def choose_mapping_start_time_nodeadline(events_per_time_step,
 
     return t_end, t_end
 
-def trim_events(events, t_start, bkg_rate, deadline_overall,
-                delta_t = 1):
-
+def choose_mapping_start_time(events, t_start, bkg_rate, deadline_overall,
+                              delta_t = 1):
     """
-    Trim a set of Compton events with associated time stamps to
-    just the range we want to use for mapping.  The decision
-    is made based on a method choose_mapping_start_time().
+    Determine when to stop collecting Compton events and start
+    computing a likelihood map, given a history of all the events,
+    with timestamps, that may extend well beyond the actual burst end.
 
     Parameters
     ----------
@@ -216,7 +215,8 @@ def trim_events(events, t_start, bkg_rate, deadline_overall,
       Estimated mean arrival rate (events/sec) for background Compton
       rings
     deadline_overall : float
-      Time by which we must find the transient to succeed
+      Time by which we must find the transient to succeed;
+      If None, use a deadline-oblivious algorithm to pick end time
     delta_t : float, optional
       Length of time steps into which we divide events for end time
       determination
@@ -227,10 +227,8 @@ def trim_events(events, t_start, bkg_rate, deadline_overall,
        time in seconds after start beyond which we should not consider
        events as input to mapping. <= mapping_time
      mapping_time : float
-       time in seconds after start at which we last start to produce a
+       time in seconds after start at which we last begin to produce a
        map; any previous starts are assumed to be suppressed
-
-    The input event set is trimmed to the range [t_start, t_end] in place.
 
     """
 
@@ -241,23 +239,18 @@ def trim_events(events, t_start, bkg_rate, deadline_overall,
     events_per_time_step, _ = np.histogram(events["time"].value, edges)
 
     # determine burst length
-    length, mapping_time = choose_mapping_start_time(events_per_time_step,
-                                                     delta_t,
-                                                     bkg_rate,
-                                                     deadline_overall)
-    #length, mapping_time = \
-    #    choose_mapping_start_time_nodeadline(events_per_time_step,
-    #                                         delta_t,
-    #                                         bkg_rate)
+    if deadline_overall is None:
+        length, mapping_time = \
+            choose_mapping_start_time_nodeadline(events_per_time_step,
+                                                 delta_t,
+                                                 bkg_rate)
+    else:
+        length, mapping_time = \
+            choose_mapping_start_time_utility(events_per_time_step,
+                                              delta_t,
+                                              bkg_rate,
+                                              deadline_overall)
 
     t_end = t_start + length
-
-    # keep only events occurring before t_end
-    e_end = np.searchsorted(events["time"].value, t_end, side='right')
-
-    events["time"]   = events["time"][:e_end]
-    events["Em"]     = events["Em"][:e_end]
-    events["Phi"]    = events["Phi"][:e_end]
-    events["PsiChi"] = events["PsiChi"][:, :e_end]
 
     return t_end, mapping_time

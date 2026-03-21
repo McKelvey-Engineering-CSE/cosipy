@@ -32,14 +32,14 @@ from cosipy.ts_map.read_dc3_data import (
     combine_unbinned_events,
 )
 
-from cosipy.ts_map.mapping_time import trim_events
+from cosipy.ts_map.mapping_time import choose_mapping_start_time
 
 from sphdist import moc_expected_angdist
 
 ###################################
 # CONFIG
 
-model_dir = Path("/project/cassini/adapt_grbs")
+model_dir = Path("/home/jbuhler/adapt")
 
 bkg_model_path = model_dir / "adapt_bkg_model.h5"
 
@@ -47,7 +47,7 @@ response_path = model_dir / "adapt_response_w_area.h5"
 
 # draw a sample of this size from the source set
 # set to None to use entire source set
-SAMPLE_SIZE = 5000
+SAMPLE_SIZE = 10000
 #SAMPLE_SIZE = None
 
 # number of CPU cores to use in mapping
@@ -59,13 +59,6 @@ MAP_NSIDE = 64
 # seed for Numpy randomization
 RANDOM_SEED = 1957
 
-# use "cheating" burst endpoint detection (ground truth)
-# rather than estimating
-ENDPOINT_CHEAT = False
-
-# overall deadline to use for endpoint detection estimation
-ENDPOINT_DEADLINE = 30
-
 # time resolution to use for endpoint detection estimation
 ENDPOINT_RESOLUTION = 1
 
@@ -73,7 +66,7 @@ ENDPOINT_RESOLUTION = 1
 GEN_MAP_IMAGE = False
 
 # produce a data file for each map
-GEN_MAP_DATA = False
+GEN_MAP_DATA = True
 
 ###################################
 
@@ -191,15 +184,23 @@ transient_path = Path(sys.argv[1])
 
 ed = sys.argv[2]
 if ed == "gt":
+    # use "cheating" burst endpoint detection (ground truth)
+    # rather than estimating
     ENDPOINT_CHEAT = True
 else:
     ENDPOINT_CHEAT = False
-    ENDPOINT_DEADLINE = float(ed)
+    if ed == "nodeadline":
+        ENDPOINT_DEADLINE = None
+    else:
+        # overall deadline to use for endpoint detection estimation
+        ENDPOINT_DEADLINE = float(ed)
 
 if GEN_MAP_IMAGE or GEN_MAP_DATA:
     output_dir = Path(sys.argv[3])
     output_path = output_dir
     output_path.mkdir(parents=True, exist_ok=True)
+else:
+    print("WARNING: map and image output disabled!", file=sys.stderr)
 
 print("Opening detector response...", file=sys.stderr)
 response = GalacticResponse.open(response_path, dtype=np.float32)
@@ -270,17 +271,18 @@ for i, signal_path in enumerate(sources):
     if ENDPOINT_CHEAT:
         # CHEAT: keep only events during the transient
         te = true_te
-        wait_time = 0
-
-        e_end = np.searchsorted(events["time"].value, te, side='right')
-        events["time"] = events["time"][:e_end]
-        events["Em"]   = events["Em"][:e_end]
-        events["Phi"]  = events["Phi"][:e_end]
-        events["PsiChi"] = events["PsiChi"][:,:e_end]
+        wait_time = te # wait until the burst ends to map it
     else:
-        te, wait_time = trim_events(events, ts, bkg_rate,
-                                    ENDPOINT_DEADLINE,
-                                    ENDPOINT_RESOLUTION)
+        te, wait_time = choose_mapping_start_time(events, ts, bkg_rate,
+                                                  ENDPOINT_DEADLINE,
+                                                  ENDPOINT_RESOLUTION)
+
+    # keep only events occurring before t_end
+    e_end = np.searchsorted(events["time"].value, t_end, side='right')
+    events["time"]   = events["time"][:e_end]
+    events["Em"]     = events["Em"][:e_end]
+    events["Phi"]    = events["Phi"][:e_end]
+    events["PsiChi"] = events["PsiChi"][:, :e_end]
 
     timer_start = time.time()
 
