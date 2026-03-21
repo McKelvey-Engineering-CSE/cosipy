@@ -68,6 +68,11 @@ GEN_MAP_IMAGE = False
 # produce a data file for each map
 GEN_MAP_DATA = True
 
+# We run a few warmup iterations to make sure the JIT runs and avoid
+# other startup transients.  This should always be at least 1 but
+# should be a bit more to get timings to stabilize.
+N_WARMUP = 3
+
 ###################################
 
 def moc_llr_to_prob(llrs, uniq_pix):
@@ -202,6 +207,25 @@ if GEN_MAP_IMAGE or GEN_MAP_DATA:
 else:
     print("WARNING: map and image output disabled!", file=sys.stderr)
 
+sources = list(transient_path.glob("adapt_*_source.h5"))
+if len(sources) == 0:
+    print(f"ERROR: no sources read from {transient_path}", file=sys.stderr)
+    exit(1)
+else:
+    print(f"Found {len(sources)} sources at {transient_path}", file=sys.stderr)
+
+if SAMPLE_SIZE is not None:
+    sources = [sources[i]
+               for i in np.random.choice(len(sources),
+                                         size=SAMPLE_SIZE,
+                                         replace=False)]
+sources.sort()
+
+if N_WARMUP < 1:
+    print(f"WARNING: no warm-up iterations; times will be inaccurate", file=sys.stderr)
+
+sources = [sources[0]]*N_WARMUP + sources
+
 print("Opening detector response...", file=sys.stderr)
 response = GalacticResponse.open(response_path, dtype=np.float32)
 
@@ -214,22 +238,6 @@ moc_strategy = \
     MOCTSMap.PaddingStrategy(
         MOCTSMap.ContainmentStrategy(0.999)
     )
-
-sources = list(transient_path.glob("adapt_*_source.h5"))
-
-if SAMPLE_SIZE is not None:
-    sources = [sources[i]
-               for i in np.random.choice(len(sources),
-                                         size=SAMPLE_SIZE,
-                                         replace=False)]
-sources.sort()
-
-# Run a few warmup iterations to make sure the JIT runs and avoid
-# other startup transients.  Empirically, 5 is the minimum number of
-# iterations needed on ARM to avoid seeing an artificially long
-# running time for the first recorded iteration.
-n_warmup = 3
-sources = [sources[0]]*n_warmup + sources
 
 print("fluence,length,alt,az,transient_id,est_length,n_src,n_bkg,alt_ml,az_ml,err,exp_angdist,conf,wait_time,mapping_time", flush=True)
 
@@ -277,8 +285,8 @@ for i, signal_path in enumerate(sources):
                                                   ENDPOINT_DEADLINE,
                                                   ENDPOINT_RESOLUTION)
 
-    # keep only events occurring before t_end
-    e_end = np.searchsorted(events["time"].value, t_end, side='right')
+    # keep only events occurring before te
+    e_end = np.searchsorted(events["time"].value, te, side='right')
     events["time"]   = events["time"][:e_end]
     events["Em"]     = events["Em"][:e_end]
     events["Phi"]    = events["Phi"][:e_end]
@@ -315,7 +323,7 @@ for i, signal_path in enumerate(sources):
 
     mapping_time = timer_end - timer_start
 
-    if i >= n_warmup:
+    if i >= N_WARMUP:
 
         # deduce actual numbers of signal and bg events in transient
         # -- requires knowledge of at least one of signal, bg labels
