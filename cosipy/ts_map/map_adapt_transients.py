@@ -1,9 +1,16 @@
 #
 # USAGE:
-# map_adapt_transients <burst_path> <output_path>
+# map_adapt_transients <burst_path> <length-method> <output_path>
 #
 #  burst_path : where to read burst data from
-#  output_path : where to write output maps
+#  length_method : method to determine the length of each burst
+#     Options include
+#       gt         -- use the ground truth burst length
+#       nodeadline -- guess based on how high the event count is
+#                     above the background mean every second
+#       <number>   -- use utility-based estimation with a deadline of
+#                      <number> seconds
+#  output_path : where to write output maps (if any are being written)
 
 from pathlib import Path
 import time
