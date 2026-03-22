@@ -13,17 +13,25 @@ UTILITY_TOL = 1e-5     # how large a change in utility actually matters?
 mapping_time_data = "queries/emsoft.csv"
 success_prob_data = "queries/search_result_5.36x4.5_tiling.csv"
 
-# This class is from Daisy
-mapping_time = MapTimeQueryEngine(csv_path = mapping_time_data,
-                                  quantiles = [time_quantile],
-                                  n_bins_per_axis = 20,
-                                  min_bin_count = 10)
+# Will be loaded on first use
+mapping_time = None
+success_prob = None
 
-success_prob = SuccessProbs(csv_path = success_prob_data,
-                            nbins_e = 20,
-                            nbins_b = 20,
-                            min_bin_count = 20,
-                            conf = success_conf)
+def load_utility_stats(mapping_time_data, success_prob_data):
+
+    global mapping_time, success_prob
+
+    # This class is from Daisy
+    mapping_time = MapTimeQueryEngine(csv_path = mapping_time_data,
+                                      quantiles = [time_quantile],
+                                      n_bins_per_axis = 20,
+                                      min_bin_count = 10)
+
+    success_prob = SuccessProbs(csv_path = success_prob_data,
+                                nbins_e = 20,
+                                nbins_b = 20,
+                                min_bin_count = 20,
+                                conf = success_conf)
 
 def choose_mapping_start_time_utility(events_per_time_step, delta_t, bkg_rate,
                                       deadline_overall):
@@ -70,6 +78,9 @@ def choose_mapping_start_time_utility(events_per_time_step, delta_t, bkg_rate,
        map; any previous starts are assumed to be suppressed
 
     """
+
+    if success_prob is None:
+        load_utility_stats(mapping_time_data, success_prob_data)
 
     # compute total events seen after each time step
     total_events = np.cumsum(events_per_time_step)
@@ -182,6 +193,29 @@ def choose_mapping_start_time_nodeadline(events_per_time_step,
     the burst and compute a map after the first time step after the
     maximum step at which the total count is not significantly
     above the background intensity.
+
+    Parameters
+    ----------
+    events_per_time_step : array of int
+      number of new events (source + bkg) arriving each time step after
+      the start of the burst, for some sufficiently long period.
+    delta_t : float
+      length of one time step in seconds
+    bkg_rate : float
+      estimated mean number of background events arriving per second
+    quantile : float, optional
+      significance threshold for excess events in a time step to
+      use that time step's data in mapping
+
+    Returns
+    -------
+     t_end : float
+       time in seconds after start beyond which we should not consider
+       events as input to mapping. <= mapping_time
+     mapping_time : float
+       time in seconds after start at which we last start to produce a
+       map; any previous starts are assumed to be suppressed
+
     """
 
     max_step = np.argmax(events_per_time_step)
@@ -197,7 +231,10 @@ def choose_mapping_start_time_nodeadline(events_per_time_step,
 
     t_end = (max_step + 1 + rest_steps + 1) * delta_t
 
-    return t_end, t_end
+    # while we have to wait until t_end to start
+    # mapping, we should trim the non-significant
+    # final time step to reduce noise
+    return t_end - 1, t_end
 
 def choose_mapping_start_time(events, t_start, bkg_rate, deadline_overall,
                               delta_t = 1):

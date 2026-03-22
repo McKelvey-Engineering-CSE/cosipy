@@ -218,12 +218,9 @@ rexp = re.compile(r"p([0-9-]+)_a([0-9-]+)")
 src_dirs = list(ring_dir.glob("p*_a*"))
 src_dirs.sort()
 
-sf = str(src_fluence).replace(".","-")
-sl = str(src_length).replace(".","-")
-
 for src_dir in src_dirs:
     src_name = src_dir.name
-    out_name = f"{sf}_{sl}_{src_name}"
+    out_name = src_name
 
     print(out_name)
 

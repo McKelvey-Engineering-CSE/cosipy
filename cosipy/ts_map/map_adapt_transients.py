@@ -32,9 +32,48 @@ from cosipy.ts_map.read_dc3_data import (
     combine_unbinned_events,
 )
 
-from cosipy.ts_map.mapping_time import trim_events
+from cosipy.ts_map.mapping_time import choose_mapping_start_time
 
 from sphdist import moc_expected_angdist
+
+###################################
+# CONFIG
+
+model_dir = Path("/project/cassini/adapt_grbs")
+
+bkg_model_path = model_dir / "adapt_bkg_model.h5"
+
+response_path = model_dir / "adapt_response_w_area.h5"
+
+# draw a sample of this size from the source set
+# set to None to use entire source set
+#SAMPLE_SIZE = 10000
+SAMPLE_SIZE = None
+
+# number of CPU cores to use in mapping
+NUM_CPUS = 8
+
+# max resolution of map
+MAP_NSIDE = 64
+
+# seed for Numpy randomization
+RANDOM_SEED = 1957
+
+# time resolution to use for endpoint detection estimation
+ENDPOINT_RESOLUTION = 1
+
+# produce an image for each map
+GEN_MAP_IMAGE = False
+
+# produce a data file for each map
+GEN_MAP_DATA = False
+
+# We run a few warmup iterations to make sure the JIT runs and avoid
+# other startup transients.  This should always be at least 1 but
+# should be a bit more to get timings to stabilize.
+N_WARMUP = 3
+
+###################################
 
 def moc_llr_to_prob(llrs, uniq_pix):
 
@@ -118,20 +157,6 @@ def save_moc_map(llrs, uniq_pix, out_nside,
                          compression=hdf5plugin.Bitshuffle())
 
 
-transient_path = Path(sys.argv[1])
-output_dir = Path(sys.argv[2])
-
-output_path = output_dir
-output_path.mkdir(parents=True, exist_ok=True)
-
-model_dir = Path("/project/cassini/adapt_grbs")
-
-bkg_model_path = model_dir / "adapt_bkg_model.h5"
-
-response_path = model_dir / "adapt_response_w_area.h5"
-
-num_cpus = 8
-
 def angular_error(nside, ml_pix, true_src_loc):
 
     ml_center = np.array(hp.pix2vec(ipix=ml_pix, nside=nside, nest=True))
@@ -158,7 +183,51 @@ def get_bkg_prior_rate(bkg_path):
 
 ###############################################################
 
-np.random.seed(1957)
+np.random.seed(RANDOM_SEED)
+
+transient_path = Path(sys.argv[1])
+
+ed = sys.argv[2]
+if ed == "gt":
+    # use "cheating" burst endpoint detection (ground truth)
+    # rather than estimating
+    ENDPOINT_CHEAT = True
+else:
+    ENDPOINT_CHEAT = False
+    if ed == "nodeadline":
+        ENDPOINT_DEADLINE = None
+    else:
+        # overall deadline to use for endpoint detection estimation
+        ENDPOINT_DEADLINE = float(ed)
+
+if GEN_MAP_IMAGE or GEN_MAP_DATA:
+    output_dir = Path(sys.argv[3])
+    output_path = output_dir
+    output_path.mkdir(parents=True, exist_ok=True)
+else:
+    print("WARNING: map and image output disabled!", file=sys.stderr)
+
+sources = list(transient_path.glob("adapt_*_source.h5"))
+if len(sources) == 0:
+    print(f"ERROR: no sources read from {transient_path}", file=sys.stderr)
+    exit(1)
+else:
+    print(f"Found {len(sources)} sources at {transient_path}", file=sys.stderr)
+
+if SAMPLE_SIZE is not None:
+    if SAMPLE_SIZE >= len(sources):
+        print(f"WARNING: sample size {SAMPLE_SIZE} >= {len(sources)}; using all sources", file=sys.stderr)
+    else:
+        sources = [sources[i]
+                   for i in np.random.choice(len(sources),
+                                             size=SAMPLE_SIZE,
+                                             replace=False)]
+sources.sort()
+
+if N_WARMUP < 1:
+    print(f"WARNING: no warm-up iterations; times will be inaccurate", file=sys.stderr)
+
+sources = [sources[0]]*N_WARMUP + sources
 
 print("Opening detector response...", file=sys.stderr)
 response = GalacticResponse.open(response_path, dtype=np.float32)
@@ -167,22 +236,11 @@ response = GalacticResponse.open(response_path, dtype=np.float32)
 mapper = MOCTSMap(response,
                   cds_frame="galactic",
                   response_in_memory = True)
-map_nside = 64
 
 moc_strategy = \
     MOCTSMap.PaddingStrategy(
         MOCTSMap.ContainmentStrategy(0.999)
     )
-
-sources = list(transient_path.glob("adapt_*_source.h5"))
-sources.sort(reverse=True)
-
-# Run a few warmup iterations to make sure the JIT runs and avoid
-# other startup transients.  Empirically, 5 is the minimum number of
-# iterations needed on ARM to avoid seeing an artificially long
-# running time for the first recorded iteration.
-n_warmup = 3
-sources = [sources[0]]*n_warmup + sources
 
 print("fluence,length,alt,az,transient_id,est_length,n_src,n_bkg,alt_ml,az_ml,err,exp_angdist,conf,wait_time,mapping_time", flush=True)
 
@@ -190,11 +248,11 @@ results = []
 for i, signal_path in enumerate(sources):
 
     # extract source info from name
-    # expected name: adapt_{fluence}_{length}_p{polar}_a{azimuthal}_{inst}_...
+    # expected name: adapt_p{polar}_a{azimuthal}_{inst}_...
     fields = signal_path.name.split("_")
-    inst = fields[5]
+    inst = fields[3]
 
-    prefix = "_".join(fields[:6])
+    prefix = "_".join(fields[:4])
     params_path = transient_path / f"{prefix}_params.txt"
 
     # WARNING: do not use any of these values (except maybe ts)
@@ -217,22 +275,25 @@ for i, signal_path in enumerate(sources):
     bkg_events = read_unbinned_events(background_path)
     events = combine_unbinned_events(signal_events, bkg_events)
 
-
     # we leave compute time to determine te outside our timing
     # region, assuming that cost to determine it is negligible
     # compared to the wait time we incur before we choose it
 
-    # CHEAT: keep only events during the transient
-    te = true_te
-    wait_time = 0
+    if ENDPOINT_CHEAT:
+        # CHEAT: keep only events during the transient
+        te = true_te
+        wait_time = te - ts # wait until the burst ends to map it
+    else:
+        te, wait_time = choose_mapping_start_time(events, ts, bkg_rate,
+                                                  ENDPOINT_DEADLINE,
+                                                  ENDPOINT_RESOLUTION)
 
+    # keep only events occurring before te
     e_end = np.searchsorted(events["time"].value, te, side='right')
-    events["time"] = events["time"][:e_end]
-    events["Em"]   = events["Em"][:e_end]
-    events["Phi"]  = events["Phi"][:e_end]
-    events["PsiChi"] = events["PsiChi"][:,:e_end]
-
-    #te, wait_time = trim_events(events, ts, bkg_rate, 100)
+    events["time"]   = events["time"][:e_end]
+    events["Em"]     = events["Em"][:e_end]
+    events["Phi"]    = events["Phi"][:e_end]
+    events["PsiChi"] = events["PsiChi"][:, :e_end]
 
     timer_start = time.time()
 
@@ -251,21 +312,21 @@ for i, signal_path in enumerate(sources):
 
     #m_llrs = mapper.fit_unbinned(ts, te, events, bkg_model,
     #                             spectral_flux,
-    #                             nside = map_nside,
-    #                             cpu_cores = num_cpus)
-    #m_pix = hp.nest2uniq(nside=map_nside,
+    #                             nside = MAP_NSIDE,
+    #                             cpu_cores = NUM_CPUS,
+    #m_pix = hp.nest2uniq(nside=MAP_NSIDE,
     #                     ipix=np.arange(len(m_llrs), dtype=int))
 
     m_llrs, m_pix = mapper.fit_unbinned(ts, te, events, bkg_model,
                                         spectral_flux,
-                                        max_nside = map_nside,
+                                        max_nside = MAP_NSIDE,
                                         strategy = moc_strategy,
-                                        cpu_cores = num_cpus)
+                                        cpu_cores = NUM_CPUS)
     timer_end = time.time()
 
     mapping_time = timer_end - timer_start
 
-    if i >= n_warmup:
+    if i >= N_WARMUP:
 
         # deduce actual numbers of signal and bg events in transient
         # -- requires knowledge of at least one of signal, bg labels
@@ -273,25 +334,24 @@ for i, signal_path in enumerate(sources):
         n_src = np.count_nonzero(src_mask)
         n_bkg = len(events["time"]) - n_src
 
-        '''
-        mapper.plot_ts(m_llrs, m_pix,
-                       skycoord = true_src_loc,
-                       grid_lines = True,
-                       plot_zenith = False,
-                       dpi = 300,
-                       save_plot = True,
-                       save_dir = output_path,
-                       save_name = f"{prefix}_map.png")
+        if GEN_MAP_IMAGE:
+            mapper.plot_ts(m_llrs, m_pix,
+                           skycoord = true_src_loc,
+                           grid_lines = True,
+                           plot_zenith = False,
+                           dpi = 300,
+                           save_plot = True,
+                           save_dir = output_path,
+                           save_name = f"{prefix}_map.png")
 
-        save_moc_map(m_llrs, m_pix,
-                    out_nside = 64,
-                     true_src_loc = true_src_loc,
-                     n_src_events = n_src,
-                     n_bkg_events = n_bkg,
-                     save_dir = output_path,
-                     save_name = f"{prefix}_map")
-        '''
-
+        if GEN_MAP_DATA:
+            save_moc_map(m_llrs, m_pix,
+                         out_nside = 64,
+                         true_src_loc = true_src_loc,
+                         n_src_events = n_src,
+                         n_bkg_events = n_bkg,
+                         save_dir = output_path,
+            save_name = f"{prefix}_map")
 
         # maximum likelihood pixel and LLR
         ml_idx = np.argmax(m_llrs)
@@ -320,4 +380,4 @@ for i, signal_path in enumerate(sources):
         true_alt = true_src_loc.b.deg
         true_az  = true_src_loc.l.deg
 
-        print(f"{fluence:.1f},{(true_te - ts):.1f},{true_alt:.3f},{true_az:.3f},{inst},{(te - ts):.1f},{n_src},{n_bkg},{ml_alt:.3f},{ml_az:.3f},{err:.3f},{exp_angdist:.3f},{conf:.4f},{wait_time:.3f},{mapping_time:.3f}", flush=True)
+        print(f"{fluence:.3f},{(true_te - ts):.3f},{true_alt:.3f},{true_az:.3f},{inst},{(te - ts):.1f},{n_src},{n_bkg},{ml_alt:.3f},{ml_az:.3f},{err:.3f},{exp_angdist:.3f},{conf:.4f},{wait_time:.3f},{mapping_time:.3f}", flush=True)
