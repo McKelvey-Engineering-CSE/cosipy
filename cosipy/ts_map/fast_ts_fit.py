@@ -257,7 +257,7 @@ class FastTSMap():
         ei_sum = psr_cache.dtype.type(0.)
 
         for p, exposure in zip(pixels, exposures):
-            if p < len(psr_sum): # allow for response w/o all NuLambda pixels
+            if p < psr_cache.npixels: # allow for response w/o all NuLambda pixels
                 psr, psr_sum = psr_cache.get_psr(p)
                 ei_cds_array += psr * exposure
                 ei_sum += psr_sum * exposure
@@ -772,6 +772,7 @@ class PSRCache:
         self.max_size = max_size
 
         self.response = response
+        self._npixels = response.axes["NuLambda"].nbins
         self.em_axis = response.axes.label_to_index("Em") - 1 # for NuLambda
         self.em_slice = em_slice
         self.valid_cells = valid_cells
@@ -796,6 +797,13 @@ class PSRCache:
         Element type of a PSR returned by the cache
         """
         return self.response.dtype
+
+    @property
+    def npixels(self):
+        """
+        Number of valid NuLambda pixels in the response
+        """
+        return self._npixels
 
     def get_psr(self, p):
         """
