@@ -257,9 +257,10 @@ class FastTSMap():
         ei_sum = psr_cache.dtype.type(0.)
 
         for p, exposure in zip(pixels, exposures):
-            psr, psr_sum = psr_cache.get_psr(p)
-            ei_cds_array += psr * exposure
-            ei_sum += psr_sum * exposure
+            if p < len(psr_sum): # allow for response w/o all NuLambda pixels
+                psr, psr_sum = psr_cache.get_psr(p)
+                ei_cds_array += psr * exposure
+                ei_sum += psr_sum * exposure
 
         return ei_cds_array, ei_sum
 
@@ -628,7 +629,7 @@ class FastTSMap():
 
     def _preload_response(self, response, em_slice):
 
-        # read the entire response matrix into memory
+        # read the response matrix into memory
         rsp = response.to_dr()
 
         # keep just requested slice on Em axis (if this becomes
@@ -641,7 +642,7 @@ class FastTSMap():
         rsp = rsp.contents.value
 
         # linearize all but NuLambda and Ei dimensions
-        rsp = rsp.reshape(response.shape[:2] + (-1,))
+        rsp = rsp.reshape(rsp.shape[:2] + (-1,))
 
         return rsp, np.sum(rsp, axis=-1)
 
@@ -714,10 +715,11 @@ class FastTSMap():
         psr_sum = rsp.dtype.type(0)
 
         for i, w in zip(pixels, pix_weights):
-            psr_sum += rsp_sum[i] * w
-            rspi = rsp[i]
-            for j in range(n_cds_bins):
-                psr[j] += rspi[j] * w
+            if i < len(rsp_sum): # allow for response w/o all NuLambda pixels
+                psr_sum += rsp_sum[i] * w
+                rspi = rsp[i]
+                for j in range(n_cds_bins):
+                    psr[j] += rspi[j] * w
 
         return psr, psr_sum
 
