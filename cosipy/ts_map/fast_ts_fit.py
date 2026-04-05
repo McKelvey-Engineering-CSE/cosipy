@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import healpy as hp
 from mhealpy import HealpixBase
 
-from cosipy import SpacecraftHistory
-from cosipy.response import FullDetectorResponse, GalacticResponse
-from cosipy.response.functions import get_integrated_spectral_model
+from astropy.time import Time
+
+from cosipy import SpacecraftFile
 
 from .fast_norm_fit import FastNormFit as fnf
 
@@ -20,56 +20,79 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Frame(Enum):
-    LOCAL = 1
-    GALACTIC = 2
-
 class FastTSMap():
 
-    def __init__(self, data, bkg_model, response_path, orientation = None,
-                 cds_frame = "local"):
+    class Frame(Enum):
+        LOCAL = 1
+        GALACTIC = 2
+
+    def __init__(self, response,
+                 orientation = None,
+                 cds_frame = "local",
+                 energy_channel = None,
+                 max_cache_size = None,
+                 response_in_memory = False):
+
         """
         Initialize the instance of a TS map fit.
 
         Parameters
         ----------
-        data : histpy.Histogram
-            Observed data, which includes counts from both signal and
-            background.
-        bkg_model : histpy.Histogram
-            Model used to estimate background counts in observed data.
-        response_path : str or pathlib.Path
-            Path to response file.
-        orientation : cosipy.SpacecraftHistory, optional
+        response : FullDetectorResponse or GalacticResponse
+            Detector response
+        orientation : cosipy.SpacecraftFile, optional
             Orientation history of spacecraft; required for "local"
             cds_frame, not used if frame is "galactic"
         cds_frame : str, optional
             frame of directions used for PsiChi axis of CDS.  One of
             "local" (frame attached to spacecraft) or "galactic".
             Default is local.
+        energy_channel : 2-element list, of form
+                         [lower_channel, upper_channel], optional
+            Energy (Em) channels to use in fitting (Python range
+            lower_channel:upper_channel). If not specified, use all
+            Em channels.
+        max_cache_size : int, optional
+            Maximum number of entries to store in PSRCache; if None,
+            no limit
 
         """
 
         match cds_frame:
-            case "galactic":
-                self._cds_frame = Frame.GALACTIC
             case "local":
-                self._cds_frame = Frame.LOCAL
+                self._cds_frame = FastTSMap.Frame.LOCAL
+                if orientation is None:
+                    raise TypeError("When data are binned in local frame, "
+                                    "orientation must be provided")
+                orientation.cache_earth_occ = True
+                self._orientation = orientation
+
+            case "galactic":
+                self._cds_frame = FastTSMap.Frame.GALACTIC
+                self._orientation = None
+
             case _:
                 raise TypeError(f"Unrecognized frame {cds_frame}, "
                                 "must be 'local' or 'galactic'")
 
-        if self._cds_frame == Frame.LOCAL:
-            if orientation is None:
-                raise TypeError("When data are binned in local frame, "
-                                "orientation must be provided")
-
-            self._orientation = orientation
-
-            self._response = FullDetectorResponse.open(response_path)
+        if energy_channel is None:
+            self._em_slice = slice(None)
         else:
+            self._em_slice = slice(energy_channel[0], energy_channel[1])
 
-            self._response = GalacticResponse.open(response_path)
+        self._response = response
+
+        # set correct callback for computing PSRs based on
+        # whether we're caching the full response in memory
+        self.response_in_memory = response_in_memory
+        if response_in_memory:
+            self.get_psr = self.get_psr_in_mem
+
+            # preload the full response
+            self._psrs, self._psr_sums = \
+                self._preload_response(response, self._em_slice)
+        else:
+            self.get_psr = self.get_psr_out_mem
 
         labels = self._response.axes.labels
 
@@ -83,15 +106,13 @@ class FastTSMap():
         # extract order of response's CDS dimensions for linearization
         # of data, bkg
 
-        cds_order = tuple(labels[2:])
-        if not all(ax in ("Em", "Phi", "PsiChi") for ax in cds_order):
+        self.cds_order = tuple(labels[2:])
+        if not all(ax in ("Em", "Phi", "PsiChi") for ax in self.cds_order):
             raise ValueError("Response CDS axes must be Em/Phi/PsiChi")
 
-        # make sure data and background CDS are ordered to match response
-        self._data = data.todense().project(cds_order)
-        self._bkg_model = bkg_model.todense().project(cds_order)
-
         self._fnf = fnf(max_iter=1000)
+
+        self._max_cache_size = max_cache_size
 
     @staticmethod
     def _get_hypothesis_coords(nside, pixels = None,
@@ -133,7 +154,7 @@ class FastTSMap():
     @staticmethod
     def _get_cds_array(hist, em_slice):
         """
-        Convert a CDS histogram to a flattened array, projecting over
+        Convert a CDS histogram to a flattened array, keeping
         just the selected channels of the Em dimension.
 
         Parameters
@@ -151,7 +172,7 @@ class FastTSMap():
         """
 
         hist_cds_sliced = hist.slice[{"Em" : em_slice}]
-        hist_cds = hist_cds_sliced.project_out("Em")
+        hist_cds = hist_cds_sliced
 
         cds_array = hist_cds.contents
         if hist_cds.unit is not None:
@@ -159,7 +180,7 @@ class FastTSMap():
 
         return cds_array.ravel()
 
-    def _fit_one_direction(self, source,
+    def _fit_one_direction(self, source, orientation,
                            data_cds_array, bkg_model_cds_array,
                            psr_cache):
         """
@@ -184,13 +205,14 @@ class FastTSMap():
 
         """
 
-        if self._cds_frame == Frame.LOCAL:
+        if self._cds_frame == FastTSMap.Frame.LOCAL:
 
-            # get list of HEALPix pixels with nonzero exposure of source
+            # get list of HEALPix pixels with nonzero exposure from source
             pixels, exposures = \
                 self._orientation.get_exposure(source = source,
                                                base = self._response,
-                                               earth_occ = False)
+                                               earth_occ = False,
+                                               dtype = self._response.dtype)
             exposures = exposures.value
 
         else: # galactic frame
@@ -205,36 +227,56 @@ class FastTSMap():
                 self._response.get_interp_weights(theta = colat,
                                                   phi = lon,
                                                   lonlat = False)
+            exposures = exposures.astype(self._response.dtype, copy=False)
 
+        if len(pixels) > 0:
+            ei_cds_array, ei_sum = \
+                self.get_psr(psr_cache, pixels, exposures)
+
+            if ei_sum > 0: # some pixels may have no data in response
+                return self._fnf.solve(data_cds_array, bkg_model_cds_array,
+                                       ei_cds_array, ei_sum)
+
+        # default: return nothing
+        return (0., 0., 0., False)
+
+    @classmethod
+    def get_psr_in_mem(cls, psr_cache, pixels, exposures):
+        rsp, rsp_sum = psr_cache
+        return cls._get_psr_in_mem(rsp, rsp_sum, pixels, exposures)
+
+    @staticmethod
+    def get_psr_out_mem(psr_cache, pixels, exposures):
         # sum the PSRs for each NuLambda pixel according to their
         # exposure weights
         ei_cds_array = np.zeros(psr_cache.shape, psr_cache.dtype)
-        ei_sum = 0.
+        ei_sum = psr_cache.dtype.type(0.)
 
         for p, exposure in zip(pixels, exposures):
-            psr, psr_sum = psr_cache.get_psr(p)
-            ei_cds_array += psr * exposure
-            ei_sum += psr_sum * exposure
+            if p < psr_cache.npixels: # allow for response w/o all NuLambda pixels
+                psr, psr_sum = psr_cache.get_psr(p)
+                ei_cds_array += psr * exposure
+                ei_sum += psr_sum * exposure
 
-        return self._fnf.solve(data_cds_array, bkg_model_cds_array,
-                               ei_cds_array, ei_sum)
+        return ei_cds_array, ei_sum
 
-    def _prepare_inputs(self, energy_channel, spectrum, max_cache_size):
+    def _prepare_inputs(self, data, bkg_model, spectral_flux):
         """
         Prepare the data and background arrays for ts fitting, and get ready
         to read and cache PSRs for different source directions.  The shape
         and contents of the arrays and PSRs depends on the data reductions
+
         implied by the energy channel and spectrum.
 
         Parameters
         ----------
-        energy_channel : 2-element list [lower_channel, upper_channel]
-            Energy (Em) channels to use in fitting (Python range
-            lower_channel:upper_channel)
-        spectrum : astromodels.functions
-            Spectrum of the source.
-        max_cache_size : int or None
-            Maximum number of entries to store in PSRCache (None = no limit)
+        data : histpy.Histogram
+            Observed data, which includes counts from both signal and
+            background.
+        bkg_model : histpy.Histogram
+            Model used to estimate background counts in observed data.
+        spectral_flux : np.ndarray of float
+            Integrated spectral flux of source in response's Ei bins
 
         Returns
         -------
@@ -248,14 +290,13 @@ class FastTSMap():
 
         """
 
-        if energy_channel is None:
-            em_slice = slice(None)
-        else:
-            em_slice = slice(energy_channel[0], energy_channel[1])
+        # make sure data and background CDS are ordered to match response
+        data = data.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
+        bkg_model = bkg_model.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
 
         # get the flattened data and background CDS arrays
-        data_cds_array = self._get_cds_array(self._data, em_slice)
-        bkg_model_cds_array = self._get_cds_array(self._bkg_model, em_slice)
+        data_cds_array = self._get_cds_array(data, self._em_slice)
+        bkg_model_cds_array = self._get_cds_array(bkg_model, self._em_slice)
 
         # eliminate CDS cells with no counts in data (due to data
         # sparsity) or in bkg model (lack of pseudocounts in bkg model
@@ -267,34 +308,124 @@ class FastTSMap():
         data_cds_array = data_cds_array[valid_cells]
         bkg_model_cds_array = bkg_model_cds_array[valid_cells]
 
-        flux = get_integrated_spectral_model(spectrum, self._response.axes["Ei"])
-
-        psr_cache = PSRCache(self._response, em_slice, valid_cells, flux,
-                             maxSize = max_cache_size)
+        if self.response_in_memory:
+            psr_cache = self.reduce_response(self._psrs, self._psr_sums,
+                                             valid_cells, spectral_flux)
+        else:
+            psr_cache = PSRCache(self._response,
+                                 self._em_slice,
+                                 valid_cells,
+                                 spectral_flux,
+                                 max_size = self._max_cache_size)
 
         return data_cds_array, bkg_model_cds_array, psr_cache
 
-    def fit(self, nside, spectrum, energy_channel = None,
-            cpu_cores = None, max_cache_size = None):
+
+    def _prepare_inputs_unbinned(self, events, bkg_model, spectral_flux):
+        """
+        Prepare the observed events and background model for ts fitting,
+        and get ready to read and cache PSRs for different source
+        directions.  The shape and contents of the arrays and PSRs
+        derived from the input depends on the data reductions implied
+        by the energy channel and spectrum.
+
+        Parameters
+        ----------
+        events: dict
+            Observed events for transient and background combined.
+        bkg_model : histpy.Histogram
+            Model used to estimate background counts in observed data.
+        spectral_flux : np.ndarray of float
+            Integrated spectral flux of source in response's Ei bins
+
+        Returns
+        -------
+        data_cds_array : numpy.ndarray
+            The flattened Compton data space (CDS) array of the data.
+        bkg_model_cds_array : numpy.ndarray
+            The flattened Compton data space (CDS) array of the
+            background model.
+        psr_cache : PSRCache
+            Cache to retrieve PSR for source directions
+
+        """
+
+        # get the flattened background CDS array
+        bkg_model = bkg_model.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
+        bkg_model_cds_array = self._get_cds_array(bkg_model, self._em_slice)
+
+        cds_axes = self._response.axes[self.cds_order]
+
+        # bin data on each CDS axis
+        event_bins = []
+        for label in self.cds_order:
+            if label == "PsiChi":
+                # PsiChi binning is done on HEALPix axis
+                bins = cds_axes[label].find_bin(theta = events["PsiChi"][0].value,
+                                                phi = events["PsiChi"][1].value,
+                                                lonlat = True)
+            else:
+                bins = cds_axes[label].find_bin(events[label])
+
+            event_bins.append(bins)
+
+        if self._em_slice != slice(None):
+            # apply energy channel filter to events
+            e_lo, e_hi = self._em_slice.start, self._em_slice.stop
+            e_lo = 0 if e_lo is None else e_lo
+            e_hi = em_axis.nbins if e_hi is None else e_hi
+            em_axis = cds_axes.label_to_index("Em")
+            ev_mask = ((event_bins[em_axis] >= e_lo) &
+                       (event_bins[em_axis] < e_hi))
+            event_bins = [b[ev_mask] for b in event_bins]
+
+        # linearize array of CDS bins and suppress any for which bkg
+        # model has zero weight (since these would otherwise produce
+        # an infinite Poisson likelihood)
+        flat_event_bins = np.ravel_multi_index(event_bins, cds_axes.shape)
+        flat_event_bins = flat_event_bins[bkg_model_cds_array[flat_event_bins] != 0]
+
+        # add weights (currently just # of occurrences) for each bin
+        valid_cells, data_cds_array = \
+            SpacecraftFile._sparse_sum_duplicates(flat_event_bins,
+                                                  dtype=self._response.dtype)
+
+        # keep only bkg model bins for which data event count is
+        # nonzero
+        bkg_model_cds_array = bkg_model_cds_array[valid_cells]
+
+        if self.response_in_memory:
+            psr_cache = self.reduce_response(self._psrs, self._psr_sums,
+                                             valid_cells, spectral_flux)
+        else:
+            psr_cache = PSRCache(self._response,
+                                 self._em_slice,
+                                 valid_cells,
+                                 spectral_flux,
+                                 max_size = self._max_cache_size)
+
+        return data_cds_array, bkg_model_cds_array, psr_cache
+
+    def fit(self, data, bkg_model, spectral_flux,
+            nside = 16, cpu_cores = None):
         """
         Produce a ts map of specified resolution.
 
         Parameters
         ----------
-        nside : int
-            HEALPix nside of ts map to produce
-        spectrum : astromodels.functions
-            Spectrum of the source.
-        energy_channel : 2-element list, of form
-                         [lower_channel, upper_channel], optional
-            Energy (Em) channels to use in fitting (Python range
-            lower_channel:upper_channel). If not specified, use all
-            Em channels.
+        data : histpy.Histogram
+            Observed data, which includes counts from both signal and
+            background.
+        bkg_model : histpy.Histogram
+            Model used to estimate background counts in observed data.
+            Should give ABSOLUTE expected counts over duration of transient
+            for each CDS bin.
+        spectral_flux : np.ndarray of float
+            Integrated spectral flux of source in response's Ei bins
+        nside : int, optional
+            HEALPix nside of ts map to produce (default 16)
         cpu_cores : int, optional
             Number of processors to use (default: do not restrict)
-        max_cache_size : int, optional
-            Maximum number of entries to store in PSRCache; if None,
-            no limit
 
         Returns
         -------
@@ -307,12 +438,12 @@ class FastTSMap():
             numba.set_num_threads(cpu_cores)
 
         data_cds_array, bkg_model_cds_array, psr_cache = \
-            self._prepare_inputs(energy_channel, spectrum, max_cache_size)
+            self._prepare_inputs(data, bkg_model, spectral_flux)
 
-        if self._cds_frame == Frame.LOCAL:
+        if self._cds_frame == FastTSMap.Frame.LOCAL:
             # compute possible source dirs in same frame
             # we will use to translate them to local-frame paths
-            hyp_frame = self._orientation.attitude.frame
+            hyp_frame = self._orientation.frame
         else: # galactic frame
             hyp_frame = "galactic"
 
@@ -321,6 +452,7 @@ class FastTSMap():
 
         results = [
             self._fit_one_direction(source,
+                                    self._orientation,
                                     data_cds_array,
                                     bkg_model_cds_array,
                                     psr_cache)[0]
@@ -329,9 +461,72 @@ class FastTSMap():
 
         return np.array(results)
 
+    def fit_unbinned(self, ts, te, events, bkg_model, spectral_flux,
+                     nside = 16, cpu_cores = None):
+        """
+        Produce a ts map of specified resolution from unbinned events.
+
+        Parameters
+        ----------
+        ts : float
+            start time of transient (UNIX secs)
+        te : float
+            end time of transient (UNIX secs)
+        events : dict
+            Observed events for transient and background combined.
+        bkg_model : histpy.Histogram
+            Model used to estimate background counts in observed data.
+            Should give ABSOLUTE expected counts over duration of transient
+            for each CDS bin.
+        spectral_flux : np.ndarray of float
+            Integrated spectral flux of source in response's Ei bins
+        nside : int, optional
+            HEALPix nside of ts map to produce (default 16)
+        cpu_cores : int, optional
+            Number of processors to use (default: do not restrict)
+
+        Returns
+        -------
+        results : numpy.ndarray
+            Fitted ts values for each hypothesis coordinate
+
+        """
+
+        if cpu_cores is not None:
+            numba.set_num_threads(cpu_cores)
+
+        if self._cds_frame == FastTSMap.Frame.LOCAL:
+            orientation = self._orientation.source_interval(Time(ts, format="unix"),
+                                                            Time(te, format="unix"))
+            # compute possible source dirs in same frame
+            # we will use to translate them to local-frame paths
+            hyp_frame = self._orientation.frame
+        else:
+            # galactic frame
+            orientation = None
+            hyp_frame = "galactic"
+
+        data_cds_array, bkg_model_cds_array, psr_cache = \
+            self._prepare_inputs_unbinned(events, bkg_model, spectral_flux)
+
+        hypothesis_coords = self._get_hypothesis_coords(nside,
+                                                        coordsys=hyp_frame)
+
+        results = [
+            self._fit_one_direction(source,
+                                    orientation,
+                                    data_cds_array,
+                                    bkg_model_cds_array,
+                                    psr_cache)[0]
+            for source in hypothesis_coords
+        ]
+
+        return np.array(results)
+
+
     @staticmethod
     def plot_ts(m_ts, skycoord = None, containment = None, scheme="nested",
-                save_plot = False, save_dir = "",
+                plot_zenith = True, save_plot = False, save_dir = "",
                 save_name = "ts_map.png", dpi = 300):
         """
         Plot a TS map.
@@ -349,6 +544,8 @@ class FastTSMap():
         scheme : string, optional
             HEALPix scheme of ts map values ("ring" or "nested";
             default = "nested")
+        plot_zenith: bool, optional
+            If true, plot and label zenith
         save_plot : bool, optional
             Save the plot to a file (default: False)
         save_dir : string, optional
@@ -384,16 +581,17 @@ class FastTSMap():
                            label = f"True location at l={lon}, b={lat}",
                            color = "fuchsia")
 
-        hp.projscatter(0, 0, marker = "o",
-                       linewidths = 0.5,
-                       lonlat=True,
-                       coord = "G",
-                       color = "red")
+        if plot_zenith:
+            hp.projscatter(0, 0, marker = "o",
+                           linewidths = 0.5,
+                           lonlat=True,
+                           coord = "G",
+                           color = "red")
 
-        hp.projtext(350, 0, "(l=0, b=0)",
-                    lonlat=True,
-                    coord = "G",
-                    color = "red")
+            hp.projtext(350, 0, "(l=0, b=0)",
+                        lonlat=True,
+                        coord = "G",
+                        color = "red")
 
         if save_plot:
             fig.savefig(Path(save_dir)/save_name, dpi = dpi)
@@ -425,6 +623,103 @@ class FastTSMap():
         return chi2.ppf(containment, df=2)
 
 
+    def _preload_response(self, response, em_slice):
+
+        # read the response matrix into memory
+        rsp = response.to_dr()
+
+        # keep just requested slice on Em axis (if this becomes
+        # important, we can hack to_dr() to only load the requested
+        # slice from disk)
+        if em_slice is not slice(None):
+            rsp = rsp.slice[{"Em" : em_slice}]
+
+        # reduce to bare array
+        rsp = rsp.contents.value
+
+        # linearize all but NuLambda and Ei dimensions
+        rsp = rsp.reshape(rsp.shape[:2] + (-1,))
+
+        return rsp, np.sum(rsp, axis=-1)
+
+    def reduce_response(self, rsp, rsp_sum, valid_cells, spectral_flux):
+        flux = spectral_flux.contents.value.astype(rsp.dtype, copy=False)
+        rsp = self.selmul(rsp, valid_cells, flux)
+        rsp_sum = rsp_sum @ flux
+
+        return rsp, rsp_sum
+
+    @staticmethod
+    @numba.jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    def selmul(response, bins, weights):
+        """
+        Compute the equivalent of
+            rsp = weights @ response[:,:,bins]
+        That is, we compute
+             rsp[i,k] = sum_j weights[j] * response[i, j, bins[k]]
+
+        Doing this directly in Numba and parallelizing it across cores
+        is faster than first doing the selection of bins, then using
+        OpenBLAS to do the multiply.  It also avoids an intermediate
+        copy of the response during selection.
+
+        """
+
+        rsp = np.zeros(shape=(response.shape[0], len(bins)),
+                       dtype=response.dtype)
+
+        for i in numba.prange(response.shape[0]):
+            for j in range(response.shape[1]):
+                w = weights[j]
+                for k, p in enumerate(bins):
+                    rsp[i,k] += response[i,j,p] * w
+
+        return rsp
+
+    @staticmethod
+    @numba.jit(nopython=True, nogil=True, fastmath=True)
+    def _get_psr_in_mem(rsp, rsp_sum, pixels, pix_weights):
+        """
+        Compute a point-source response as a sum of response slices for
+        each instrument-frame pixel exposed to the source, werighted
+        by the length of its exposure.
+
+        We implement in Numba to avoid intermediate copies of response
+        slices when weighting and summing to get the PSR.  Ideally,
+        we'd use a dot product call, but we know of no Numpy idiom to
+        perform dot while skipping the slicing/multiplication when the
+        weight is zero, and anything else creates an intermediate copy
+        of each slice when multiplying by w.
+
+        Parameters
+        ----------
+          rsp: 2D ndarray of size (n response pixels) x (CDS space size)
+            The image response
+          pix_weights: 1D ndarray of size (n response pixels)
+            The exposure-time weight of each pixel
+
+        Returns
+        -------
+          - 1D ndarray of (CDS space size) with computed PSR
+          - sum over *all* CDS bins (whether in sparse CDS space or
+            not) in PSR
+
+        """
+
+        n_cds_bins = rsp.shape[-1]
+        psr = np.zeros(n_cds_bins, dtype = rsp.dtype)
+        psr_sum = rsp.dtype.type(0)
+
+        for i, w in zip(pixels, pix_weights):
+            if i < len(rsp_sum): # allow for response w/o all NuLambda pixels
+                psr_sum += rsp_sum[i] * w
+                rspi = rsp[i]
+                for j in range(n_cds_bins):
+                    psr[j] += rspi[j] * w
+
+        return psr, psr_sum
+
+
 class PSRCache:
     """
     A cached reader for PSR data from a response file, designed for
@@ -445,7 +740,7 @@ class PSRCache:
     """
 
     def __init__(self, response, em_slice, valid_cells, flux,
-                 maxSize = None):
+                 max_size = None):
         """
         Create a new PSRCache, providing the information needed
         to fetch and reduce PSRs from the response file on demand.
@@ -461,7 +756,7 @@ class PSRCache:
           used in in the ts_map computation
         flux : Histogram
           Integrated spectral flux, binned according to response's Ei axis
-        maxSize: int (optional)
+        max_size: int (optional)
           If not None, maximum number of NuLambda pixels for which we will
           cache PSRs.  The cache is managed according to an LRU policy.
 
@@ -470,14 +765,17 @@ class PSRCache:
         from collections import OrderedDict
 
         self.cache = OrderedDict()
-        self.maxSize = maxSize
+        self.max_size = max_size
 
         self.response = response
+        self._npixels = response.axes["NuLambda"].nbins
         self.em_axis = response.axes.label_to_index("Em") - 1 # for NuLambda
         self.em_slice = em_slice
         self.valid_cells = valid_cells
 
-        self.ei_weights = flux.contents.value * response.eff_area_correction
+        self.ei_weights = \
+            flux.contents.value.astype(self.dtype, copy=False) * \
+            response.eff_area_correction
 
         #self.nLookups = 0
         #self.nMisses = 0
@@ -495,6 +793,13 @@ class PSRCache:
         Element type of a PSR returned by the cache
         """
         return self.response.dtype
+
+    @property
+    def npixels(self):
+        """
+        Number of valid NuLambda pixels in the response
+        """
+        return self._npixels
 
     def get_psr(self, p):
         """
@@ -525,11 +830,11 @@ class PSRCache:
             self.cache[p] = v
 
             # implement LRU policy if requested
-            if self.maxSize is not None and len(self.cache) > self.maxSize:
+            if self.max_size is not None and len(self.cache) > self.max_size:
                 self.cache.popitem(last=False)
         else:
             # move MRU value to end to support LRU policy if requested
-            if self.maxSize is not None:
+            if self.max_size is not None:
                 self.cache.move_to_end(p)
 
         return v
@@ -542,7 +847,7 @@ class PSRCache:
 
         missRate = 0. if self.nLookups == 0 else self.nMisses/self.nLookups
 
-        print(f"Cache size: {len(self.cache)} (out of {self.maxSize})")
+        print(f"Cache size: {len(self.cache)} (out of {self.max_size})")
         print(f"Misses: {self.nMisses} / {self.nLookups} = {missRate:0.3f}")
     '''
 
@@ -567,7 +872,8 @@ class PSRCache:
         counts = self.response.get_counts(p, self.em_slice)
 
         # sum over Em dimension and convert to float : Ei x Phi/PsiChi
-        counts = np.sum(counts, axis=self.em_axis, dtype=self.response.dtype)
+        #counts = np.sum(counts, axis=self.em_axis, dtype=self.response.dtype)
+        counts = counts.astype(self.response.dtype, copy=False)
 
         # linearize CDS : Ei x CDS voxels. Note that we ensure in
         # FastTSMap that data and bkg will use the same dimension
