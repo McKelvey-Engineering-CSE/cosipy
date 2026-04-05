@@ -211,7 +211,7 @@ class FastTSMap():
             pixels, exposures = \
                 self._orientation.get_exposure(source = source,
                                                base = self._response,
-                                               earth_occ = False,
+                                               earth_occ = True,
                                                dtype = self._response.dtype)
             exposures = exposures.value
 
