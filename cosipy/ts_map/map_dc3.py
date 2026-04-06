@@ -10,7 +10,7 @@ from cosipy.response import FullDetectorResponse
 from cosipy.response.functions import get_integrated_spectral_model
 
 from cosipy.ts_map.read_dc3_data import (
-    read_burst_params,
+    read_transient_params,
     read_unbinned_events,
     combine_unbinned_events,
     get_local_bkg_model,
@@ -229,7 +229,7 @@ print("Opening detector response...")
 response = FullDetectorResponse.open(response_path, dtype=np.float32)
 
 # create mapping object
-mapper = MOCTSMap(response, orientations, response_in_memory = False)
+mapper = MOCTSMap(response, orientations, response_in_memory = True)
 map_nside = 64
 
 moc_strategy = \
@@ -249,7 +249,7 @@ for i, burst in enumerate([bursts[-1]] * n_warmup + bursts):
     # retrieve ground truth for the burst
     params_path = grb_dir / burst / (burst + "_params.txt")
 
-    spectrum, true_src_loc = read_burst_params(params_path)
+    spectrum, true_src_loc, _, _ = read_transient_params(params_path)
 
     # retrieve the unbinned burst events
     signal_path = grb_dir / burst / (burst + "_signal.hdf5")
