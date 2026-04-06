@@ -210,7 +210,7 @@ class FastTSMap():
             pixels, exposures = \
                 orientation.get_exposure(source = source,
                                          base = self._response,
-                                         earth_occ = True,
+                                         earth_occ = False,
                                          dtype = self._response.dtype)
             exposures = exposures.value
 
@@ -442,7 +442,7 @@ class FastTSMap():
         if self._cds_frame == FastTSMap.Frame.LOCAL:
             # compute possible source dirs in same frame
             # we will use to translate them to local-frame paths
-            hyp_frame = self._orientation.frame
+            hyp_frame = self._orientation.attitude.frame
         else: # galactic frame
             hyp_frame = "galactic"
 
@@ -499,7 +499,7 @@ class FastTSMap():
                                                             Time(te, format="unix"))
             # compute possible source dirs in same frame
             # we will use to translate them to local-frame paths
-            hyp_frame = self._orientation.frame
+            hyp_frame = orientation.attitude.frame
         else:
             # galactic frame
             orientation = None

@@ -233,7 +233,7 @@ class MOCTSMap(FastTSMap):
             if self._cds_frame == FastTSMap.Frame.LOCAL:
                 # compute possible source dirs in same frame
                 # we will use to translate them to local-frame paths
-                hyp_frame = self._orientation.frame
+                hyp_frame = self._orientation.attitude.frame
             else: # galactic frame
                 hyp_frame = "galactic"
 
