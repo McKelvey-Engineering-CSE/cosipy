@@ -223,7 +223,6 @@ np.random.seed(0)
 # get the orientation history of the detector
 print("Reading orientation history...")
 orientations = SpacecraftHistory.open(orientation_path)
-orientations.cache_earth_occ = True
 
 print("Opening detector response...")
 response = FullDetectorResponse.open(response_path, dtype=np.float32)
