@@ -208,10 +208,10 @@ class FastTSMap():
         if self._cds_frame == FastTSMap.Frame.LOCAL:
             # get list of HEALPix pixels with nonzero exposure from source
             pixels, exposures = \
-                self._orientation.get_exposure(source = source,
-                                               base = self._response,
-                                               earth_occ = True,
-                                               dtype = self._response.dtype)
+                orientation.get_exposure(source = source,
+                                         base = self._response,
+                                         earth_occ = True,
+                                         dtype = self._response.dtype)
             exposures = exposures.value
 
         else: # galactic frame
