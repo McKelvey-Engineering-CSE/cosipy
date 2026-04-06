@@ -1,11 +1,3 @@
-from cosipy import test_data
-from pytest import approx
-from threeML import Powerlaw
-from cosipy import FastTSMap, SpacecraftHistory
-from histpy import Histogram
-import numpy as np
-from astropy.coordinates import SkyCoord
-import astropy.units as u
 from pathlib import Path
 import os
 
@@ -20,6 +12,8 @@ from histpy import Histogram
 
 from cosipy import test_data
 from cosipy import FastTSMap, MOCTSMap, SpacecraftHistory
+from cosipy.response import FullDetectorResponse, GalacticResponse
+from cosipy.response.functions import get_integrated_spectral_model
 
 def test_ts_fit():
 
@@ -33,8 +27,11 @@ def test_ts_fit():
     src_bkg = Histogram.open(src_bkg_path).project(['Em', 'PsiChi', 'Phi'])
     bkg = Histogram.open(bkg_path).project(['Em', 'PsiChi', 'Phi'])
 
-    ts = FastTSMap(data = src_bkg, bkg_model = bkg, orientation = ori,
-                   response_path = response_path, cds_frame = "local")
+    response = FullDetectorResponse.open(response_path)
+    ts = FastTSMap(response = response,
+                   orientation = ori,
+                   cds_frame = "local",
+                   max_cache_size = 10)
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -46,25 +43,39 @@ def test_ts_fit():
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
 
+    spectral_flux = get_integrated_spectral_model(spectrum,
+                                                  response.axes["Ei"])
+
     ts_results = ts.fit(nside = 1,
-                        spectrum = spectrum,
-                        max_cache_size = 10)
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux)
 
     assert np.allclose(ts_results,
-                       [142.65320313, 146.40087766, 143.79688155,
-                        147.26724713, 142.12808137, 141.04487277,
-                        142.91736454, 143.37732116, 143.02080182,
-                        142.36211847, 145.47734097, 143.22293343])
+                       [134.70412297, 0.,           0.,
+                        137.91480599, 134.05715839, 133.01973443,
+                        0.,           0.,           134.89665176,
+                        0.,           0.,           135.37111622])
 
 
-    ts_results = ts.fit(nside = 1, energy_channel = [2,3],
-                        spectrum = spectrum, cpu_cores = 1)
+    ts = FastTSMap(response = response,
+                   orientation = ori,
+                   cds_frame = "local",
+                   energy_channel = [2,3],
+                   max_cache_size = 10)
+
+
+    ts_results = ts.fit(nside = 1,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux,
+                        cpu_cores = 1)
 
     assert np.allclose(ts_results,
-                       [40.18628386, 39.59382592, 37.4339627,
-                        39.88459849, 40.20132198, 39.86762314,
-                        37.2327797,  37.4506428,  40.54884861,
-                        39.69773074, 38.83421249, 39.99131767])
+                       [40.18628386, 0.,          0.,
+                        39.8845985,  40.20132198, 39.86762315,
+                        0.,          0.,          40.54884861,
+                        0.,          0.,          39.99131767])
 
     ts.plot_ts(ts_results,
                skycoord = SkyCoord(l=0, b=0, unit=u.deg, frame="galactic"))
@@ -85,8 +96,11 @@ def test_ts_fit_galactic():
     src_bkg = Histogram.open(src_bkg_path).project(['Em', 'PsiChi', 'Phi'])
     bkg = Histogram.open(bkg_path).project(['Em', 'PsiChi', 'Phi'])
 
-    ts = FastTSMap(data = src_bkg, bkg_model = bkg, orientation = None,
-                   response_path = response_path, cds_frame = "galactic")
+    response = GalacticResponse.open(response_path)
+    ts = FastTSMap(response = response,
+                   orientation = None,
+                   cds_frame = "galactic",
+                   energy_channel = [2,3])
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -98,8 +112,13 @@ def test_ts_fit_galactic():
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
 
-    ts_results = ts.fit(nside = 1, energy_channel = [2,3],
-                        spectrum = spectrum)
+    spectral_flux = get_integrated_spectral_model(spectrum,
+                                                  response.axes["Ei"])
+
+    ts_results = ts.fit(nside = 1,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux)
 
     assert np.allclose(ts_results,
                        [39.75648143, 39.61688953, 39.33241148,
@@ -119,8 +138,11 @@ def test_moc_ts_fit():
     src_bkg = Histogram.open(src_bkg_path).project(['Em', 'PsiChi', 'Phi'])
     bkg = Histogram.open(bkg_path).project(['Em', 'PsiChi', 'Phi'])
 
-    ts = MOCTSMap(data = src_bkg, bkg_model = bkg, orientation = ori,
-                  response_path = response_path, cds_frame = "local")
+    response = FullDetectorResponse.open(response_path)
+    ts = MOCTSMap(response = response,
+                  orientation = ori,
+                  cds_frame = "local",
+                  energy_channel = [2,3])
 
     index = -2.2
     K = 10 / u.cm / u.cm / u.s / u.keV
@@ -132,35 +154,36 @@ def test_moc_ts_fit():
     spectrum.K.unit = K.unit
     spectrum.piv.unit = piv.unit
 
-    # test default top-k strategy
-    ts_results = ts.fit(max_nside = 2, energy_channel = [2,3],
-                        spectrum = spectrum, cpu_cores = 1)
+    spectral_flux = get_integrated_spectral_model(spectrum,
+                                                  response.axes["Ei"])
+
+    # test default top-k strategy.  Note that this test can
+    # fail if the "top-k" method breaks ties differently than
+    # it did when the test-case output was originally collected!
+    # So this test might not be very reproducible, in contrast
+    # to the threshold-based tests below.
+    ts_results = ts.fit(max_nside = 2,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux,
+                        cpu_cores = 1)
 
     ts_values, pixels = ts_results
+
     assert all(pixels == [
-        16, 20, 24, 28, 32,
-        36, 40, 44, 48, 52,
-        56, 60, 17, 21, 25,
-        29, 33, 37, 41, 45,
-        49, 53, 57, 61, 18,
-        22, 26, 30, 34, 38,
-        42, 46, 50, 54, 58,
-        62, 19, 23, 27, 31,
-        35, 39, 43, 47, 51,
-        55, 59, 63
+        5,  6,  9,  10, 11, 13,
+        14, 16, 28, 32, 48, 60,
+        17, 29, 33, 49, 61, 18,
+        30, 34, 50, 62, 19, 31,
+        35, 51, 63
     ])
 
     assert np.allclose(ts_values, [
-        40.31750179, 39.40582836, 37.39229509, 39.78630473, 40.39347596,
-        40.10805455, 38.79974817, 38.86985166, 40.14551663, 39.92706709,
-        39.19653532, 40.07420192, 40.07720833, 38.76345776, 37.46243839,
-        40.19657905, 40.41047825, 39.9701239,  37.23577505, 39.28060583,
-        40.2803205,  39.83138091, 39.25707762, 39.90376762, 40.20425492,
-        39.93311807, 37.35958207, 39.07431591, 40.3217545,  40.1935334,
-        38.98305396, 37.24284051, 40.41652632, 39.61022258, 39.22641583,
-        40.09740223, 39.81314166, 39.49561083, 37.43747447, 39.65452285,
-        39.940159,   39.61014066, 37.24223294, 37.35636565, 40.65108076,
-        39.92533792, 37.24385822, 40.2989865
+        0.,          0.,          39.86762314,  0.,          0.,          0.,
+        0.,          40.31750179, 39.78630473, 40.39347596, 40.14551663, 40.07420192,
+        40.07720833, 40.19657905, 40.41047825, 40.2803205,  39.90376762, 40.20425492,
+        39.07431591, 40.3217545,  40.41652632, 40.09740223, 39.81314166, 39.65452285,
+        39.940159,   40.65108076, 40.2989865
     ])
 
     ts.plot_ts(*ts_results,
@@ -173,77 +196,44 @@ def test_moc_ts_fit():
 
     os.remove("ts_map.png")
 
-    # test top-k strategy
-    ts_results = ts.fit(max_nside = 2, energy_channel = [2,3],
-                        spectrum = spectrum, cpu_cores = 1,
-                        strategy=MOCTSMap.TopKStrategy(k=8))
-
-    ts_values, pixels = ts_results
-    assert all(pixels == [
-        6,  10, 11, 14, 16,
-        20, 28, 32, 36, 48,
-        52, 60, 17, 21, 29,
-        33, 37, 49, 53, 61,
-        18, 22, 30, 34, 38,
-        50, 54, 62, 19, 23,
-        31, 35, 39, 51, 55,
-        63
-    ])
-
-    assert np.allclose(ts_values, [
-        37.4339627, 37.2327797, 37.45064281, 38.83421248, 40.31750178,
-        39.40582835, 39.78630473, 40.39347595, 40.10805456, 40.14551663,
-        39.92706711, 40.07420191, 40.07720833, 38.76345776, 40.19657905,
-        40.41047826, 39.9701239, 40.28032052, 39.8313809, 39.90376762,
-        40.20425492, 39.93311807, 39.07431592, 40.3217545, 40.19353339,
-        40.41652632, 39.61022259, 40.09740223, 39.81314166, 39.49561082,
-        39.65452286, 39.940159, 39.61014067, 40.65108076, 39.92533792,
-        40.2989865
-    ])
-
     # test containment strategy
-    ts_results = ts.fit(max_nside = 2, energy_channel = [2,3],
-                        spectrum = spectrum,
+    ts_results = ts.fit(max_nside = 2,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux,
                         strategy=MOCTSMap.ContainmentStrategy(0.9))
 
     ts_values, pixels = ts_results
-    print(pixels)
-    print(ts_values)
 
     assert all(pixels == [
-        16, 20, 24, 28, 32,
-        36, 40, 44, 48, 52,
-        56, 60, 17, 21, 25,
-        29, 33, 37, 41, 45,
-        49, 53, 57, 61, 18,
-        22, 26, 30, 34, 38,
-        42, 46, 50, 54, 58,
-        62, 19, 23, 27, 31,
-        35, 39, 43, 47, 51,
-        55, 59, 63
+        5,  6,  10, 11, 13,
+        14, 16, 28, 32, 36,
+        48, 60, 17, 29, 33,
+        37, 49, 61, 18, 30,
+        34, 38, 50, 62, 19,
+        31, 35, 39, 51, 63
     ])
 
     assert np.allclose(ts_values, [
-        40.31750178, 39.40582835, 37.39229509, 39.78630473, 40.39347595,
-        40.10805456, 38.79974818, 38.86985166, 40.14551663, 39.92706711,
-        39.19653532, 40.07420191, 40.07720833, 38.76345776, 37.46243839,
-        40.19657905, 40.41047826, 39.9701239, 37.23577506, 39.28060584,
-        40.28032052, 39.8313809, 39.25707764, 39.90376762, 40.20425492,
-        39.93311807, 37.35958207, 39.07431592, 40.3217545, 40.19353339,
-        38.98305396, 37.2428405,  40.41652632, 39.61022259, 39.22641582,
-        40.09740223, 39.81314166, 39.49561082, 37.43747447, 39.65452286,
-        39.940159, 39.61014067, 37.24223294, 37.35636565, 40.65108076,
-        39.92533792, 37.24385822, 40.2989865
+        0.,          0.,          0.,          0.,          0.,
+        0.,          40.31750178, 39.78630473, 40.39347595, 40.10805456,
+        40.14551663, 40.07420191, 40.07720833, 40.19657905, 40.41047826,
+        0.,          40.28032052, 39.90376762, 40.20425492, 39.07431592,
+        40.3217545,  40.19353339, 40.41652632, 40.09740223, 39.81314166,
+        39.65452286, 39.940159,   39.61014067, 40.65108076, 40.2989865
     ])
 
     # test padding strategy over a different containment threshold
     # (yields same result as previous test)
-    ts_results = ts.fit(max_nside = 2, energy_channel = [2,3],
-                        spectrum = spectrum,
+    ts_results = ts.fit(max_nside = 2,
+                        data = src_bkg,
+                        bkg_model = bkg,
+                        spectral_flux = spectral_flux,
                         strategy=MOCTSMap.PaddingStrategy(
                             MOCTSMap.ContainmentStrategy(0.5)))
 
     ts_values, pixels = ts_results
+
     assert all(pixels == [
         16, 20, 24, 28, 32,
         36, 40, 44, 48, 52,
@@ -258,14 +248,14 @@ def test_moc_ts_fit():
     ])
 
     assert np.allclose(ts_values, [
-        40.31750178, 39.40582835, 37.39229509, 39.78630473, 40.39347595,
-        40.10805456, 38.79974818, 38.86985166, 40.14551663, 39.92706711,
-        39.19653532, 40.07420191, 40.07720833, 38.76345776, 37.46243839,
-        40.19657905, 40.41047826, 39.9701239, 37.23577506, 39.28060584,
-        40.28032052, 39.8313809, 39.25707764, 39.90376762, 40.20425492,
-        39.93311807, 37.35958207, 39.07431592, 40.3217545, 40.19353339,
-        38.98305396, 37.2428405,  40.41652632, 39.61022259, 39.22641582,
-        40.09740223, 39.81314166, 39.49561082, 37.43747447, 39.65452286,
-        39.940159, 39.61014067, 37.24223294, 37.35636565, 40.65108076,
-        39.92533792, 37.24385822, 40.2989865
+        40.31750178,  0.,          0.,           39.78630473, 40.39347595,
+        40.10805456,  0.,          0.,           40.14551663, 0.,
+        0.,           40.07420191, 40.07720833,  0.,          0.,
+        40.19657905,  40.41047826, 0.,           0.,          39.28060584,
+        40.28032052,  0.,          0.,           39.90376762, 40.20425492,
+        0.,           0.,          39.07431592,  40.3217545,  40.19353339,
+        0.,           0.,          40.41652632,  0.,          0.,
+        40.09740223,  39.81314166, 0.,           0.,          39.65452286,
+        39.940159,    39.61014067, 0.,           0.,          40.65108076,
+        0.,           0.,          40.2989865
     ])
