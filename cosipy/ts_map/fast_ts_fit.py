@@ -12,7 +12,7 @@ from mhealpy import HealpixBase
 
 from astropy.time import Time
 
-from cosipy import SpacecraftFile
+from cosipy import SpacecraftHistory
 
 from .fast_norm_fit import FastNormFit as fnf
 
@@ -40,7 +40,7 @@ class FastTSMap():
         ----------
         response : FullDetectorResponse or GalacticResponse
             Detector response
-        orientation : cosipy.SpacecraftFile, optional
+        orientation : cosipy.SpacecraftHistory, optional
             Orientation history of spacecraft; required for "local"
             cds_frame, not used if frame is "galactic"
         cds_frame : str, optional
@@ -206,7 +206,6 @@ class FastTSMap():
         """
 
         if self._cds_frame == FastTSMap.Frame.LOCAL:
-
             # get list of HEALPix pixels with nonzero exposure from source
             pixels, exposures = \
                 self._orientation.get_exposure(source = source,
@@ -387,8 +386,8 @@ class FastTSMap():
 
         # add weights (currently just # of occurrences) for each bin
         valid_cells, data_cds_array = \
-            SpacecraftFile._sparse_sum_duplicates(flat_event_bins,
-                                                  dtype=self._response.dtype)
+            SpacecraftHistory._sparse_sum_duplicates(flat_event_bins,
+                                                     dtype=self._response.dtype)
 
         # keep only bkg model bins for which data event count is
         # nonzero

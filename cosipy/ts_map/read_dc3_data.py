@@ -27,9 +27,11 @@ def read_transient_params(params_path):
 
     Returns
     -------
-    tuple of (spectrum, true location)
+    tuple of (spectrum, true location, src_ival, fluence)
         - spectrum is an astromodels Spectrum object
         - true location is an astropy SkyCoord
+        - src_ival is a pair (start_time, end_time) for burst interval
+        - fluence is a floating-point value -- total fluence of burst
     """
 
     with open(params_path, "r") as params:
@@ -86,11 +88,16 @@ def read_transient_params(params_path):
         spectrum.piv.value = spec_params["piv"]
         spectrum.piv.unit = u.keV
 
-        # read light curve info for transient
-        ts      = float(light_curve[1])
-        src_len = float(light_curve[2])
-        fluence = float(light_curve[3])
-        src_ival = (ts, ts + src_len)
+        if len(light_curve) < 4:
+            fluence = 0.
+            src_ival = (0., 0.)
+        else:
+            # read light curve info for transient
+            ts      = float(light_curve[1])
+            src_len = float(light_curve[2])
+            fluence = float(light_curve[3])
+            src_ival = (ts, ts + src_len)
+
         return spectrum, true_src_loc, src_ival, fluence
 
 
@@ -130,8 +137,9 @@ def read_unbinned_events(data_path, max_events = None):
     events = { field : np.array(data[field])
                for field in ("time", "Em", "Phi", "Psi", "Chi") }
 
-    events["time"] = \
-        events["time"].astype(np.float64) + data.attrs["time_offset"]
+    events["time"] = events["time"].astype(np.float64)
+    if "time_offset" in data.attrs:
+        events["time"] += data.attrs["time_offset"]
 
     data.close()
 

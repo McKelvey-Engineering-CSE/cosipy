@@ -211,7 +211,7 @@ class MOCTSMap(FastTSMap):
             return res
 
         if strategy is None:
-            self.strategy = self.TopKStrategy(k=8)
+            self.strategy = self.PaddingStrategy(self.ContainmentStrategy(0.999))
         else:
             self.strategy = strategy
 
@@ -330,7 +330,7 @@ class MOCTSMap(FastTSMap):
             return res
 
         if strategy is None:
-            self.strategy = self.TopKStrategy(k=8)
+            self.strategy = self.PaddingStrategy(self.ContainmentStrategy(0.999))
         else:
             self.strategy = strategy
 
@@ -338,7 +338,7 @@ class MOCTSMap(FastTSMap):
             numba.set_num_threads(cpu_cores)
 
         if self._cds_frame == FastTSMap.Frame.LOCAL:
-            orientation = self._orientation.source_interval(Time(ts, format="unix"),
+            orientation = self._orientation.select_interval(Time(ts, format="unix"),
                                                             Time(te, format="unix"))
         else:
             orientation = None
@@ -358,7 +358,7 @@ class MOCTSMap(FastTSMap):
             if self._cds_frame == FastTSMap.Frame.LOCAL:
                 # compute possible source dirs in same frame
                 # we will use to translate them to local-frame paths
-                hyp_frame = self._orientation.frame
+                hyp_frame = self._orientation.attitude.frame
             else: # galactic frame
                 hyp_frame = "galactic"
 
