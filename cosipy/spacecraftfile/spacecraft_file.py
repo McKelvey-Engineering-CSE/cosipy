@@ -857,8 +857,13 @@ class SpacecraftHistory:
         # changed the format.  Bring it back
         new_obstime.format = self.obstime.format
 
-        return self.__class__(new_obstime, new_attitude, new_location,
-                              new_livetime)
+        new_history = self.__class__(new_obstime, new_attitude, new_location,
+                                     new_livetime)
+
+        # make sure new object uses same earth occ caching as old object
+        new_history.cache_earth_occ = self.cache_earth_occ
+
+        return new_history
 
     def apply_gti(self, gti: GoodTimeInterval) -> "SpacecraftHistory":
         """
@@ -908,7 +913,13 @@ class SpacecraftHistory:
         new_attitude = Attitude.from_matrix(new_attitude, frame=self._attitude.frame)
         new_obstime.format = self.obstime.format
 
-        return self.__class__(new_obstime, new_attitude, new_location, new_livetime)
+        new_history = self.__class__(new_obstime, new_attitude, new_location,
+                                     new_livetime)
+
+        # make sure new object uses same earth occ caching as old object
+        new_history.cache_earth_occ = self.cache_earth_occ
+
+        return new_history
 
     def get_earth_occ(self, target_coord: SkyCoord):
         """
@@ -922,7 +933,7 @@ class SpacecraftHistory:
 
         Parameters
         ----------
-        target_coord:
+        target_coord: SkyCoord
           source direction
 
         Returns
@@ -963,9 +974,15 @@ class SpacecraftHistory:
             min_angle_cos = self._min_angle_cos
             ez_cart = self._ez_cart
         else:
+            dist_earth_center = self._gcrs.spherical.distance.km
+            if np.any(dist_earth_center < self._r_earth):
+                logger.warning("computed altitude for orientation is negative!"
+                               "clamping to 0")
+                dist_earth_center = np.max(dist_earth_center, self._r_earth)
+
             # sine of angle between lines through satellite (1) normal
             # to earth and (2) tangent to earth
-            sin_earth_angle = self._r_earth / self._gcrs.spherical.distance.km
+            sin_earth_angle = self._r_earth / dist_earth_center
 
             # cosine of maximum unoccluded angle for source w/r to
             # satellite's earth zenith; that is,

@@ -268,7 +268,14 @@ def test_select_interval():
     ori_path = test_data.path / "20280301_first_10sec.fits"
     ori = SpacecraftHistory.open(ori_path)
 
+    # verify that earth occultation caching is preserved under selection
+    ori.cache_earth_occ = False
     new_ori = ori.select_interval(ori.tstart+0.1*u.s, ori.tstart+2.1*u.s)
+    assert not new_ori.cache_earth_occ
+
+    ori.cache_earth_occ = True
+    new_ori = ori.select_interval(ori.tstart+0.1*u.s, ori.tstart+2.1*u.s)
+    assert new_ori.cache_earth_occ
 
     x, y, z = new_ori.attitude.as_axes()
 
@@ -349,3 +356,31 @@ def test_ori_to_fits(tmp_path):
     # test overwriting behavior
     with raises(RuntimeError):
         ori.write_fits(tmp_path / "ori_test.fits", compress=True)
+
+
+def test_earth_occ():
+
+    ori_path = test_data.path / "20280301_first_10sec.fits"
+
+    ori = SpacecraftHistory.open(ori_path)
+
+    src = SkyCoord(l=180, b=67.1, unit="deg", frame="galactic")
+
+    occ = ori.get_earth_occ(src)
+
+    assert np.array_equal(occ, [ True, True,  True,  True,  True,
+                                 True, False, False, False, False,
+                                 False ])
+
+    ori.cache_earth_occ = True
+
+    _     = ori.get_earth_occ(src) # computes cached data
+    occ_c = ori.get_earth_occ(src) # uses cached data
+
+    assert np.array_equal(occ, occ_c)
+
+    ori.cache_earth_occ = False
+
+    occ_n = ori.get_earth_occ(src)
+
+    assert np.array_equal(occ, occ_n)
