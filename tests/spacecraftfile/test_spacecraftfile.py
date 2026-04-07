@@ -12,6 +12,9 @@ from cosipy import SpacecraftHistory
 
 from pytest import raises
 
+from cosipy.event_selection import GoodTimeInterval
+
+
 def test_get_time():
 
     ori_path = test_data.path / "20280301_first_10sec.fits"
@@ -313,6 +316,36 @@ def test_select_interval():
     assert new_ori.tstop == ori.tstart + 0.6*u.s
     assert new_ori.nintervals == 1
     assert np.isclose(new_ori.livetime[0], 0.2*u.s)
+
+def test_apply_gti():
+
+    ori_path = test_data.path / "20280301_first_10sec.fits"
+    ori = SpacecraftHistory.open(ori_path)
+
+    def assert_from_dt_sec(start_dt_sec, stop_dt_sec, expected_new_obstime_dt_sec):
+        gti = GoodTimeInterval(ori.tstart+start_dt_sec*u.s,
+                               ori.tstart+stop_dt_sec*u.s)
+
+        new_ori = ori.apply_gti(gti)
+
+        new_obstime_dt_sec = (new_ori.obstime - ori.tstart).to_value(u.second)
+
+        assert np.allclose(new_obstime_dt_sec, new_obstime_dt_sec)
+
+    start_dt_sec = [0.1, 9]
+    stop_dt_sec = [2.1, 10]
+    expected_new_obstime_dt_sec = [0.1, 1., 2., 2.1, 9., 10.]
+    assert_from_dt_sec(start_dt_sec, stop_dt_sec, expected_new_obstime_dt_sec)
+
+    start_dt_sec = 0
+    stop_dt_sec = 2.1
+    expected_new_obstime_dt_sec = [0., 1., 2., 2.1]
+    assert_from_dt_sec(start_dt_sec, stop_dt_sec, expected_new_obstime_dt_sec)
+
+    start_dt_sec = 2.1
+    stop_dt_sec = 4.5
+    expected_new_obstime_dt_sec = [2.1, 3, 4, 4.5]
+    assert_from_dt_sec(start_dt_sec, stop_dt_sec, expected_new_obstime_dt_sec)
 
 
 def test_ori_to_fits(tmp_path):
