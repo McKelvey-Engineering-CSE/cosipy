@@ -326,7 +326,14 @@ def test_apply_gti():
         gti = GoodTimeInterval(ori.tstart+start_dt_sec*u.s,
                                ori.tstart+stop_dt_sec*u.s)
 
+        # verify that earth occultation caching is preserved under gti
+        ori.cache_earth_occ = False
         new_ori = ori.apply_gti(gti)
+        assert not new_ori.cache_earth_occ
+
+        ori.cache_earth_occ = True
+        new_ori = ori.apply_gti(gti)
+        assert new_ori.cache_earth_occ
 
         new_obstime_dt_sec = (new_ori.obstime - ori.tstart).to_value(u.second)
 
