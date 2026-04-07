@@ -52,11 +52,10 @@ def test_ts_fit():
                         spectral_flux = spectral_flux)
 
     assert np.allclose(ts_results,
-                       [134.70412297, 0.,           0.,
-                        137.91480599, 134.05715839, 133.01973443,
-                        0.,           0.,           134.89665176,
-                        0.,           0.,           135.37111622])
-
+                       [0.,           0.,           132.08983654,
+                        137.91480598, 134.05715839, 0.,
+                        131.2548504,  132.21155318, 134.89665176,
+                        134.50732839, 135.50622357, 135.37111623])
 
     ts = FastTSMap(response = response,
                    orientation = ori,
@@ -72,10 +71,10 @@ def test_ts_fit():
                         cpu_cores = 1)
 
     assert np.allclose(ts_results,
-                       [40.18628386, 0.,          0.,
-                        39.8845985,  40.20132198, 39.86762315,
-                        0.,          0.,          40.54884861,
-                        0.,          0.,          39.99131767])
+                       [0.,          0.,         37.4339627,
+                        39.88459849, 40.20132198,  0.,
+                        37.2327797,  37.4506428,  40.54884861,
+                        39.69773074, 38.83421249, 39.99131767])
 
     ts.plot_ts(ts_results,
                skycoord = SkyCoord(l=0, b=0, unit=u.deg, frame="galactic"))
@@ -157,16 +156,17 @@ def test_moc_ts_fit():
     spectral_flux = get_integrated_spectral_model(spectrum,
                                                   response.axes["Ei"])
 
-    # test default top-k strategy.  Note that this test can
-    # fail if the "top-k" method breaks ties differently than
-    # it did when the test-case output was originally collected!
-    # So this test might not be very reproducible, in contrast
-    # to the threshold-based tests below.
+    # test top-k strategy.  Note that this test can fail if the
+    # "top-k" method breaks ties differently than it did when the
+    # test-case output was originally collected!  So this test might
+    # not be very reproducible, in contrast to the threshold-based
+    # tests below.
     ts_results = ts.fit(max_nside = 2,
                         data = src_bkg,
                         bkg_model = bkg,
                         spectral_flux = spectral_flux,
-                        cpu_cores = 1)
+                        cpu_cores = 1,
+                        strategy=MOCTSMap.TopKStrategy(8))
 
     ts_values, pixels = ts_results
 
