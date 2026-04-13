@@ -866,12 +866,11 @@ class PSRCache:
 
         """
 
-        # get raw CDS counts for pixel, trimmed by Em slice size is Ei
-        # x (Em, Phi, PsiChi) in some order
+        # get raw CDS counts for pixel, trimmed by Em slice size
+        # is Ei x CDS dims
         counts = self.response.get_counts(p, self.em_slice)
 
-        # sum over Em dimension and convert to float : Ei x Phi/PsiChi
-        #counts = np.sum(counts, axis=self.em_axis, dtype=self.response.dtype)
+        # convert to float : Ei x CDS dims
         counts = counts.astype(self.response.dtype, copy=False)
 
         # linearize CDS : Ei x CDS voxels. Note that we ensure in
