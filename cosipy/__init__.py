@@ -32,7 +32,9 @@ def _with_ml():
     from importlib.util import find_spec
     ml_pkg = [
         "torch",
-        "torch_geometric"
+        "torch_geometric", 
+        "normflows", 
+        "sphericart.torch"
     ]
     with_ml = True
     for pkg in ml_pkg:
