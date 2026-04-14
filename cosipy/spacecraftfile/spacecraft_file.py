@@ -78,13 +78,13 @@ class SpacecraftHistory:
         self._t0 = self._obstime[0]
         self._obstime_dt_jd = self._get_dt_jd(obstime)
 
-        time_axis = Axis(self._obstime_dt_jd, copy = False, label= 'obstime_dt_jd')
+        self._time_axis = Axis(self._obstime_dt_jd, copy = False,
+                               label= 'obstime_dt_jd')
 
         if livetime is None:
             livetime = time_axis.widths.to(u.s)
 
-        self._livetime_hist = Histogram(time_axis, livetime,
-                                        copy_contents = False)
+        self._livetime = livetime
 
         if not (location.shape == () or location.shape == obstime.shape):
             raise ValueError(f"'location' must be a scalar or have the same length as the timestamps ({obstime.shape}), but it has shape ({location.shape})")
@@ -104,11 +104,11 @@ class SpacecraftHistory:
 
     @property
     def nintervals(self):
-        return self._livetime_hist.nbins
+        return len(self._livetime)
 
     @property
     def intervals_duration(self):
-        return Quantity(self._livetime_hist.axis.widths, u.day, copy = False)
+        return Quantity(self._time_axis.widths, u.day, copy = False)
 
     @property
     def intervals_tstart(self):
@@ -136,7 +136,7 @@ class SpacecraftHistory:
 
     @property
     def livetime(self):
-        return self._livetime_hist.contents
+        return self._livetime
 
     @property
     def attitude(self):
@@ -705,8 +705,8 @@ class SpacecraftHistory:
                                                self._gcrs[points[1]])
 
     def _cumulative_livetime(self, points, weights) -> u.Quantity:
-        cum_livetime_discrete = np.append(0 * self._livetime_hist.unit,
-                                          np.cumsum(self.livetime))
+        cum_livetime_discrete = np.append(0 * self._livetime.unit,
+                                          np.cumsum(self._livetime))
 
         up_to_tstart = cum_livetime_discrete[points[0]]
 
@@ -746,7 +746,7 @@ class SpacecraftHistory:
 
     def interp_weights(self, times: Time):
         times = self._get_dt_jd(times)
-        return self._livetime_hist.axis.interp_weights_edges(times)
+        return self._time_axis.interp_weights_edges(times)
 
     def interp(self, times: Time) -> 'SpacecraftHistory':
 
@@ -803,6 +803,8 @@ class SpacecraftHistory:
 
         """
 
+        from scipy.spatial.transform import Rotation as R
+
         if start is None:
             start = self.tstart
 
@@ -812,12 +814,15 @@ class SpacecraftHistory:
         if start < self.tstart or stop > self.tstop:
             raise ValueError(f"Input range ({start}-{stop}) is outside the SC history ({self.tstart}-{self.tstop})")
 
-        start_points, start_weights = self.interp_weights(start)
-        stop_points, stop_weights = self.interp_weights(stop)
+        points, weights = self.interp_weights(Time((start, stop)))
+        start_points = points[:,0]
+        stop_points  = points[:,1]
+        start_weights = weights[:,0]
+        stop_weights  = weights[:,1]
 
         # Center values
         new_obstime = self.obstime[start_points[1]:stop_points[1]]
-        new_attitude = self._attitude.as_matrix()[start_points[1]:stop_points[1]]
+        new_attitude = [ self._attitude[start_points[1]:stop_points[1]].rot ]
         new_location = self._gcrs[start_points[1]:stop_points[1]]
         new_livetime = self.livetime[start_points[1]:stop_points[0]]
 
@@ -834,8 +839,8 @@ class SpacecraftHistory:
             start_attitude = self._interp_attitude(start_weights[1],
                                                    self._attitude[start_points[0]],
                                                    self._attitude[start_points[1]])
-            new_attitude = np.append(start_attitude.as_matrix()[None],
-                                     new_attitude, axis=0)
+
+            new_attitude.insert(0, start_attitude.rot)
 
             start_location = self._interp_location(start_weights[1],
                                                    self._gcrs[start_points[0]],
@@ -856,11 +861,10 @@ class SpacecraftHistory:
         stop_attitude = self._interp_attitude(stop_weights[1],
                                               self._attitude[stop_points[0]],
                                               self._attitude[stop_points[1]])
-        new_attitude = np.append(new_attitude,
-                                 stop_attitude.as_matrix()[None],
-                                 axis=0)
-        new_attitude = Attitude.from_matrix(new_attitude,
-                                            frame=self._attitude.frame)
+        new_attitude.append(stop_attitude.rot)
+
+        new_attitude = Attitude(R.concatenate(new_attitude),
+                                frame=self._attitude.frame)
 
         stop_location = self._interp_location(stop_weights[1],
                                               self._gcrs[stop_points[0]],
@@ -1083,7 +1087,8 @@ class SpacecraftHistory:
             # zero out weights of time bins corresponding to occluded
             # pointings.  Assume occlusion at start of bin holds for
             # entire bin.
-            return np.where(is_occluded[:-1], 0*livetime.unit, livetime)
+            lt = np.where(is_occluded[:-1], 0, livetime.value)
+            return Quantity(lt, unit=livetime.unit, copy=False)
         else:
             return livetime
 
