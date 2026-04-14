@@ -340,9 +340,6 @@ class MOCTSMap(FastTSMap):
         if self._cds_frame == FastTSMap.Frame.LOCAL:
             orientation = self._orientation.select_interval(Time(ts, format="unix"),
                                                             Time(te, format="unix"))
-            # FIXME: select_interval should preserve cache setting
-            print("BEFORE", self._orientation.cache_earth_occ)
-            print("AFTER", orientation.cache_earth_occ)
         else:
             orientation = None
 
