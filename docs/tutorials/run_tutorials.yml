@@ -349,8 +349,8 @@ tutorials:
       wasabi_files:
         COSI-SMEX/develop/Data/Responses/ResponseContinuum.o3.e100_10000.b10log.s10396905069491.m2284.filtered.nonsparse.binnedimaging.imagingresponse.h5:
           checksum: 7121f094be50e7bfe9b31e53015b0e85
-        COSI-SMEX/DC3/Data/Orientation/DC3_final_530km_3_month_with_slew_1sbins_GalacticEarth_SAA.ori:
-          checksum: b87fd41b6c28a5c0c51448ce2964e57c
+        COSI-SMEX/develop/Data/Orientation/DC3_final_530km_3_month_with_slew_1sbins_GalacticEarth_SAA.fits:
+          checksum: 1b851c042acf4c909798e2401e9d2e38
         COSI-SMEX/DC3/Data/Sources/GalTotal_SA100_F98_3months_unbinned_data_filtered_with_SAAcut.fits.gz:
           checksum: 9fda5a7b15a90358abc2b886979f9fef
         COSI-SMEX/DC3/Data/Sources/GRB_bn081207680_3months_unbinned_data_filtered_with_SAAcut.fits.gz:
