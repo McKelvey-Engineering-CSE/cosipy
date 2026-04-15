@@ -12,6 +12,7 @@ If you are instead interested in an overview on how to use cosipy, see out `tuto
    :maxdepth: 3
    :caption: Contents:
 
+   interfaces
    response
    data_io
    spacecraftfile
