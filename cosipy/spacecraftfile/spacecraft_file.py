@@ -291,28 +291,25 @@ class SpacecraftHistory:
     @staticmethod
     def _find_time_index(time:Time, tstart:Time, tstop:Time):
 
-        if time.isscalar:
-            t0 = time
-        else:
-            t0 = time[0]
+        t0 = time if time.isscalar else time[0]
 
         time = (time - t0).jd
-        tstart = (tstart - t0).jd
-        tstop = (tstop - t0).jd
 
         if tstart is not None:
-            if tstop is not None:
-                start_idx, stop_idx = np.searchsorted(time, [tstart, tstop], side='right')
-            else:
-                start_idx = np.searchsorted(time, tstart, side='right')
-                stop_idx = time.size
+            tstart = (tstart - t0).jd
+            start_idx = np.searchsorted(time, tstart, side='right')
         else:
             start_idx = 0
+
+        if tstop is not None:
+            tstop = (tstop - t0).jd
             stop_idx = np.searchsorted(time, tstop, side='right')
+        else:
+            stop_idx = time.size
 
         # Include the full bin, but prevent an index error
         start_idx = max(0, start_idx - 1)
-        stop_idx = min(time.size, stop_idx + 1)
+        stop_idx  = min(time.size, stop_idx + 1)
 
         return start_idx, stop_idx
 
