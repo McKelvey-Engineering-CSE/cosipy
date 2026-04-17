@@ -290,8 +290,8 @@ class FastTSMap():
         """
 
         # make sure data and background CDS are ordered to match response
-        data = data.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
-        bkg_model = bkg_model.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
+        data = data.to_dense(copy=False).project(self.cds_order).astype(self._response.dtype, copy=False)
+        bkg_model = bkg_model.to_dense(copy=False).project(self.cds_order).astype(self._response.dtype, copy=False)
 
         # get the flattened data and background CDS arrays
         data_cds_array = self._get_cds_array(data, self._em_slice)
@@ -350,7 +350,7 @@ class FastTSMap():
         """
 
         # get the flattened background CDS array
-        bkg_model = bkg_model.todense().project(self.cds_order).astype(self._response.dtype, copy=False)
+        bkg_model = bkg_model.to_dense(copy=False).project(self.cds_order).astype(self._response.dtype, copy=False)
         bkg_model_cds_array = self._get_cds_array(bkg_model, self._em_slice)
 
         cds_axes = self._response.axes[self.cds_order]
