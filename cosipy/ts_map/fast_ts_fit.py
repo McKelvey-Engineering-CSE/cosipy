@@ -493,7 +493,8 @@ class FastTSMap():
         """
 
         if cpu_cores is not None:
-            numba.set_num_threads(cpu_cores)
+            numba.set_num_threads(min(cpu_cores,
+                                      numba.config.NUMBA_NUM_THREADS))
 
         if self._cds_frame == FastTSMap.Frame.LOCAL:
             orientation = self._orientation.source_interval(Time(ts, format="unix"),
