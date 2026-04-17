@@ -49,7 +49,7 @@ class ContinuumEstimationInterp:
 
         hist = Histogram.open(h5_file)
         projected = hist.project(['Em', 'Phi', 'PsiChi'])
-        data = projected.contents.todense()
+        data = projected.to_dense(copy=False).contents
 
         return projected, data
 
@@ -100,7 +100,7 @@ class ContinuumEstimationInterp:
 
         hist = Histogram.open(model_file)
         projected = hist.project(['Em', 'Phi', 'PsiChi'])
-        data = projected.contents.todense()
+        data = projected.to_dense(copy=False).contents
 
         return projected, data
 
@@ -199,8 +199,8 @@ class ContinuumEstimationInterp:
         energy = true_bg.axes['Em'].centers
         energy_err = true_bg.axes['Em'].widths / 2.0
 
-        true_plot = true_bg.project('Em').contents.todense()
-        est_plot = estimated_bg.project('Em').contents.todense()
+        true_plot = true_bg.project('Em').to_dense(copy=False).contents
+        est_plot = estimated_bg.project('Em').to_dense(copy=False).contents
 
         plt.loglog(energy, true_plot, ls="", marker="o", color="darkorange", label="BG true")
         plt.errorbar(energy, true_plot, xerr=energy_err, color="darkorange", ls="", marker="o", label="_nolabel_")
@@ -239,8 +239,8 @@ class ContinuumEstimationInterp:
         phi = true_bg.axes['Phi'].centers
         phi_err = true_bg.axes['Phi'].widths / 2.0
 
-        true_plot = true_bg.project('Phi').contents.todense()
-        est_plot = estimated_bg.project('Phi').contents.todense()
+        true_plot = true_bg.project('Phi').to_dense(copy=False).contents
+        est_plot = estimated_bg.project('Phi').to_dense(copy=False).contents
 
         plt.semilogy(phi, true_plot, ls="", marker="o", color="darkorange", label="BG true")
         plt.errorbar(phi, true_plot, xerr=phi_err, color="darkorange", ls="", marker="o", label="_nolabel_")
@@ -277,7 +277,7 @@ class ContinuumEstimationInterp:
 
         # Compare projection onto psichi:
         true_plot = true_bg.project('PsiChi')
-        true_plot_map = HealpixMap(base=HealpixBase(npix=true_plot.nbins), data=true_plot.contents.todense())
+        true_plot_map = HealpixMap(base=HealpixBase(npix=true_plot.nbins), data=true_plot.to_dense(copy=False).contents)
         plot, ax = true_plot_map.plot('mollview')
         plt.title("True BG")
         if show_plots == True:
@@ -286,7 +286,7 @@ class ContinuumEstimationInterp:
         plt.close()
 
         est_plot = estimated_bg.project('PsiChi')
-        est_plot_map = HealpixMap(base=HealpixBase(npix=est_plot.nbins), data=est_plot.contents.todense())
+        est_plot_map = HealpixMap(base=HealpixBase(npix=est_plot.nbins), data=est_plot.to_dense(copy=False).contents)
         plot, ax = est_plot_map.plot('mollview')
         plt.title("Estimated BG")
         if show_plots == True:
@@ -296,7 +296,7 @@ class ContinuumEstimationInterp:
 
         # Calculate percent diff:
         diff = (est_plot - true_plot) / true_plot
-        diff_plot_map = HealpixMap(base=HealpixBase(npix=diff.nbins), data=diff.contents.todense())
+        diff_plot_map = HealpixMap(base=HealpixBase(npix=diff.nbins), data=diff.to_dense(copy=False).contents)
         plot, ax = diff_plot_map.plot('mollview', **{"cmap": "bwr", "vmin": -0.3, "vmax": 0.3})
         plt.title("Comparison")
         if show_plots == True:
@@ -305,7 +305,7 @@ class ContinuumEstimationInterp:
         plt.close()
 
         # save data:
-        array = diff.contents.todense()
+        array = diff.to_dense(copy=False).contents
         self.write_csv(np.arange(array.shape[0]), array, "psichi_diff", x_label="psichi", y_label="diff")
 
         logger.info(f"Accuracy plots saved with prefix '{prefix}_...'")
@@ -493,7 +493,7 @@ class ContinuumEstimationInterp:
             return out
 
         # Loop over (Em, Phi) planes
-        # input_data_map is dense array from Histogram.project([...]).contents.todense()
+        # input_data_map is dense array from Histogram.project([...]).to_dense(copy=False).contents
         # shape expected: (nEm, nPhi, npix)
         nEm = inpainted.shape[0]
         nPhi = inpainted.shape[1]

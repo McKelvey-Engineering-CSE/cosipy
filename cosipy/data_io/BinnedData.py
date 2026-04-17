@@ -198,7 +198,8 @@ class BinnedData(UnBinnedData):
             logger.info(f"{each.label} unit: {each.unit}")
 
         # Get time binning information:
-        self.time_hist = self.binned_data.project('Time').todense(copy=False).contents
+        self.time_hist = self.binned_data.project('Time').to_dense(copy=False).contents
+
         self.num_time_bins = self.binned_data.axes['Time'].nbins
         self.time_bin_centers = self.binned_data.axes['Time'].centers
         self.time_bin_edges = self.binned_data.axes['Time'].edges
@@ -206,21 +207,24 @@ class BinnedData(UnBinnedData):
         self.total_time = self.time_bin_edges[-1] - self.time_bin_edges[0]
 
         # Get energy binning information:
-        self.energy_hist = self.binned_data.project('Em').todense(copy=False).contents
+        self.energy_hist = self.binned_data.project('Em').to_dense(copy=False).contents
+
         self.num_energy_bins = self.binned_data.axes['Em'].nbins
         self.energy_bin_centers = self.binned_data.axes['Em'].centers
         self.energy_bin_edges = self.binned_data.axes['Em'].edges
         self.energy_bin_widths = self.binned_data.axes['Em'].widths
 
         # Get Phi binning information:
-        self.phi_hist = self.binned_data.project('Phi').todense(copy=False).contents
+        self.phi_hist = self.binned_data.project('Phi').to_dense(copy=False).contents
+
         self.num_phi_bins = self.binned_data.axes['Phi'].nbins
         self.phi_bin_centers = self.binned_data.axes['Phi'].centers
         self.phi_bin_edges = self.binned_data.axes['Phi'].edges
         self.phi_bin_widths = self.binned_data.axes['Phi'].widths
 
         # Get PsiChi binning information:
-        self.psichi_hist = self.binned_data.project('PsiChi').todense(copy=False).contents
+        self.psichi_hist = self.binned_data.project('PsiChi').to_dense(copy=False).contents
+
         self.num_psichi_bins = self.binned_data.axes['PsiChi'].nbins
         self.psichi_bin_centers = self.binned_data.axes['PsiChi'].centers
         self.psichi_bin_edges = self.binned_data.axes['PsiChi'].edges
@@ -331,7 +335,7 @@ class BinnedData(UnBinnedData):
 
         # Make healpix map with binned data slice:
         h = self.binned_data.project('Em', 'Phi', 'PsiChi').slice[{'Em':Em, 'Phi':phi}].project('PsiChi')
-        m = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.todense(copy=False).contents)
+        m = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.to_dense(copy=False).contents)
 
         # Plot standard view:
         plot,ax = m.plot('mollview')
@@ -541,5 +545,3 @@ class EmCDSBinnedData(BinnedDataInterface):
     @property
     def axes(self) -> Axes:
         return self._data.axes
-
-

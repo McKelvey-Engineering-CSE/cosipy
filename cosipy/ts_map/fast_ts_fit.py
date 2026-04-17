@@ -110,6 +110,10 @@ class FastTSMap():
         if not all(ax in ("Em", "Phi", "PsiChi") for ax in self.cds_order):
             raise ValueError("Response CDS axes must be Em/Phi/PsiChi")
 
+        # make sure data and background CDS are ordered to match response
+        self._data = data.to_dense(copy=False).project(cds_order)
+        self._bkg_model = bkg_model.to_dense(copy=False).project(cds_order)
+
         self._fnf = fnf(max_iter=1000)
 
         self._max_cache_size = max_cache_size
