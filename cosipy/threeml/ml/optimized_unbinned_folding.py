@@ -459,7 +459,7 @@ class UnbinnedThreeMLPointSourceResponseIRFAdaptive(CachedUnbinnedThreeMLSourceR
                 batch_energies_buffer[:current_total]
                 )
             
-            eff_areas_flat = asarray(self._irf._effective_area_cm2(photons), dtype=np.float32)
+            eff_areas_flat = asarray(self._irf.effective_area_cm2(photons), dtype=np.float32)
             eff_areas_grid = eff_areas_flat.reshape(current_n_time, n_energy)
 
             total_area += np.einsum('ij,i,j->j', 
@@ -738,8 +738,8 @@ class UnbinnedThreeMLPointSourceResponseIRFAdaptive(CachedUnbinnedThreeMLSourceR
                 batch_phi_buffer[:current_total],
             )
             
-            eff_areas_flat = torch.as_tensor(asarray(self._irf._effective_area_cm2(photons), dtype=np.float32))
-            densities_flat = torch.as_tensor(asarray(self._irf._event_probability(photons, events), dtype=np.float32))
+            eff_areas_flat = torch.as_tensor(asarray(self._irf.effective_area_cm2(photons), dtype=np.float32))
+            densities_flat = torch.as_tensor(asarray(self._irf.event_probability(photons, events), dtype=np.float32))
 
             res_block = (densities_flat * eff_areas_flat).view(current_n, n_energy)
 

@@ -72,11 +72,16 @@ def test_update_response_worker_settings(mock_update_density):
     
     update_response_worker_settings(('area_batch_size', 500_000))
     assert NFWorkerState.area_module._model.batch_size == 500_000
-    mock_update_density.assert_called_with(('area_batch_size', 500_000))
+    mock_update_density.assert_not_called()
     
     update_response_worker_settings(('area_compile_mode', 'default'))
     assert NFWorkerState.area_module._model.compile_mode == 'default'
+    mock_update_density.assert_not_called()
     
+    update_response_worker_settings(('density_batch_size', 100))
+    mock_update_density.assert_called_with(('density_batch_size', 100))
+
+    mock_update_density.side_effect = ValueError("Unknown attribute: unknown")
     with pytest.raises(ValueError, match="Unknown attribute"):
         update_response_worker_settings(('unknown', 'value'))
     

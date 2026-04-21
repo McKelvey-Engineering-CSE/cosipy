@@ -60,8 +60,6 @@ class AreaApproximation:
         return self._model.evaluate_effective_area(*list_context, progress_callback=progress_callback)
 
 def update_response_worker_settings(args: Tuple[str, Union[int, CompileMode]]):
-    update_density_worker_settings(args)
-    
     attr, value = args
     
     if attr == 'area_batch_size':
@@ -69,7 +67,7 @@ def update_response_worker_settings(args: Tuple[str, Union[int, CompileMode]]):
     elif attr == 'area_compile_mode':
         NFWorkerState.area_module._model.compile_mode = value
     else:
-        raise ValueError(f"Unknown attribute: {attr}")
+        update_density_worker_settings(args)
 
 def init_response_worker(device_queue: mp.Queue, progress_queue: mp.Queue, major_version: int, area_input: Dict,
                          density_input: Dict, area_batch_size: int, density_batch_size: int,

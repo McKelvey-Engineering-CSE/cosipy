@@ -51,8 +51,8 @@ def mock_sc_history():
 def mock_irf():
     """Mocks FarFieldSpectralInstrumentResponseFunctionInterface"""
     irf = MagicMock(spec=FarFieldSpectralInstrumentResponseFunctionInterface)
-    irf._effective_area_cm2.return_value = np.ones(3)
-    irf._event_probability.return_value = np.ones(3)
+    irf.effective_area_cm2.return_value = np.ones(3)
+    irf.event_probability.return_value = np.ones(3)
     irf.active_pool = True 
     return irf
 
@@ -692,7 +692,7 @@ class TestUnbinnedThreeMLPointSourceResponseIRFAdaptive:
         irf_adaptive._sc_ori.livetime.to_value.return_value = np.ones(1)
         irf_adaptive._get_target_in_sc_frame = MagicMock(return_value=SkyCoord(l=[0,], b=[0,], unit='deg', frame='galactic').spherical)
         irf_adaptive._earth_occ = MagicMock(return_value=np.ones(1))
-        irf_adaptive._irf._effective_area_cm2 = MagicMock(return_value=np.ones(10))
+        irf_adaptive._irf.effective_area_cm2 = MagicMock(return_value=np.ones(10))
 
         with patch("cosipy.threeml.ml.optimized_unbinned_folding.tqdm") as mock_tqdm:
 
@@ -724,7 +724,7 @@ class TestUnbinnedThreeMLPointSourceResponseIRFAdaptive:
         
         irf_adaptive._earth_occ = MagicMock(return_value=np.zeros(n_time))
         
-        irf_adaptive._irf._effective_area_cm2 = MagicMock(return_value=np.ones(10) * 100.0)
+        irf_adaptive._irf.effective_area_cm2 = MagicMock(return_value=np.ones(10) * 100.0)
 
         irf_adaptive._compute_area()
 
@@ -753,7 +753,7 @@ class TestUnbinnedThreeMLPointSourceResponseIRFAdaptive:
         def side_effect(photons):
             return np.ones(len(photons.energy)) * 50.0
         
-        irf_adaptive._irf._effective_area_cm2 = MagicMock(side_effect=side_effect)
+        irf_adaptive._irf.effective_area_cm2 = MagicMock(side_effect=side_effect)
 
         irf_adaptive._compute_area()
 
@@ -761,7 +761,7 @@ class TestUnbinnedThreeMLPointSourceResponseIRFAdaptive:
         assert np.all(irf_adaptive._area_energy_node_cache >= 10.0)
         assert np.all(irf_adaptive._area_energy_node_cache <= 100.0)
 
-        assert irf_adaptive._irf._effective_area_cm2.call_count == 5
+        assert irf_adaptive._irf.effective_area_cm2.call_count == 5
         
         assert isinstance(irf_adaptive._area_cache, np.ndarray)
         assert irf_adaptive._area_cache.shape == (n_energy,)
@@ -799,8 +799,8 @@ class TestUnbinnedThreeMLPointSourceResponseIRFAdaptive:
         
         irf_adaptive._get_nodes = MagicMock(side_effect=mock_get_nodes)
         
-        irf_adaptive._irf._effective_area_cm2 = MagicMock(return_value=np.ones(batch_size))
-        irf_adaptive._irf._event_probability = MagicMock(return_value=np.ones(batch_size))
+        irf_adaptive._irf.effective_area_cm2 = MagicMock(return_value=np.ones(batch_size))
+        irf_adaptive._irf.event_probability = MagicMock(return_value=np.ones(batch_size))
 
         irf_adaptive._compute_density()
 
@@ -810,8 +810,8 @@ class TestUnbinnedThreeMLPointSourceResponseIRFAdaptive:
         assert irf_adaptive._irf_energy_node_cache.shape == (n_events, n_energy)
         assert np.all(irf_adaptive._irf_energy_node_cache == 50.0)
 
-        assert irf_adaptive._irf._effective_area_cm2.call_count == 3
-        assert irf_adaptive._irf._event_probability.call_count == 3
+        assert irf_adaptive._irf.effective_area_cm2.call_count == 3
+        assert irf_adaptive._irf.event_probability.call_count == 3
 
     def test_compute_density_memory_modes(self, irf_adaptive, mock_source):
         """Verify that reduce_memory correctly toggles between float32 and float64."""
@@ -828,8 +828,8 @@ class TestUnbinnedThreeMLPointSourceResponseIRFAdaptive:
         irf_adaptive._get_CDS_coordinates = MagicMock(return_value=(np.zeros(2), np.zeros(2)))
         irf_adaptive._get_nodes = MagicMock(return_value=(np.ones((2,2)), torch.ones((2,2))))
         irf_adaptive._earth_occ = MagicMock(return_value=np.ones(2))
-        irf_adaptive._irf._effective_area_cm2 = MagicMock(return_value=np.ones(4))
-        irf_adaptive._irf._event_probability = MagicMock(return_value=np.ones(4))
+        irf_adaptive._irf.effective_area_cm2 = MagicMock(return_value=np.ones(4))
+        irf_adaptive._irf.event_probability = MagicMock(return_value=np.ones(4))
 
         irf_adaptive._reduce_memory = True
         irf_adaptive._compute_density()
@@ -853,8 +853,8 @@ class TestUnbinnedThreeMLPointSourceResponseIRFAdaptive:
         
         irf_adaptive._get_CDS_coordinates = MagicMock(return_value=(np.zeros(1), np.zeros(1)))
         irf_adaptive._get_nodes = MagicMock(return_value=(np.ones((1,1)), torch.ones((1,1))))
-        irf_adaptive._irf._effective_area_cm2 = MagicMock(return_value=np.ones(1))
-        irf_adaptive._irf._event_probability = MagicMock(return_value=np.ones(1))
+        irf_adaptive._irf.effective_area_cm2 = MagicMock(return_value=np.ones(1))
+        irf_adaptive._irf.event_probability = MagicMock(return_value=np.ones(1))
         
         irf_adaptive._earth_occ = MagicMock(return_value=np.array([0.0]))
 
