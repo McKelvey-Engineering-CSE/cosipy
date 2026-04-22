@@ -236,8 +236,17 @@ if N_WARMUP < 1:
 
 sources = [sources[0]]*N_WARMUP + sources
 
-print("Opening detector response...", file=sys.stderr)
+print("Opening detector response and background model...", file=sys.stderr)
 response = GalacticResponse.open(response_path, dtype=np.float32)
+
+bkg_model = Histogram.open(bkg_model_path).project(("Em", "Phi", "PsiChi"))
+
+# Make sure the response and background agree on how the CDS
+# axes are binned.
+for ax in bkg_model.axes.labels:
+    if response.axes[ax] != bkg_model.axes[ax]:
+        raise RuntimeError(f"Response and background model axes '{ax}' differ!")
+
 
 # create mapping object
 mapper = MOCTSMap(response,
@@ -273,9 +282,7 @@ for i, signal_path in enumerate(sources):
     bkg_rate = get_bkg_prior_rate(background_path)
 
     # scale background model to estimated rate
-    bkg_model = Histogram.open(bkg_model_path)
-    bkg_model = bkg_model.project(("Em", "Phi", "PsiChi"))
-    bkg_model *= bkg_rate
+    bkg_model_scaled = bkg_model * bkg_rate
 
     # retrieve and combine the unbinned events
     signal_events = read_unbinned_events(signal_path)
@@ -306,7 +313,7 @@ for i, signal_path in enumerate(sources):
 
     # compute total expected bg fluence during transient
     # based on estimated end time
-    bkg_model *= te - ts
+    bkg_model_scaled *= te - ts
 
     # compute (rough!) Ei spectral flux approximation as a histogram of the
     # Em values in the observed events
@@ -317,14 +324,14 @@ for i, signal_path in enumerate(sources):
                               unit=1/(u.s * u.cm**2),
                               dtype=np.float32)
 
-    #m_llrs = mapper.fit_unbinned(ts, te, events, bkg_model,
+    #m_llrs = mapper.fit_unbinned(ts, te, events, bkg_model_scaled,
     #                             spectral_flux,
     #                             nside = MAP_NSIDE,
     #                             cpu_cores = NUM_CPUS,
     #m_pix = hp.nest2uniq(nside=MAP_NSIDE,
     #                     ipix=np.arange(len(m_llrs), dtype=int))
 
-    m_llrs, m_pix = mapper.fit_unbinned(ts, te, events, bkg_model,
+    m_llrs, m_pix = mapper.fit_unbinned(ts, te, events, bkg_model_scaled,
                                         spectral_flux,
                                         max_nside = MAP_NSIDE,
                                         strategy = moc_strategy,
