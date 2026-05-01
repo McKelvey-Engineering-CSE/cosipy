@@ -1434,3 +1434,33 @@ class SpacecraftHistory:
         lon   = np.arctan2(v[:,1], v[:,0])
         colat = np.arccos(v[:,2])
         return (lon, colat)
+    
+    def update_ephemeris(self, ephemeris, intervals):
+        """
+        Adjust the mission livetime in-place based on a pulsar phase selection.
+
+        Parameters
+        ----------
+        ephemeris : PhaseEphemeris
+            An object adhering to the PhaseEphemeris Protocol.
+        intervals : list of tuple of float
+            A list of (start_phase, stop_phase) intervals.
+        """
+        exposed_durations = ephemeris.get_duty_cycle(
+            self.intervals_tstart, 
+            self.intervals_tstop, 
+            intervals
+        )
+        
+        bin_durations = (self.intervals_tstop - self.intervals_tstart).to(u.s)
+        
+        fraction = np.zeros_like(bin_durations.value)
+        valid_bins = bin_durations > 0
+        fraction[valid_bins] = (exposed_durations[valid_bins] / bin_durations[valid_bins]).decompose().value
+        
+        if hasattr(self, '_livetime_hist') and self._livetime_hist is not None:
+            # Legacy handling if a histpy object was manually injected
+            self._livetime_hist.contents[:] = self._livetime_hist.contents * fraction
+        else:
+            # Standard cosipy SpacecraftHistory storage natively uses _livetime
+            self._livetime = self.livetime * fraction

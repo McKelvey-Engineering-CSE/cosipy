@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+import astropy.units as u
 from astropy.io import fits
 
 logger = logging.getLogger(__name__)
@@ -8,14 +9,11 @@ class PhaseSelector:
     """
     Selects events based on a list of pulsar phase intervals. 
     Optimized for FITS processing via NumPy vectorization.
-    """
-    def __init__(self, intervals):
-        """
-        Args:
-            intervals (list of tuples): List of (pstart, pstop) ranges.
-                Example: [(0.1, 0.2), (0.8, 0.9)]
-        """
-        self.intervals = self._validate_intervals(intervals)
+    """        
+    def __init__(self, intervals, ephemeris=None):
+        self.ephemeris = ephemeris
+        from .ephemeris import PulsarTimingModel
+        self.intervals = PulsarTimingModel.validate_intervals(intervals)
 
     def _validate_intervals(self, intervals):
         """Ensures all phase values are strictly within [0, 1] and start < stop."""

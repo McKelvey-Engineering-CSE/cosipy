@@ -424,3 +424,33 @@ def test_earth_occ():
     occ_n = ori.get_earth_occ(src)
 
     assert np.array_equal(occ, occ_n)
+
+class MockTimingModel:
+    """A dummy protocol object to safely test SpacecraftHistory exposure scaling."""
+    def get_duty_cycle(self, start, stop, intervals):
+        # Always return exactly 40% of the bin duration
+        return (stop - start).to(u.s) * 0.40
+
+def test_update_ephemeris_scaling():
+    """Test that SpacecraftHistory natively scales its exposure array in-place."""
+    
+    # Load the standard 10-second test file
+    ori_path = test_data.path / "20280301_first_10sec.ori"
+    ori = SpacecraftHistory.open(ori_path)
+    
+    # Extract the original livetime array (should be ~1.0s per bin)
+    original_livetime = np.copy(ori.livetime.to_value(u.s))
+    
+    # Initialize our dummy protocol and arbitrary intervals
+    dummy_model = MockTimingModel()
+    intervals = [(0.0, 0.4)] 
+    
+    # Run the native update method!
+    ori.update_ephemeris(dummy_model, intervals)
+    
+    # Verify the math: Every bin in the new livetime should be exactly 40% 
+    # of what it originally was
+    np.testing.assert_allclose(
+        ori.livetime.to_value(u.s), 
+        original_livetime * 0.40
+    )

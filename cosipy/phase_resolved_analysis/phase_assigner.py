@@ -1,61 +1,27 @@
 import logging
+import warnings
 import numpy as np
 from astropy.io import fits
+from astropy.time import Time
 
 logger = logging.getLogger(__name__)
 
 class PhaseAssigner:
-    """Calculates and assigns pulsar phases to FITS event data.
-
-    This class parses a pulsar timing model (.par) file to retrieve the spin 
-    frequency and applies a simple folding algorithm to Mission Elapsed Time (MET) 
-    columns within FITS files. It is optimized for frequency-only ephemerides.
-
-    Attributes:
-        f0 (float): The pulsar spin frequency (F0) in Hertz.
-    """
-
-    def __init__(self, par_file):
-        """Initializes the assigner with a spin frequency from a parameter file.
-
-        Args:
-            par_file (str): Path to the pulsar ephemeris (.par) file.
-
-        Raises:
-            ValueError: If the 'F0' parameter is not found within the provided file.
+    def __init__(self, ephemeris):
         """
-        self.f0 = self._extract_f0(par_file)
-        logger.info(f"Loaded Frequency: {self.f0} Hz")
-
-    def _extract_f0(self, path):
-        """Scans a .par file to locate and extract the spin frequency (F0).
-
-        This helper handles standard pulsar timing file formats, including 
-        Fortran-style double precision exponents (replacing 'D' with 'E').
-
-        Args:
-            path (str): The file system path to the .par file.
-
-        Returns:
-            float: The extracted spin frequency in Hz.
-
-        Raises:
-            ValueError: If the file does not contain a line starting with 'F0'.
+        Parameters
+        ----------
+        ephemeris : PhaseEphemeris
+            An instantiated object that adheres to the PhaseEphemeris Protocol.
         """
-        with open(path, 'r') as f:
-            for line in f:
-                parts = line.split()
-                if parts and parts[0].upper() == 'F0':
-                    # Convert Fortran 'D' notation to standard scientific 'E' notation
-                    return float(parts[1].replace('D', 'E'))
-        raise ValueError(f"F0 (spin frequency) missing in {path}")
+        self.ephemeris = ephemeris
 
     def add_phase_column(self, input_fits, output_fits=None):
         """Calculates pulsar phases and injects them as a new column in a FITS file.
 
-        The phase calculation follows a standard simple folding algorithm:
-        $$\text{Phase} = (T \times F_0) \pmod{1.0}$$
-        where $T$ is the time tag and $F_0$ is the spin frequency.
+        This method reads the time tags from the event data, converts them from 
+        Mission Elapsed Time (MET) into absolute Astropy Time objects, and 
+        delegates the phase calculation to the provided PhaseEphemeris protocol.
 
         Args:
             input_fits (str): Path to the source FITS file containing event data.
@@ -64,29 +30,43 @@ class PhaseAssigner:
 
         Returns:
             str: The path to the saved FITS file.
-
-        Note:
-            This method specifically looks for 'TIME' or 'TimeTags' in the 
-            Binary Table extension (index 1). If 'PULSE_PHASE' already exists, 
-            it will be updated with the new calculations.
         """
+        warnings.warn(
+            "CAVEAT: The time coordinate system in the event FITS file is currently assumed "
+            "to be compatible with the pulsar timing model (e.g., Mission Elapsed Time). "
+            "The exact time definition (UTC, TT, etc.) and reference epoch for COSI data "
+            "and MEGAlib simulations are not yet fully standardized. Please manually ensure "
+            "your ephemeris and data time systems align to avoid phase shifts.",
+            UserWarning
+        )
         with fits.open(input_fits) as hdul:
             data = hdul[1].data
             header = hdul[1].header
             
-            # Extract time tags—check for standard column naming conventions
+            # 1. Extract raw time tags (Mission Elapsed Time in seconds)
             if 'TIME' in data.dtype.names:
-                times = data['TIME']
+                times_raw = data['TIME']
             elif 'TimeTags' in data.dtype.names:
-                times = data['TimeTags']
+                times_raw = data['TimeTags']
             else:
                 raise KeyError("Could not find a valid time column ('TIME' or 'TimeTags').")
 
-            # Simple folding: (T * F) mod 1
-            # Using vectorized NumPy operations for speed on large datasets
-            phase = (times * self.f0) % 1.0
+            # 2. Convert relative FITS MET into absolute Astropy Time objects
+            # Grab the Mission Epoch from the header (defaulting to COSI/Fermi standard)
+            mjdrefi = header.get('MJDREFI', 51910.0) 
+            mjdreff = header.get('MJDREFF', 7.428703703703703e-4)
             
-            # Column Management: Update existing or append new
+            # Convert MET seconds into absolute MJD days
+            times_mjd = (mjdrefi + mjdreff) + (times_raw / 86400.0)
+            
+            logger.info("Converting raw FITS times to Astropy Time objects...")
+            absolute_times = Time(times_mjd, format='mjd', scale='tdb')
+
+            # 3. Calculate phase using the PhaseEphemeris protocol!
+            logger.info("Calculating absolute phases...")
+            phase = self.ephemeris.get_phase(absolute_times)
+            
+            # 4. Column Management: Update existing or append new
             if 'PULSE_PHASE' in data.dtype.names:
                 logger.info("Overwriting existing PULSE_PHASE column.")
                 data['PULSE_PHASE'] = phase
@@ -98,7 +78,6 @@ class PhaseAssigner:
 
             # File I/O
             out = output_fits or input_fits
-            # Preserve the PrimaryHDU (hdul[0]) while updating the table
             fits.HDUList([hdul[0], new_hdu]).writeto(out, overwrite=True)
             logger.info(f"PULSE_PHASE assigned to: {out}")
             return out

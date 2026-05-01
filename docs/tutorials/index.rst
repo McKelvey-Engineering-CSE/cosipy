@@ -98,8 +98,3 @@ List of tutorials and contents, as a link to the corresponding Python notebook i
    Continuum Background Estimation <background_estimation/continuum_estimation/BG_estimationNN_example.ipynb>
    Line background estimation <background_estimation/line_background/line_background_estimation_example_notebook.ipynb>
    Polarization (ASAD method) <polarization/ASAD_method.ipynb>
-<<<<<<< bugfix/ts_bkg_tutorials
-   Transient background estimation <background_estimation/transient_background/Transient_background_example.ipynb>
-=======
-   Polarization (Stokes parameters method) <polarization/Stokes_method.ipynb>
->>>>>>> develop

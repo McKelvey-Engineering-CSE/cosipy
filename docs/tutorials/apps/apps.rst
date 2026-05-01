@@ -59,6 +59,7 @@ Threeml has a built-in option to export a particular model to the .yaml format. 
 
 
 How to call the applications from the command line
+--------------------------------------------------
 ~~~~~~~~~~~~
 
 All these options are demonstrated in the tutorial.

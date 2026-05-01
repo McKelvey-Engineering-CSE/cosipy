@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "cosipy"
-version = "0.4.2dev0"
+version = "0.4.2"
 authors = [
           { name = "COSI Team", email = "imc@umd.edu" }
           ]
