@@ -2,30 +2,38 @@ import numpy as np
 
 from scipy.stats import poisson
 
-from queries.mapping_time_query import MapTimeQueryEngine
-from queries.success_probs      import SuccessProbs
+from queries.time_query import TimeQueryEngine
+from queries.success_probs import SuccessProbs
 
 time_quantile = 0.95   # quantile of mapping time used to estimate utility
 success_conf  = 0.95   # quantile for success prob confidence lower bound
 
 UTILITY_TOL = 1e-5     # how large a change in utility actually matters?
 
-mapping_time_data = "queries/emsoft.csv"
-success_prob_data = "queries/search_result_5.36x4.5_tiling.csv"
+mapping_time_data = "queries/short_mapping_time_stats.csv"
+success_prob_data = "queries/short_5.36x4.5_tiling.csv"
 
 # Will be loaded on first use
 mapping_time = None
+planning_time = None
 success_prob = None
 
 def load_utility_stats(mapping_time_data, success_prob_data):
 
-    global mapping_time, success_prob
+    global mapping_time, planning_time, success_prob
 
     # This class is from Daisy
-    mapping_time = MapTimeQueryEngine(csv_path = mapping_time_data,
-                                      quantiles = [time_quantile],
-                                      n_bins_per_axis = 20,
-                                      min_bin_count = 10)
+    mapping_time = TimeQueryEngine(csv_path = mapping_time_data,
+                                   field = "mapping_time",
+                                   quantiles = [time_quantile],
+                                   n_bins_per_axis = 20,
+                                   min_bin_count = 10)
+
+    planning_time = TimeQueryEngine(csv_path = success_prob_data,
+                                    field = "runtime",
+                                    quantiles = [time_quantile],
+                                    n_bins_per_axis = 20,
+                                    min_bin_count = 10)
 
     success_prob = SuccessProbs(csv_path = success_prob_data,
                                 nbins_e = 20,
@@ -133,11 +141,15 @@ def choose_mapping_start_time_utility(events_per_time_step, delta_t, bkg_rate,
                                                n_src = e - bh,
                                                quantile = time_quantile)
 
-                # 'b' binning and pessimistic estimate of t_mapping
-                # ensure that success_prob returns same utility for
-                # every 'b' in this bin.  WLOG we use the largest 'b'
-                # value in the bin.
-                sp = success_prob(deadline = deadline_overall - t_wait - t_mapping,
+                t_planning = planning_time.query(n_bkg = bh,
+                                                 n_src = e - bh,
+                                                 quantile = time_quantile)
+
+                # 'b' binning and pessimistic estimate of
+                # t_mapping/t_planning ensure that success_prob
+                # returns same utility for every 'b' in this bin.
+                # WLOG we use the largest 'b' value in the bin.
+                sp = success_prob(deadline = deadline_overall - t_wait - t_mapping - t_planning,
                                   n_total = e, n_bkg = bh)
 
                 # Because we get only 100qth %ile mapping time, we

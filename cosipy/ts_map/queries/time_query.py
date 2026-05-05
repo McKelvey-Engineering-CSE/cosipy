@@ -1,9 +1,9 @@
 """
-Mapping time query engine.
+Time query engine.
 Usage
 -----
-1. Fits parametric models to quantile levels of mapping_time
-    engine = MapTimeQueryEngine("emsoft.csv")
+1. Fits parametric models to quantile levels of time, e.g.,
+    engine = TimeQueryEngine("emsoft.csv", field="mapping_time")
 
 2. Query as needed after
     t = engine.query(n_src=400, n_bkg=900, quantile=0.99)
@@ -137,16 +137,16 @@ def _best_model(valid):
     return max(valid.items(), key=lambda kv: kv[1]["r2"])
 
 
-class MapTimeQueryEngine:
+class TimeQueryEngine:
 
-    def __init__(self, csv_path,
+    def __init__(self, csv_path, field="mapping_time",
                  quantiles=(0.90, 0.99, 0.999),
                  n_bins_per_axis=20,
                  min_bin_count=10):
         """
         Parameters
         ----------
-        csv_path        : path to CSV (must have n_src, n_bkg, mapping_time)
+        csv_path        : path to CSV (must have n_src, n_bkg, named field)
         quantiles       : quantile levels to fit
         n_bins_per_axis : 2D grid resolution
         min_bin_count   : bins with fewer samples are dropped before fitting
@@ -158,12 +158,12 @@ class MapTimeQueryEngine:
         print(f"Loaded {len(df):,} rows from {csv_path}", file=sys.stderr)
         print(f"  n_src       : [{df['n_src'].min():.0f}, {df['n_src'].max():.0f}]", file=sys.stderr)
         print(f"  n_bkg       : [{df['n_bkg'].min():.0f}, {df['n_bkg'].max():.0f}]", file=sys.stderr)
-        print(f"  mapping_time: [{df['mapping_time'].min():.3f}, "
-              f"{df['mapping_time'].max():.3f}] s", file=sys.stderr)
+        print(f"  {field} [{df[field].min():.3f}, "
+              f"{df[field].max():.3f}] s", file=sys.stderr)
 
         n_src = df["n_src"].values.astype(float)
         n_bkg = df["n_bkg"].values.astype(float)
-        cost  = df["mapping_time"].values.astype(float)
+        cost  = df[field].values.astype(float)
 
         binned, src_edges, bkg_edges = _bin_stats_2d(
             n_src, n_bkg, cost, n_bins_per_axis, self.quantiles)
@@ -221,7 +221,7 @@ class MapTimeQueryEngine:
     # query interface
     def query(self, n_src, n_bkg, quantile=0.99):
         """
-        Predicted mapping_time at the given quantile level.
+        Predicted time at the given quantile level.
 
         If quantile matches a fitted level exactly, uses that model directly.
         If quantile falls between two fitted levels, LINEARLY interpolates.
@@ -234,7 +234,7 @@ class MapTimeQueryEngine:
 
         Returns
         -------
-        t : float  predicted mapping time in seconds
+        t : float  predicted time in seconds
         """
         k = _qkey(quantile)
 
@@ -260,7 +260,7 @@ class MapTimeQueryEngine:
 
     def query_all(self, n_src, n_bkg):
         """
-        Return predicted mapping time for every fitted quantile.
+        Return predicted time for every fitted quantile.
 
         Returns
         -------
@@ -423,7 +423,7 @@ class MapTimeQueryEngine:
         for j in range(len(self.quantiles), len(axes_flat)):
             axes_flat[j].set_visible(False)
 
-        fig.suptitle("Pred vs Binned Target — Mapping Time Quantiles\n"
+        fig.suptitle("Pred vs Binned Target — Time Quantiles\n"
                     "(dot size ∝ bin count)", fontsize=13, y=1.01)
         plt.tight_layout()
         if output_path:
@@ -437,9 +437,10 @@ class MapTimeQueryEngine:
 
 if __name__ == "__main__":
     #example usage
-    # from mapping_time_query import MapTimeQueryEngine
-    engine = MapTimeQueryEngine(
+    # from time_query import TimeQueryEngine
+    engine = TimeQueryEngine(
         csv_path="emsoft.csv",
+        field="mapping_time",
         quantiles=[0.90, 0.99, 0.999],
         n_bins_per_axis=20,
         min_bin_count=10,
@@ -448,11 +449,11 @@ if __name__ == "__main__":
     # Single query
     n_src, n_bkg = 400, 900
     t = engine.query(n_src=n_src, n_bkg=n_bkg, quantile=0.99)
-    print(f"\nPredicted mapping time (q=0.99 | n_src={n_src}, n_bkg={n_bkg}): {t:.3f} s")
+    print(f"\nPredicted time (q=0.99 | n_src={n_src}, n_bkg={n_bkg}): {t:.3f} s")
 
     # linearly interpolated query (if 0.995 is not fitted)
     t2 = engine.query(n_src=n_src, n_bkg=n_bkg, quantile=0.995)
-    print(f"Predicted mapping time (q=0.995, interpolated): {t2:.3f} s")
+    print(f"Predicted time (q=0.995, interpolated): {t2:.3f} s")
 
     # batch query
     print("\nBatch query (q=0.99):")
