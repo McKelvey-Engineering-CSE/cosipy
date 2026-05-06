@@ -32,7 +32,7 @@ accommodate new features in cosipy.
   
 Do the following (preferably inside a conda environment)::
 
-    git clone git@github.com:cositools/cosipy.git
+    git clone https://github.com/cositools/cosipy
     cd cosipy
     pip install -e .
 
