@@ -17,3 +17,5 @@ Other examples
    Extended source injector <source_injector/Extended_source_injector.ipynb>
 
    Polarization (maximum likelihood method) <polarization/maximum_likelihood_method.ipynb>
+
+   Light curve (flux light curve of a GRB) <light_curves/speclc_grbdc3.ipynb>
