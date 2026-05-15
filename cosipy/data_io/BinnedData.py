@@ -27,7 +27,7 @@ class BinnedData(UnBinnedData):
     def get_binned_data(self, unbinned_data=None, output_name=None,
                         make_binning_plots=False, show_plots=False,
                         psichi_binning="galactic", event_range=None,
-                        weights=None, sparse=None, track_overflow=None):
+                        weights=None, sparse=True, track_overflow=None):
 
         """Bin the data using histpy and mhealpy.
 
@@ -53,7 +53,7 @@ class BinnedData(UnBinnedData):
             use weight of 1
         sparse : bool, optional
             'True' for sparse binning, or
-            'False' for dense binning (default is False).
+            'False' for dense binning (default is True).
         track_overflow: bool, optional
             option to track under/overflow bin (default is False).
 
