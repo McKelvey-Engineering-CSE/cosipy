@@ -454,7 +454,7 @@ class BinnedData(UnBinnedData):
 
         # Plot:
         plot_kwargs = {"label":"raw spectrum", "ls":"", "marker":"o", "color":"black"}
-        fig_kwargs = {"xlabel":"Energy [keV]", "ylabel":ylabel}
+        fig_kwargs = {"xlabel":"Energy [keV]", "ylabel":ylabel, "xlim":(1e2,5e3)}
         self.make_basic_plot(self.energy_bin_centers, raw_rate,
                              x_error=self.energy_bin_widths/2.0,
                              output_name=output_name,
