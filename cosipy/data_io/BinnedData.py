@@ -10,17 +10,14 @@ from mhealpy import HealpixMap, HealpixBase
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from histpy import Histogram, HealpixAxis, Axis, Axes
+from histpy import Histogram, Axis, Axes, HealpixAxis
 from scoords import SpacecraftFrame
 
 from cosipy.data_io import UnBinnedData
 
-import logging
-import astropy.units as u
-from astropy.coordinates import SkyCoord
-
 from cosipy.interfaces import BinnedDataInterface
 
+import logging
 logger = logging.getLogger(__name__)
 
 
@@ -334,8 +331,8 @@ class BinnedData(UnBinnedData):
             self.load_binned_data_from_hdf5(binned_data)
 
         # Make healpix map with binned data slice:
-        h = self.binned_data.project('Em', 'Phi', 'PsiChi').slice[{'Em':Em, 'Phi':phi}].project('PsiChi')
-        m = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.to_dense(copy=False).contents)
+        h = self.binned_data.slice[{'Em':Em, 'Phi':phi}].project('PsiChi').to_dense(copy=False)
+        m = HealpixMap(base = HealpixBase(npix = h.nbins), data = h.contents)
 
         # Plot standard view:
         plot,ax = m.plot('mollview')
@@ -474,7 +471,9 @@ class BinnedData(UnBinnedData):
 
     def get_raw_lightcurve(self, binned_data=None, output_name=None, show_plots=False):
 
-        """Calculates raw lightcurve of binned data, plots, and writes data to file.
+        """
+        Calculates raw lightcurve of binned data, plots, and writes data
+        to file.
 
         Parameters
         ----------
@@ -484,6 +483,7 @@ class BinnedData(UnBinnedData):
             Prefix of output files. Writes both pdf and dat file.
         show_plots : bool, optional
             Wether or not to show plot (default is False).
+
         """
 
         # Log message:
@@ -516,8 +516,10 @@ class BinnedData(UnBinnedData):
 
 class EmCDSBinnedData(BinnedDataInterface):
     """
-    Measured energy (Em), Compton polar scattering angle (Phi), and the scattering direction (PsiChi).
+    Measured energy (Em), Compton polar scattering angle (Phi), and
+    the scattering direction (PsiChi).
     Phi and PsiChi are the Compton Data Space (CDS). No time dependence
+
     """
     def __init__(self, data:Histogram):
 
