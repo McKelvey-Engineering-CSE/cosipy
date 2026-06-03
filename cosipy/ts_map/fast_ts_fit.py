@@ -872,9 +872,6 @@ class PSRCache:
         # is Ei x CDS dims
         counts = self.response.get_counts(p, self.em_slice)
 
-        # convert to float : Ei x CDS dims
-        counts = counts.astype(self.response.dtype, copy=False)
-
         # linearize CDS : Ei x CDS voxels. Note that we ensure in
         # FastTSMap that data and bkg will use the same dimension
         # ordering as the response for the CDS, so there is no need to
@@ -883,8 +880,8 @@ class PSRCache:
 
         # extract valid CDS voxels of psr after capturing sum of *all*
         # voxels : Ei x valid CDS voxels
-        psr_sum = np.sum(counts, axis=1)
-        psr = counts[:, self.valid_cells]
+        psr_sum = np.sum(counts, axis=1, dtype=self.response.dtype)
+        psr = counts[:, self.valid_cells].astype(self.response.dtype)
 
         # convolve psr with flux (and also eff_area correction
         # weights, which have not yet been applied) to remove Ei
