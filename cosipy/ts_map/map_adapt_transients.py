@@ -33,54 +33,21 @@ from cosipy import FastTSMap, MOCTSMap
 from cosipy.response import GalacticResponse
 from cosipy.response.functions import get_integrated_spectral_model
 
+from cosipy.ts_map.map_argparse import parse_args
+
 from cosipy.ts_map.read_dc3_data import (
     read_transient_params,
     read_unbinned_events,
     combine_unbinned_events,
 )
 
-from cosipy.ts_map.mapping_time import choose_mapping_start_time
+from cosipy.ts_map.mapping_time import (
+    load_utility_stats,
+    choose_mapping_start_time,
+)
 
 from sphdist import moc_expected_angdist
 
-###################################
-# CONFIG
-
-model_dir = Path("/project/cassini/adapt_grbs")
-
-bkg_model_path = model_dir / "adapt_bkg_model.h5"
-
-response_path = model_dir / "adapt_response_w_area.h5"
-
-# draw a sample of this size from the source set
-# set to None to use entire source set
-#SAMPLE_SIZE = 10000
-SAMPLE_SIZE = None
-
-# number of CPU cores to use in mapping
-NUM_CPUS = 8
-
-# max resolution of map
-MAP_NSIDE = 64
-
-# seed for Numpy randomization
-RANDOM_SEED = 1957
-
-# time resolution to use for endpoint detection estimation
-ENDPOINT_RESOLUTION = 1
-
-# produce an image for each map
-GEN_MAP_IMAGE = False
-
-# produce a data file for each map
-GEN_MAP_DATA = False
-
-# We run a few warmup iterations to make sure the JIT runs and avoid
-# other startup transients.  This should always be at least 1 but
-# should be a bit more to get timings to stabilize.
-N_WARMUP = 3
-
-###################################
 
 def moc_llr_to_prob(llrs, uniq_pix):
 
@@ -190,11 +157,35 @@ def get_bkg_prior_rate(bkg_path):
 
 ###############################################################
 
-np.random.seed(RANDOM_SEED)
+#
+# Begin by parsing input arguments
+#
 
-transient_path = Path(sys.argv[1])
+args = parse_args(sys.argv)
 
-ed = sys.argv[2]
+RAND_SEED = args["randseed"]
+np.random.seed(RAND_SEED)
+
+# number of samples to draw from input transients
+# (None == use them all)
+SAMPLE_SIZE = args["samples"]
+if SAMPLE_SIZE is not None:
+    SAMPLE_SIZE = int(SAMPLE_SIZE)
+
+# number of CPU cores to use in mapping
+NUM_CPUS = args["nthreads"]
+
+# max resolution of map
+MAP_NSIDE = args["nside"]
+
+# time resolution to use for endpoint detection estimation
+ENDPOINT_RESOLUTION = args["endpoint_resolution"]
+
+N_WARMUP = args["warmup"]
+if N_WARMUP < 1:
+    print(f"WARNING: no warm-up iterations; times will be inaccurate", file=sys.stderr)
+
+ed = args["endpoint_mode"]
 if ed == "gt":
     # use "cheating" burst endpoint detection (ground truth)
     # rather than estimating
@@ -207,12 +198,33 @@ else:
         # overall deadline to use for endpoint detection estimation
         ENDPOINT_DEADLINE = float(ed)
 
-if GEN_MAP_IMAGE or GEN_MAP_DATA:
-    output_dir = Path(sys.argv[3])
-    output_path = output_dir
+
+### paths to data files
+
+# input transients
+transient_path = args["transient_path"]
+
+# instrument response and background model
+response_path  = args["response"]
+bkg_model_path = args["bkg_model"]
+
+# training data for utility method
+if not ENDPOINT_CHEAT and ENDPOINT_DEADLINE is not None:
+    mapping_times_path = args["training_times"]
+    success_probs_path = args["training_outcomes"]
+
+    load_utility_stats(mapping_times_path, success_probs_path)
+
+# output path for maps and/or images
+if args["gen_images"] or args["gen_maps"]:
+    output_path = args["output"]
     output_path.mkdir(parents=True, exist_ok=True)
 else:
     print("WARNING: map and image output disabled!", file=sys.stderr)
+
+###########################################
+
+# Obtain list of transient source files to map.
 
 sources = list(transient_path.glob("adapt_*_source.h5"))
 if len(sources) == 0:
@@ -220,6 +232,7 @@ if len(sources) == 0:
     exit(1)
 else:
     print(f"Found {len(sources)} sources at {transient_path}", file=sys.stderr)
+
 
 if SAMPLE_SIZE is not None:
     if SAMPLE_SIZE >= len(sources):
@@ -231,10 +244,10 @@ if SAMPLE_SIZE is not None:
                                              replace=False)]
 sources.sort()
 
-if N_WARMUP < 1:
-    print(f"WARNING: no warm-up iterations; times will be inaccurate", file=sys.stderr)
 
 sources = [sources[0]]*N_WARMUP + sources
+
+# Open the response and background model files.
 
 print("Opening detector response and background model...", file=sys.stderr)
 response = GalacticResponse.open(response_path, dtype=np.float32)
@@ -348,7 +361,7 @@ for i, signal_path in enumerate(sources):
         n_src = np.count_nonzero(src_mask)
         n_bkg = len(events["time"]) - n_src
 
-        if GEN_MAP_IMAGE:
+        if args["gen_images"]:
             mapper.plot_ts(m_llrs, m_pix,
                            skycoord = true_src_loc,
                            grid_lines = True,
@@ -358,7 +371,7 @@ for i, signal_path in enumerate(sources):
                            save_dir = output_path,
                            save_name = f"{prefix}_map.png")
 
-        if GEN_MAP_DATA:
+        if args["gen_maps"]:
             save_moc_map(m_llrs, m_pix,
                          out_nside = 64,
                          true_src_loc = true_src_loc,

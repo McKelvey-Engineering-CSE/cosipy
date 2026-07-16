@@ -10,9 +10,6 @@ success_conf  = 0.95   # quantile for success prob confidence lower bound
 
 UTILITY_TOL = 1e-5     # how large a change in utility actually matters?
 
-mapping_time_data = "queries/short_mapping_time_stats.csv"
-success_prob_data = "queries/short_5.36x4.5_tiling.csv"
-
 # Will be loaded on first use
 mapping_time = None
 planning_time = None
@@ -88,7 +85,7 @@ def choose_mapping_start_time_utility(events_per_time_step, delta_t, bkg_rate,
     """
 
     if success_prob is None:
-        load_utility_stats(mapping_time_data, success_prob_data)
+        raise RuntimeError("Must call load_utility_stats() before computing utility-based mapping start times")
 
     # compute total events seen after each time step
     total_events = np.cumsum(events_per_time_step)
@@ -149,14 +146,8 @@ def choose_mapping_start_time_utility(events_per_time_step, delta_t, bkg_rate,
                 # t_mapping/t_planning ensure that success_prob
                 # returns same utility for every 'b' in this bin.
                 # WLOG we use the largest 'b' value in the bin.
-                sp = success_prob(deadline = deadline_overall - t_wait - t_mapping - t_planning,
+                utility = success_prob(deadline = deadline_overall - t_wait - t_mapping - t_planning,
                                   n_total = e, n_bkg = bh)
-
-                # Because we get only 100qth %ile mapping time, we
-                # must assume that with probability 1 - q, that time
-                # is arbitarily large, exceeding our overall deadline
-                # and leading to failure.
-                utility = time_quantile * (1 if success_conf is None else success_conf) * sp
 
                 # if utility goes to 0 for some 'b' bin, it will be 0
                 # for all higher 'b' bins. Don't add 0's to the
