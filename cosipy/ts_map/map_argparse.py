@@ -67,7 +67,8 @@ def parse_args(argv):
     parser.add_argument('-s', '--samples', default=None,
                         help='number of transients to sample from input path (default: all)')
 
-    parser.add_argument('-t', '--nthreads', default=8,
+    parser.add_argument('-t', '--nthreads', type=int,
+                        default=8,
                         help='number of CPU threads to use in mapping (default: 8)')
 
     parser.add_argument('-w', '--warmup', type=int,
