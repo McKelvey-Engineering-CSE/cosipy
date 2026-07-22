@@ -71,7 +71,7 @@ class FastNormFit:
         self.allow_negative = allow_negative
 
     @staticmethod
-    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=False)
     def ts(data, bkg, unit_excess, ue_sum, norm):
         """
         Get TS for a given normalization.
@@ -149,7 +149,7 @@ class FastNormFit:
     '''
 
     @staticmethod
-    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=False)
     def d1ts(data, bkg, unit_excess, ue_sum, norm):
         """
         Get the first derivative of TS with respect to the normalization,
@@ -172,7 +172,7 @@ class FastNormFit:
         return 2*f
 
     @staticmethod
-    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=False)
     def d2ts(data, bkg, unit_excess, norm):
         """
         Get the first derivative of TS with respect to the normalization,
@@ -195,7 +195,7 @@ class FastNormFit:
         return -2*fp
 
     @staticmethod
-    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=False)
     def halley_stepsize(data, bkg, unit_excess, ue_sum, norm):
         """
         Step size for Halley's method.  Equivalent to
@@ -228,7 +228,7 @@ class FastNormFit:
 
     '''
     @staticmethod
-    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=False)
     def newton_stepsize(data, bkg, unit_excess, ue_sum, norm):
         """
         Step size for Newton's method.  Equivalent to
@@ -257,7 +257,7 @@ class FastNormFit:
     '''
 
     @staticmethod
-    @jit(nopython=True, nogil=True, fastmath=True, parallel=True)
+    @jit(nopython=True, nogil=True, fastmath=True, parallel=False)
     def newton_loop(data, bkg, unit_excess, ue_sum, max_iter, conv_frac_tol):
 
         norm = data.dtype.type(0)
