@@ -531,6 +531,7 @@ class FastTSMap():
 
     @staticmethod
     def plot_ts(m_ts, skycoord = None, containment = None, scheme="nested",
+                save_plot = False, save_dir = "",
                 save_name = "ts_map.png", dpi = 300,*, mark_center=True):
         """
         Plot a TS map.
@@ -586,7 +587,7 @@ class FastTSMap():
                            label = f"True location at l={lon}, b={lat}",
                            color = "fuchsia")
 
-        if mark_center==True:
+        if mark_center:
 
             hp.projscatter(0, 0, marker = "o",
                            linewidths = 0.5,

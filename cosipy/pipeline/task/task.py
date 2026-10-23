@@ -24,6 +24,8 @@ from cosipy.pipeline.src.preprocessing import get_binned_data, write_yaml
 from pathlib import Path
 from histpy import Histogram
 from cosipy import FastTSMap,MOCTSMap
+from cosipy.response import FullDetectorResponse
+from cosipy.response.functions import get_integrated_spectral_model
 from cosipy.spacecraftfile import SpacecraftHistory
 
 from astromodels.core.model_parser import ModelParser
@@ -177,7 +179,7 @@ def cosi_threemlfit(argv=None):
             Fits a source at l,b and optionally in a time window tstart-tstop using the given model.
             Data, response and orientation files paths in the config file should be relative to the config file.
             Outputs fit results in a hdf file and a pdf plot of the fits. The fitted parameter
-            are also printed to stdout. If the fit fails, the error message is printed to stdout, 
+            are also printed to stdout. If the fit fails, the error message is printed to stdout,
             an empty hdf is saved and no plot is produced
             """),
         formatter_class=argparse.RawTextHelpFormatter)
@@ -325,15 +327,15 @@ def  cosi_tsdetect (argv=None):
         description=textwrap.dedent(
             """
             Performs Test Statistic (TS) map fitting, with optional time-windowing (tstart-tstop).
-            Data, background, response, and orientation file paths in the configuration file 
+            Data, background, response, and orientation file paths in the configuration file
             must be relative to the configuration file's location.
             Features:
             - Multiresolution: If enabled in the config, uses Multi-Order Coverage (MOC) maps.
             - Coordinate Systems: Supports Galactic or Local systems as specified by the user.
-            - Resolution Control: The 'nside' parameter in the config sets either the fixed resolution or the maximum depth for MOC fits.   
+            - Resolution Control: The 'nside' parameter in the config sets either the fixed resolution or the maximum depth for MOC fits.
             Outputs:
             - Printed to stdout: Maximum TS value, its Galactic coordinates, and the pixel linear size of the TS/MOC map.
-            - Files: A PNG plot of the TS map is saved to the output directory. 
+            - Files: A PNG plot of the TS map is saved to the output directory.
             """),
         formatter_class=argparse.RawTextHelpFormatter)
 
@@ -404,7 +406,7 @@ def  cosi_tsdetect (argv=None):
 
     #Open the data histogram
     data_full = Histogram.open(data_path)
-    
+
     # Slice the data in time if needed:
 
     tstart = config.get("cuts:kwargs:tstart")
@@ -455,13 +457,23 @@ def  cosi_tsdetect (argv=None):
         raise RuntimeError(f"{map_filename} already exists. If you mean to replace it then use --overwrite.")
     # Calculation
 
+    response = FullDetectorResponse.open(resp_path)
+
+    spectral_flux = get_integrated_spectral_model(spectrum, response.axes["Ei"])
+
     if multiresolution==False:
 
-        ts = FastTSMap(data=binned_data, bkg_model=bkg_model, orientation=ori,
-                   response_path=resp_path, cds_frame=coo_sys)
+        ts = FastTSMap(orientation=ori,
+                       response=response,
+                       cds_frame=coo_sys,
+                       energy_channel=energy_channels)
 
-        ts_results = ts.fit(nside=nside_search, energy_channel=energy_channels,
-                        spectrum=spectrum, cpu_cores=cpu_cores)
+        ts_results = ts.fit(data=binned_data,
+                            bkg_model=bkg_model,
+                            nside=nside_search,
+                            spectral_flux=spectral_flux,
+                            cpu_cores=cpu_cores)
+
         max_ts,max_coo,max_l,max_b,pixel_mean_spacing=get_ts_results(map_filename, ts_results,multiresolution,nside=nside_search,overwrite_map=args.overwrite)
         print("Maximum TS= %f" % max_ts)
         print("Galactic coordinate at maximum TS: l=%f, b=%f" %(max_l, max_b))
@@ -473,17 +485,21 @@ def  cosi_tsdetect (argv=None):
 
     elif multiresolution==True:
 
-        moc_ts = MOCTSMap(data = binned_data, bkg_model = bkg_model, response_path = resp_path, orientation = ori, cds_frame = coo_sys)
+        moc_ts = MOCTSMap(response=response,
+                          orientation = ori,
+                          cds_frame = coo_sys,
+                          energy_channel=energy_channels)
 
         strategy = MOCTSMap.PaddingStrategy(
             MOCTSMap.ContainmentStrategy(moc_containment_strategy)
         )
 
         moc_results, moc_uniq = moc_ts.fit(
+            data=binned_data,
+            bkg_model=bkg_model,
             max_nside=nside_search,
             init_nside=moc_init_nside,
-            energy_channel=energy_channels,
-            spectrum=spectrum,
+            spectral_flux=spectral_flux,
             cpu_cores=cpu_cores,
             strategy=strategy,
         )
@@ -498,5 +514,3 @@ def  cosi_tsdetect (argv=None):
 
 if __name__ == "__main__":
         cosi_tsdetect()
-
-
