@@ -56,9 +56,9 @@ class FastTSMap():
             Maximum number of entries to store in PSRCache; if None,
             no limit
 
-        Note: the floating-point precision used for mapping is determined
-        by the precision of the 'data' argument.  Use single precision
-        if desired for faster performance.
+        Note: the floating-point precision used for mapping is
+        determined by the precision of the response.  Use single
+        precision if desired for faster performance.
 
         """
 
